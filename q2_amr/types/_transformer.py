@@ -18,6 +18,7 @@ from ..plugin_setup import plugin
 from ._format import CARDDatabaseFormat, CARDAnnotationTXTFormat, CARDAnnotationJSONFormat
 
 
+
 @plugin.register_transformer
 def _9(data: CARDDatabaseFormat) -> pd.DataFrame:
     ff = pd.read_json(str(data)).transpose()

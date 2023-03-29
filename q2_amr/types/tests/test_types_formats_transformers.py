@@ -215,4 +215,3 @@ class TestCARDAnnotationTypesAndFormats(AMRTypesTestPluginBase):
             dna_contents_exp = dna_fh_exp.read()
         self.assertEqual(protein_contents_obs, protein_contents_exp)
         self.assertEqual(dna_contents_obs, dna_contents_exp)
-

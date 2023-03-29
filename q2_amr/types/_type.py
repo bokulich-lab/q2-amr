@@ -9,4 +9,9 @@
 from qiime2.plugin import SemanticType
 
 CARDDatabase = SemanticType('CARDDatabase')
+<<<<<<< HEAD
 CARDAnnotation = SemanticType('CARDAnnotation')
+=======
+CARDAnnotationtxt = SemanticType('CARDAnnotationtxt')
+CARDAnnotationjson = SemanticType('CARDAnnotationjson')
+>>>>>>> 7b8807a (copy over from rescript)

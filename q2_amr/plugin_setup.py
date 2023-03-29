@@ -80,6 +80,7 @@ plugin.methods.register_function(
     citations=[citations['alcock_card_2023']]
 )
 
+
 plugin.visualizers.register_function(
     function=heatmap,
     inputs={'amr_annotation_json': CARDAnnotation},

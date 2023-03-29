@@ -7,7 +7,6 @@
 # ----------------------------------------------------------------------------
 import json
 from copy import copy
-
 import pandas as pd
 import qiime2.plugin.model as model
 from qiime2.plugin import ValidationError
