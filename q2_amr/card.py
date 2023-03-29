@@ -12,6 +12,8 @@ import q2templates
 import requests
 import skbio
 from q2_types.feature_data import ProteinFASTAFormat, DNAFASTAFormat
+from q2_types.per_sample_sequences import PairedEndSequencesWithQuality, SingleLanePerSamplePairedEndFastqDirFmt
+from q2_types.sample_data import SampleData
 
 from skbio import Protein, DNA
 
@@ -166,42 +168,106 @@ def heatmap(output_dir: str,
     templates = [index]
     q2templates.render(templates, output_dir, context=context)
 
-# def card_bwt(sequences: SampleData[PairedEndSequencesWithQuality],
-#                     aligner: str = 'kma',
-#
-#                     split_prodigal_jobs: bool = False,
-#                     loose: bool = False,
-#                     nudge: bool = True,
-#                     low_quality: bool = False,
-#                     threads: int = 8) -> (pd.DataFrame, dict, ProteinFASTAFormat, DNAFASTAFormat):
-#     with tempfile.TemporaryDirectory() as tmp:
-#         cmd = [f'rgi main --input_sequence {str(sequences)} --output_file {tmp}/output -n {threads}']
-#         if loose:
-#             cmd.extend([" --include_loose"])
-#         if not nudge:
-#             cmd.extend([" --exclude_nudge"])
-#         if low_quality:
-#             cmd.extend([" --low_quality"])
-#         if split_prodigal_jobs:
-#             cmd.extend([" --split_prodigal_jobs"])
-#         if alignment_tool == 'Blast':
-#             cmd.extend([" -a BLAST"])
-#         elif alignment_tool == 'DIAMOND':
-#             cmd.extend([" -a DIAMOND"])
-#         if input_type == 'contig':
-#             cmd.extend([" -t contig"])
-#         elif input_type == 'protein':
-#             cmd.extend([" -t protein"])
-#         try:
-#             run_command(cmd, verbose=True)
-#         except subprocess.CalledProcessError as e:
-#             raise Exception(
-#                 "An error was encountered while running rgi, "
-#                 f"(return code {e.returncode}), please inspect "
-#                 "stdout and stderr to learn more."
-#             )
-#         with open(f'{tmp}/output.json', 'r') as file:
-#             amr_annotation_json = json.load(file)
-#         amr_annotation_txt = pd.read_csv(f'{tmp}/output.txt', sep="\t")
-#     protein_fasta, dna_fasta = card_annotation_df_to_fasta(amr_annotation_txt)
-#     return amr_annotation_txt, amr_annotation_json, protein_fasta, dna_fasta
+
+def bwt(output_dir: str,
+        reads: SingleLanePerSamplePairedEndFastqDirFmt,
+        card_database: CARDDatabaseFormat,
+        aligner: str = 'kma',
+        threads: int = 8,
+        local: bool = False,
+        include_baits: bool = False,
+        mapq: int = None,
+        mapped: int = None,
+        coverage: float = None):
+    TEMPLATES = pkg_resources.resource_filename("q2_amr", "assets", "rgi")
+    paired = isinstance(reads, SingleLanePerSamplePairedEndFastqDirFmt)
+    manifest = reads.manifest.view(pd.DataFrame)
+    for samp in list(manifest.index):
+        fwd = manifest.loc[samp, "forward"]
+        rev = manifest.loc[samp, "reverse"] if paired else None
+        with tempfile.TemporaryDirectory() as tmp:
+            results_dir = os.path.join(tmp, "results", samp)
+            os.makedirs(results_dir)
+            load_card_db(tmp, card_database)
+            preprocess_card_db(tmp)
+            run_rgi_bwt(tmp, fwd, rev, results_dir, samp, aligner, threads, local, include_baits, mapq, mapped, coverage)
+            copy_tree(results_dir, os.path.join(output_dir, "bwt_data"))
+        copy_tree(os.path.join(TEMPLATES, "bwt"), output_dir)
+    context = {
+        "tabs": [
+            {"title": "QC report", "url": "index.html"}]
+    }
+    index = os.path.join(TEMPLATES, 'bwt', 'index.html')
+    templates = [index]
+    q2templates.render(templates, output_dir, context=context)
+
+
+def run_rgi_bwt(tmp,
+                fwd,
+                rev,
+                results_dir,
+                samp,
+                aligner: str = 'kma',
+                threads: int = 8,
+                local: bool = False,
+                include_baits: bool = False,
+                mapq: int = None,
+                mapped: int = None,
+                coverage: float = None):
+    cmd = ['rgi', 'bwt', '--read_one', f'{str(fwd)}', '--read_two', f'{str(rev)}', '--output_file',
+           f'{results_dir}/{samp}', '-n', f'{threads}']
+    if local:
+        cmd.append(["--local"])
+    if not include_baits:
+        cmd.append(["--include_baits"])
+    if mapq:
+        cmd.append(["--mapq" f"{mapq}"])
+    if mapped:
+        cmd.append(["--mapped", "{mapped}"])
+    if coverage:
+        cmd.append(["--coverage" f"{coverage}"])
+    cmd.append(['--aligner', f'{aligner}'])
+    try:
+        run_command(cmd, tmp, verbose=True)
+    except subprocess.CalledProcessError as e:
+        raise Exception(
+            "An error was encountered while running rgi bwt, "
+            f"(return code {e.returncode}), please inspect "
+            "stdout and stderr to learn more."
+        )
+
+
+def load_card_db(tmp, card_database):
+    cmd_load_card_db = ['rgi', 'load', '--card_json', f'{str(card_database)}', '--local']
+    try:
+        run_command(cmd_load_card_db, tmp, verbose=True)
+    except subprocess.CalledProcessError as e:
+        raise Exception(
+            "An error was encountered while running rgi load, "
+            f"(return code {e.returncode}), please inspect "
+            "stdout and stderr to learn more."
+        )
+
+
+def preprocess_card_db(tmp):
+    cmd_preprocess_card_db_log = ['rgi', 'card_annotation', '-i', f'{tmp}/localDB/card.json', '>', 'card_annotation.log', '2>&1']
+    try:
+        run_command(cmd_preprocess_card_db_log, tmp, verbose=True)
+    except subprocess.CalledProcessError as e:
+        raise Exception(
+            "An error was encountered while running rgi card_annotation, "
+            f"(return code {e.returncode}), please inspect "
+            "stdout and stderr to learn more."
+        )
+    with open(f'{tmp}/card.json') as f:
+        card_data = json.load(f)
+        version = card_data['_version']
+    cmd_preprocess_card_db_fasta = ['rgi', 'load', '-i', f'{tmp}/localDB/card.json', '--card_annotation', f'card_database_v{version}.fasta', '--local']
+    try:
+        run_command(cmd_preprocess_card_db_fasta, tmp, verbose=True)
+    except subprocess.CalledProcessError as e:
+        raise Exception(
+            "An error was encountered while running rgi load, "
+            f"(return code {e.returncode}), please inspect "
+            "stdout and stderr to learn more."
+        )

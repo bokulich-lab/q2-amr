@@ -7,6 +7,7 @@
 # ----------------------------------------------------------------------------
 import json
 import shutil
+import os
 import tarfile
 import pandas as pd
 import tempfile
@@ -26,6 +27,9 @@ from q2_amr.types._transformer import extract_sequence, _read_from_card_file
 
 from unittest.mock import patch, MagicMock
 from Bio import SeqIO
+
+from qiime2 import Artifact
+
 
 class AMRTypesTestPluginBase(TestPluginBase):
     package = 'q2_amr.types.tests'
@@ -70,7 +74,6 @@ class TestCARDDatabaseTypesAndFormats(AMRTypesTestPluginBase):
         obs = transformer(card_db)
         self.assertIsInstance(obs, ProteinIterator)
 
-
     def test_dna_card_iterator_transformer(self):
         filepath = self.get_data_path('card_test.json')
         transformer = self.get_transformer(CARDDatabaseFormat, DNAIterator)
@@ -81,8 +84,6 @@ class TestCARDDatabaseTypesAndFormats(AMRTypesTestPluginBase):
         self.assertIsInstance(obs, DNAIterator)
         for e, o in zip(exp, obs):
             self.assertEqual(e, o)
-
-
 
     def test_protein_card_fasta_transformer(self):
         filepath = self.get_data_path('card_test.json')
@@ -106,7 +107,6 @@ class TestCARDDatabaseTypesAndFormats(AMRTypesTestPluginBase):
         self.assertDictEqual(obs_dict, exp_dict)
         self.assertIsInstance(obs, DNAFASTAFormat)
 
-
     @patch('requests.get')
     def test_fetch_card_db(self, mock_requests):
         f = open(self.get_data_path('card.tar.bz2'), 'rb')
@@ -114,7 +114,8 @@ class TestCARDDatabaseTypesAndFormats(AMRTypesTestPluginBase):
         mock_requests.return_value = mock_response
         obs = fetch_card_db(version='3.2.6')
         self.assertIsInstance(obs, pd.DataFrame)
-        mock_requests.assert_called_once_with('https://card.mcmaster.ca/download/0/broadstreet-v3.2.6.tar.bz2', stream=True)
+        mock_requests.assert_called_once_with('https://card.mcmaster.ca/download/0/broadstreet-v3.2.6.tar.bz2',
+                                              stream=True)
         exp = pd.read_json(self.get_data_path('card_test.json')).transpose()
         assert_frame_equal(obs, exp)
 
@@ -132,7 +133,8 @@ class TestCARDDatabaseTypesAndFormats(AMRTypesTestPluginBase):
         with open(self.get_data_path('card_test.json'), 'rb') as f:
             db = json.load(f)
         obs = extract_sequence('dna', '2', '1188', db)
-        exp = DNA("ATGAAAGCATATTTCATCGCCATACTTACCTTATTCACTTGTATAGCTACCGTCGTCCGGGCGCAGCAAATGTCTGAACTTGAAAACCGGATTGACAGTCTGCTCAATGGCAAGAAAGCCACCGTTGGTATAGCCGTATGGACAGACAAAGGAGACATGCTCCGGTATAACGACCATGTACACTTCCCCTTGCTCAGTGTATTCAAATTCCATGTGGCACTGGCCGTACTGGACAAGATGGATAAGCAAAGCATCAGTCTGGACAGCATTGTTTCCATAAAGGCATCCCAAATGCCGCCCAATACCTACAGCCCCCTGCGGAAGAAGTTTCCCGACCAGGATTTCACGATTACGCTTAGGGAACTGATGCAATACAGCATTTCCCAAAGCGACAACAATGCCTGCGACATCTTGATAGAATATGCAGGAGGCATCAAACATATCAACGACTATATCCACCGGTTGAGTATCGACTCCTTCAACCTCTCGGAAACAGAAGACGGCATGCACTCCAGCTTCGAGGCTGTATACCGCAACTGGAGTACTCCTTCCGCTATGGTCCGACTACTGAGAACGGCTGATGAAAAAGAGTTGTTCTCCAACAAGGAGCTGAAAGACTTCTTGTGGCAGACCATGATAGATACTGAAACCGGTGCCAACAAACTGAAAGGTATGTTGCCAGCCAAAACCGTGGTAGGACACAAGACCGGCTCTTCCGACCGCAATGCCGACGGTATGAAAACTGCAGATAATGATGCCGGCCTCGTTATCCTTCCCGACGGCCGGAAATACTACATTGCCGCCTTCGTCATGGACTCATACGAGACGGATGAGGACAATGCGAACATCATCGCCCGCATATCACGCATGGTATATGATGCGATGAGATGA")
+        exp = DNA(
+            "ATGAAAGCATATTTCATCGCCATACTTACCTTATTCACTTGTATAGCTACCGTCGTCCGGGCGCAGCAAATGTCTGAACTTGAAAACCGGATTGACAGTCTGCTCAATGGCAAGAAAGCCACCGTTGGTATAGCCGTATGGACAGACAAAGGAGACATGCTCCGGTATAACGACCATGTACACTTCCCCTTGCTCAGTGTATTCAAATTCCATGTGGCACTGGCCGTACTGGACAAGATGGATAAGCAAAGCATCAGTCTGGACAGCATTGTTTCCATAAAGGCATCCCAAATGCCGCCCAATACCTACAGCCCCCTGCGGAAGAAGTTTCCCGACCAGGATTTCACGATTACGCTTAGGGAACTGATGCAATACAGCATTTCCCAAAGCGACAACAATGCCTGCGACATCTTGATAGAATATGCAGGAGGCATCAAACATATCAACGACTATATCCACCGGTTGAGTATCGACTCCTTCAACCTCTCGGAAACAGAAGACGGCATGCACTCCAGCTTCGAGGCTGTATACCGCAACTGGAGTACTCCTTCCGCTATGGTCCGACTACTGAGAACGGCTGATGAAAAAGAGTTGTTCTCCAACAAGGAGCTGAAAGACTTCTTGTGGCAGACCATGATAGATACTGAAACCGGTGCCAACAAACTGAAAGGTATGTTGCCAGCCAAAACCGTGGTAGGACACAAGACCGGCTCTTCCGACCGCAATGCCGACGGTATGAAAACTGCAGATAATGATGCCGGCCTCGTTATCCTTCCCGACGGCCGGAAATACTACATTGCCGCCTTCGTCATGGACTCATACGAGACGGATGAGGACAATGCGAACATCATCGCCCGCATATCACGCATGGTATATGATGCGATGAGATGA")
         exp.metadata['id'] = 'gb|GQ343019.1|+|132-1023|ARO:3002999|CblA-1'
         exp.metadata['description'] = '[mixed culture bacterium AX_gF3SD01_15]'
         self.assertEqual(exp, obs)
@@ -142,7 +144,8 @@ class TestCARDDatabaseTypesAndFormats(AMRTypesTestPluginBase):
         with open(self.get_data_path('card_test.json'), 'rb') as f:
             db = json.load(f)
         obs = extract_sequence('protein', '2', '1188', db)
-        exp = Protein("MKAYFIAILTLFTCIATVVRAQQMSELENRIDSLLNGKKATVGIAVWTDKGDMLRYNDHVHFPLLSVFKFHVALAVLDKMDKQSISLDSIVSIKASQMPPNTYSPLRKKFPDQDFTITLRELMQYSISQSDNNACDILIEYAGGIKHINDYIHRLSIDSFNLSETEDGMHSSFEAVYRNWSTPSAMVRLLRTADEKELFSNKELKDFLWQTMIDTETGANKLKGMLPAKTVVGHKTGSSDRNADGMKTADNDAGLVILPDGRKYYIAAFVMDSYETDEDNANIIARISRMVYDAMR")
+        exp = Protein(
+            "MKAYFIAILTLFTCIATVVRAQQMSELENRIDSLLNGKKATVGIAVWTDKGDMLRYNDHVHFPLLSVFKFHVALAVLDKMDKQSISLDSIVSIKASQMPPNTYSPLRKKFPDQDFTITLRELMQYSISQSDNNACDILIEYAGGIKHINDYIHRLSIDSFNLSETEDGMHSSFEAVYRNWSTPSAMVRLLRTADEKELFSNKELKDFLWQTMIDTETGANKLKGMLPAKTVVGHKTGSSDRNADGMKTADNDAGLVILPDGRKYYIAAFVMDSYETDEDNANIIARISRMVYDAMR")
         exp.metadata['id'] = 'gb|ACT97415.1|ARO:3002999|CblA-1'
         exp.metadata['description'] = '[mixed culture bacterium AX_gF3SD01_15]'
         self.assertEqual(exp, obs)
@@ -152,7 +155,6 @@ class TestCARDDatabaseTypesAndFormats(AMRTypesTestPluginBase):
         path = self.get_data_path('card_test.json')
         genomes = _read_from_card_file(path, 'protein')
         self.assertIsInstance(genomes, ProteinFASTAFormat)
-
 
     def test_read_from_card_generator(self):
         path = self.get_data_path('card_test.json')
@@ -188,6 +190,7 @@ class TestCARDAnnotationTypesAndFormats(AMRTypesTestPluginBase):
     def test_annotate_card(self, mock_run_rgi_main):
         output_txt = self.get_data_path('rgi_output.txt')
         output_json = self.get_data_path('rgi_output.json')
+
         def mock_run_rgi_main(tmp, input_sequence, alignment_tool, input_type, split_prodigal_jobs, include_loose,
                               exclude_nudge, low_quality, num_threads):
             shutil.copy(output_txt, f"{tmp}/output.txt")
@@ -197,7 +200,6 @@ class TestCARDAnnotationTypesAndFormats(AMRTypesTestPluginBase):
             input_sequence = DNAFASTAFormat()
             result = annotate_card(input_sequence)[0]
             self.assertIsInstance(result, CARDAnnotationDirectoryFormat)
-
 
     def test_card_annotation_txt_to_fasta(self):
         filepath = self.get_data_path('rgi_output.txt')
@@ -216,3 +218,9 @@ class TestCARDAnnotationTypesAndFormats(AMRTypesTestPluginBase):
         self.assertEqual(protein_contents_obs, protein_contents_exp)
         self.assertEqual(dna_contents_obs, dna_contents_exp)
 
+    def test_bwt(self):
+        reads_path = "/Users/vinzent/Desktop/bokulich_project/data/rgi_bwt/amr_bwt/input/reads.qza"
+        database_path = "/Users/vinzent/Desktop/bokulich_project/data/rgi_bwt/amr_bwt/input/card_db.qza"
+        reads = Artifact.load(reads_path)
+        database = Artifact.load(database_path)
+        amr.visualizers.bwt(reads, database)
