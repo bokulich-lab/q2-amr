@@ -28,13 +28,13 @@ def fetch_card_data(version: str = '3.2.6') -> pd.DataFrame:
         card_df = pd.read_json(card_path).transpose()
         return card_df
 
-def card_annotation(input_seq, output, alignment_tool: str = 'BLAST', input_type: str = 'contig', split_prodigal_jobs = False, loose = False, nudge = False, low_quality = False):
+def card_annotation(input_seq, alignment_tool: str = 'BLAST', input_type: str = 'contig', split_prodigal_jobs = False, loose = False, nudge = True, low_quality = False, threads = 8):
     with tempfile.TemporaryDirectory() as tmp:
-        cmd = [f'rgi main --input_sequence {input_seq} --output_file {tmp}/{output} --clean']
+        cmd = [f'rgi main --input_sequence {input_seq} --output_file {tmp}/output --n {threads}']
         if loose:
             cmd.extend([" --include_loose"])
-        if nudge:
-            cmd.extend([" --include_nudge"])
+        if not nudge:
+            cmd.extend([" --exclude_nudge"])
         if low_quality:
             cmd.extend([" --low_quality"])
         if split_prodigal_jobs:
@@ -55,34 +55,24 @@ def card_annotation(input_seq, output, alignment_tool: str = 'BLAST', input_type
                 f"(return code {e.returncode}), please inspect "
                 "stdout and stderr to learn more."
             )
-        df = pd.read_csv(f'{tmp}/{output}.txt', sep="\t")
-    protein_fasta = ProteinFASTAFormat()
-    dna_fasta = DNAFASTAFormat()
-    with open(str(protein_fasta)) as proteinf, open(str(dna_fasta)) as dnaf:
-        for index, row in df.iterrows():
-            protein_object = Protein(row['Predicted_Protein'])
-            dna_object = DNA(row['Predicted_DNA'])
-            protein_object.metadata['id'] = row['ORF_ID']
-            protein_object.metadata['description'] = row['ID']
-            dna_object.metadata['id'] = row['ORF_ID']
-            dna_object.metadata['description'] = row['ID']
-        skbio.io.write(protein_object, format='fasta', into=proteinf)
-        skbio.io.write(dna_object, format='fasta', into=dnaf)
+        df = pd.read_csv(f'{tmp}/output.txt', sep="\t")
+    protein_fasta, dna_fasta = card_annotation_df_to_fasta(df)
     return df, protein_fasta, dna_fasta
 
-def card_annotation_txt_to_fasta(input_df):
+def card_annotation_df_to_fasta(input_df):
     protein_fasta = ProteinFASTAFormat()
     dna_fasta = DNAFASTAFormat()
-    with open(str(protein_fasta)) as proteinf, open(str(dna_fasta)) as dnaf:
+    with open(str(protein_fasta), 'a') as proteinf, open(str(dna_fasta), 'a') as dnaf:
         for index, row in input_df.iterrows():
             protein_object = Protein(row['Predicted_Protein'])
             dna_object = DNA(row['Predicted_DNA'])
             protein_object.metadata['id'] = row['ORF_ID']
-            protein_object.metadata['description'] = row['ID']
+            protein_object.metadata['description'] = row['ARO']
             dna_object.metadata['id'] = row['ORF_ID']
-            dna_object.metadata['description'] = row['ID']
-        skbio.io.write(protein_object, format='fasta', into=proteinf)
-        skbio.io.write(dna_object, format='fasta', into=dnaf)
+            dna_object.metadata['description'] = row['ARO']
+            skbio.io.write(protein_object, format='fasta', into=proteinf)
+            skbio.io.write(dna_object, format='fasta', into=dnaf)
+            #skbio.io.write(dna_object, format='fasta', into=output_fh)
     return protein_fasta, dna_fasta
 
 

@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (c) 2022, Vinzent Risch.
+# Copyright (c) 2022, Bokulich Lab.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -18,8 +18,8 @@ setup(
     packages=find_packages(),
     author="Vinzent Risch",
     author_email="risch.vinzent@gmail.com",
-    description="This is a template for building a new QIIME 2 plugin.",
-    url="https://github.com/bokulich-lab/q2-plugin-template",
+    description="This is a QIIME 2 plugin that annotates microbiome sequence data with antimicrobial resistance gene information from CARD.",
+    url="https://github.com/bokulich-lab/q2-amr",
     entry_points={
         "qiime2.plugins": ["q2-amr=q2_amr.plugin_setup:plugin"]
     },
