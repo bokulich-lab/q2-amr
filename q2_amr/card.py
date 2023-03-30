@@ -28,9 +28,17 @@ def fetch_card_data(version: str = '3.2.6') -> pd.DataFrame:
         card_df = pd.read_json(card_path).transpose()
         return card_df
 
-def card_annotation(input_seq, alignment_tool: str = 'BLAST', input_type: str = 'contig', split_prodigal_jobs = False, loose = False, nudge = True, low_quality = False, threads = 8):
+
+def card_annotation(sequences: DNAFASTAFormat,
+                    alignment_tool: str = 'BLAST',
+                    input_type: str = 'contig',
+                    split_prodigal_jobs: bool = False,
+                    loose: bool = False,
+                    nudge: bool = True,
+                    low_quality: bool = False,
+                    threads: int = 8) -> (pd.DataFrame, ProteinFASTAFormat, DNAFASTAFormat):
     with tempfile.TemporaryDirectory() as tmp:
-        cmd = [f'rgi main --input_sequence {input_seq} --output_file {tmp}/output --n {threads}']
+        cmd = [f'rgi main --input_sequence {str(sequences)} --output_file {tmp}/output --n {threads}']
         if loose:
             cmd.extend([" --include_loose"])
         if not nudge:
@@ -55,9 +63,9 @@ def card_annotation(input_seq, alignment_tool: str = 'BLAST', input_type: str = 
                 f"(return code {e.returncode}), please inspect "
                 "stdout and stderr to learn more."
             )
-        df = pd.read_csv(f'{tmp}/output.txt', sep="\t")
-    protein_fasta, dna_fasta = card_annotation_df_to_fasta(df)
-    return df, protein_fasta, dna_fasta
+        rgi_output = pd.read_csv(f'{tmp}/output.txt', sep="\t")
+    protein_fasta, dna_fasta = card_annotation_df_to_fasta(rgi_output)
+    return rgi_output, protein_fasta, dna_fasta
 
 def card_annotation_df_to_fasta(input_df):
     protein_fasta = ProteinFASTAFormat()
