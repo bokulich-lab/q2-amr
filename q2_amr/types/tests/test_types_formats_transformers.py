@@ -180,7 +180,7 @@ class TestCARDAnnotationTypesAndFormats(AMRTypesTestPluginBase):
         filepath = self.get_data_path('rgi_output.txt')
         filepath2 = self.get_data_path('rgi_input.fna')
         exp = pd.read_csv(filepath, sep='\t')
-        obs = card_annotation(input_seq=filepath2, output='test')[0]
+        obs = card_annotation(sequences=filepath2)[0]
         assert_frame_equal(exp, obs)
 
     def test_card_annotation_txt_to_fasta(self):

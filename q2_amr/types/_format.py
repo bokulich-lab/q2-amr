@@ -48,5 +48,4 @@ class CARDAnnotationFormat(model.TextFileFormat):
 
 
 CARDAnnotationDirectoryFormat = model.SingleFileDirectoryFormat(
-    'CARDAnnotationDirectoryFormat', 'annotation.txt',
-    CARDAnnotationFormat)
+    'CARDAnnotationDirectoryFormat', 'annotation.txt', CARDAnnotationFormat)

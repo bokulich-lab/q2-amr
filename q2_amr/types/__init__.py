@@ -12,4 +12,5 @@ from ._type import CARDDatabase, CARDAnnotation
 
 
 __all__ = ['CARDDatabaseFormat', 'CARDDatabaseDirectoryFormat',
-           'CARDAnnotationFormat', 'CARDAnnotationDirectoryFormat']
+           'CARDAnnotationFormat', 'CARDAnnotationDirectoryFormat',
+           'CARDDatabase', 'CARDAnnotation']

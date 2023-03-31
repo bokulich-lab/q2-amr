@@ -11,13 +11,11 @@ from skbio import Protein, DNA
 
 
 def fetch_card_data(version: str = '3.2.6') -> pd.DataFrame:
-
     url = f"https://card.mcmaster.ca/download/0/broadstreet-v{version}.tar.bz2"
     try:
         response = requests.get(url, stream=True)
     except requests.ConnectionError as e:
         raise requests.ConnectionError('Network connectivity problems.') from e
-
     with tempfile.TemporaryDirectory() as tmp_dir:
         try:
             with tarfile.open(fileobj=response.raw, mode="r|bz2") as tar:
@@ -38,7 +36,7 @@ def card_annotation(sequences: DNAFASTAFormat,
                     low_quality: bool = False,
                     threads: int = 8) -> (pd.DataFrame, ProteinFASTAFormat, DNAFASTAFormat):
     with tempfile.TemporaryDirectory() as tmp:
-        cmd = [f'rgi main --input_sequence {str(sequences)} --output_file {tmp}/output --n {threads}']
+        cmd = [f'rgi main --input_sequence {str(sequences)} --output_file {tmp}/output -n {threads}']
         if loose:
             cmd.extend([" --include_loose"])
         if not nudge:
@@ -67,6 +65,7 @@ def card_annotation(sequences: DNAFASTAFormat,
     protein_fasta, dna_fasta = card_annotation_df_to_fasta(rgi_output)
     return rgi_output, protein_fasta, dna_fasta
 
+
 def card_annotation_df_to_fasta(input_df):
     protein_fasta = ProteinFASTAFormat()
     dna_fasta = DNAFASTAFormat()
@@ -80,11 +79,10 @@ def card_annotation_df_to_fasta(input_df):
             dna_object.metadata['description'] = row['ARO']
             skbio.io.write(protein_object, format='fasta', into=proteinf)
             skbio.io.write(dna_object, format='fasta', into=dnaf)
-            #skbio.io.write(dna_object, format='fasta', into=output_fh)
     return protein_fasta, dna_fasta
 
 
-def card_annotation_heatmap(rgi_input, output, clus: str = 'no', cat: str = 'no', frequency = False):
+def card_annotation_heatmap(rgi_input, output, clus: str = 'no', cat: str = 'no', frequency=False):
     cmd = [f'rgi heatmap --input {rgi_input} --output {output}']
     if frequency:
         cmd.extend(["--frequency"])
@@ -113,6 +111,7 @@ def card_annotation_heatmap(rgi_input, output, clus: str = 'no', cat: str = 'no'
             "stdout and stderr to learn more."
         )
 
+
 EXTERNAL_CMD_WARNING = (
     "Running external command line application(s). "
     "This may print messages to stdout and/or stderr.\n"
@@ -128,5 +127,3 @@ def run_command(cmd, verbose=True):
         print("\nCommand:", end=" ")
         print("".join(cmd), end="\n\n")
     subprocess.run(cmd, check=True, shell=True)
-
-
