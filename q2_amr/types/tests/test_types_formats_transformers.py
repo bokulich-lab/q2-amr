@@ -19,7 +19,7 @@ from skbio import DNA, Protein
 
 from q2_amr.card import fetch_card_data, card_annotation, card_annotation_df_to_fasta
 
-from q2_amr.types._format import CARDDatabaseFormat, CARDAnnotationFormat
+from q2_amr.types._format import CARDDatabaseFormat, CARDAnnotationtxtFormat
 
 from q2_amr.types._transformer import extract_sequence, _read_from_card_file
 
@@ -164,15 +164,15 @@ class TestCARDAnnotationTypesAndFormats(AMRTypesTestPluginBase):
 
     def test_df_to_card_annotation_format_transformer(self):
         filepath = self.get_data_path('rgi_output.txt')
-        transformer = self.get_transformer(pd.DataFrame, CARDAnnotationFormat)
+        transformer = self.get_transformer(pd.DataFrame, CARDAnnotationtxtFormat)
         df = pd.read_csv(filepath, sep="\t")
         obs = transformer(df)
-        self.assertIsInstance(obs, CARDAnnotationFormat)
+        self.assertIsInstance(obs, CARDAnnotationtxtFormat)
 
     def test_card_annotation_format_to_df_transformer(self):
         filepath = self.get_data_path('rgi_output.txt')
-        transformer = self.get_transformer(CARDAnnotationFormat, pd.DataFrame)
-        card_anno = CARDAnnotationFormat(filepath, mode='r')
+        transformer = self.get_transformer(CARDAnnotationtxtFormat, pd.DataFrame)
+        card_anno = CARDAnnotationtxtFormat(filepath, mode='r')
         obs = transformer(card_anno)
         self.assertIsInstance(obs, pd.DataFrame)
 

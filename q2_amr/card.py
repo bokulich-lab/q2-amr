@@ -1,3 +1,4 @@
+import json
 import os
 import subprocess
 import tarfile
@@ -8,6 +9,8 @@ import requests
 import skbio
 from q2_types.feature_data import ProteinFASTAFormat, DNAFASTAFormat
 from skbio import Protein, DNA
+
+from q2_amr.types import CARDAnnotationjsonFormat
 
 
 def fetch_card_data(version: str = '3.2.6') -> pd.DataFrame:
@@ -34,7 +37,7 @@ def card_annotation(sequences: DNAFASTAFormat,
                     loose: bool = False,
                     nudge: bool = True,
                     low_quality: bool = False,
-                    threads: int = 8) -> (pd.DataFrame, ProteinFASTAFormat, DNAFASTAFormat):
+                    threads: int = 8) -> (pd.DataFrame, dict, ProteinFASTAFormat, DNAFASTAFormat):
     with tempfile.TemporaryDirectory() as tmp:
         cmd = [f'rgi main --input_sequence {str(sequences)} --output_file {tmp}/output -n {threads}']
         if loose:
@@ -61,9 +64,11 @@ def card_annotation(sequences: DNAFASTAFormat,
                 f"(return code {e.returncode}), please inspect "
                 "stdout and stderr to learn more."
             )
-        rgi_output = pd.read_csv(f'{tmp}/output.txt', sep="\t")
-    protein_fasta, dna_fasta = card_annotation_df_to_fasta(rgi_output)
-    return rgi_output, protein_fasta, dna_fasta
+        with open(f'{tmp}/output.json', 'r') as file:
+            amr_annotation_json = json.load(file)
+        amr_annotation_txt = pd.read_csv(f'{tmp}/output.txt', sep="\t")
+    protein_fasta, dna_fasta = card_annotation_df_to_fasta(amr_annotation_txt)
+    return amr_annotation_txt, amr_annotation_json, protein_fasta, dna_fasta
 
 
 def card_annotation_df_to_fasta(input_df):

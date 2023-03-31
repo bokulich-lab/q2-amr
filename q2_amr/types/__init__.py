@@ -6,11 +6,11 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
-from ._format import (CARDDatabaseFormat, CARDDatabaseDirectoryFormat, CARDAnnotationFormat,
-                      CARDAnnotationDirectoryFormat)
-from ._type import CARDDatabase, CARDAnnotation
-
+from ._format import (CARDDatabaseFormat, CARDDatabaseDirectoryFormat, CARDAnnotationtxtFormat,
+                      CARDAnnotationtxtDirectoryFormat, CARDAnnotationjsonFormat, CARDAnnotationjsonDirectoryFormat)
+from ._type import CARDDatabase, CARDAnnotationtxt, CARDAnnotationjson
 
 __all__ = ['CARDDatabaseFormat', 'CARDDatabaseDirectoryFormat',
-           'CARDAnnotationFormat', 'CARDAnnotationDirectoryFormat',
-           'CARDDatabase', 'CARDAnnotation']
+           'CARDAnnotationtxtFormat', 'CARDAnnotationtxtDirectoryFormat',
+            'CARDAnnotationjsonFormat', 'CARDAnnotationjsonDirectoryFormat',
+           'CARDDatabase', 'CARDAnnotationtxt', 'CARDAnnotationjson']

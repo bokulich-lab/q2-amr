@@ -31,7 +31,7 @@ CARDDatabaseDirectoryFormat = model.SingleFileDirectoryFormat(
     CARDDatabaseFormat)
 
 
-class CARDAnnotationFormat(model.TextFileFormat):
+class CARDAnnotationtxtFormat(model.TextFileFormat):
     def _validate(self, n_records=None):
         HEADER = ['ORF_ID', 'Contig', 'Start', 'Stop', 'Orientation', 'Cut_Off', 'Pass_Bitscore', 'Best_Hit_Bitscore', 'Best_Hit_ARO', 'Best_Identities', 'ARO', 'Model_type', 'SNPs_in_Best_Hit_ARO', 'Other_SNPs', 'Drug Class', 'Resistance Mechanism', 'AMR Gene Family', 'Predicted_DNA', 'Predicted_Protein', 'CARD_Protein_Sequence', 'Percentage Length of Reference Sequence', 'ID', 'Model_ID', 'Nudged', 'Note']
         df = pd.read_csv(str(self), sep="\t")
@@ -47,5 +47,22 @@ class CARDAnnotationFormat(model.TextFileFormat):
         self._validate()
 
 
-CARDAnnotationDirectoryFormat = model.SingleFileDirectoryFormat(
-    'CARDAnnotationDirectoryFormat', 'annotation.txt', CARDAnnotationFormat)
+CARDAnnotationtxtDirectoryFormat = model.SingleFileDirectoryFormat(
+    'CARDAnnotationDirectoryFormat', 'amr_annotation.txt', CARDAnnotationtxtFormat)
+
+
+class CARDAnnotationjsonFormat(model.TextFileFormat):
+    def _validate(self, n_records=None):
+        x = 1
+        if x is 2:
+            raise ValidationError(
+                "Header line does not match CARDAnnotation format. Must consist of "
+                "the following values: " + ', '.join('n') +
+                ".\n\nFound instead: " + ', '.join('n'))
+
+    def _validate_(self, level):
+        self._validate()
+
+
+CARDAnnotationjsonDirectoryFormat = model.SingleFileDirectoryFormat(
+    'CARDAnnotationjsonDirectoryFormat', 'amr_annotation.json', CARDAnnotationjsonFormat)

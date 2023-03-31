@@ -7,8 +7,9 @@
 # ----------------------------------------------------------------------------
 import importlib
 
-from q2_amr.types import CARDAnnotation, CARDDatabase, CARDDatabaseDirectoryFormat, CARDAnnotationFormat, \
-    CARDDatabaseFormat, CARDAnnotationDirectoryFormat
+from q2_amr.types import CARDAnnotationtxt, CARDDatabase, CARDDatabaseDirectoryFormat, CARDAnnotationtxtFormat, \
+    CARDDatabaseFormat, CARDAnnotationtxtDirectoryFormat, CARDAnnotationjsonDirectoryFormat, CARDAnnotationjsonFormat, \
+    CARDAnnotationjson
 from q2_types.feature_data import Sequence, FeatureData, ProteinSequence
 from qiime2.core.type import Str, Choices, Bool, Int
 
@@ -59,7 +60,8 @@ plugin.methods.register_function(
                 'nudge': Bool,
                 'low_quality': Bool,
                 'threads': Int},
-    outputs=[('rgi_output', CARDAnnotation),
+    outputs=[('amr_annotation_txt', CARDAnnotationtxt),
+             ('amr_annotation_json', CARDAnnotationjson),
              ('protein_fasta', FeatureData[ProteinSequence]),
              ('dna_fasta', FeatureData[Sequence])],
     input_descriptions={'sequences': 'Sequences to be annotated with rgi.'},
@@ -73,7 +75,8 @@ plugin.methods.register_function(
         'low_quality': 'Use for short contigs to predict partial genes (default: False).',
         'threads': 'Number of threads (CPUs) to use in the BLAST search (default=8).'},
     output_descriptions={
-        'rgi_output': 'Dataframe with the RGI output.',
+        'amr_annotation_txt': 'AMR Annotation as .txt file.',
+        'amr_annotation_json': 'AMR Annotation as .json file.',
         'protein_fasta': 'FASTA file with predicted protein sequences and ORF_ID and ARO accession in the Header.',
         'dna_fasta': 'FASTA file with predicted dna sequences and ORF_ID and ARO accession in the Header.'},
     name='Annotation of sequence data with antimicrobial resistance gene information from CARD.',
@@ -82,15 +85,19 @@ plugin.methods.register_function(
 )
 
 # Registrations
-plugin.register_semantic_types(CARDDatabase, CARDAnnotation)
+plugin.register_semantic_types(CARDDatabase, CARDAnnotationtxt, CARDAnnotationjson)
 
 plugin.register_semantic_type_to_format(
     CARDDatabase,
     artifact_format=CARDDatabaseDirectoryFormat)
 plugin.register_semantic_type_to_format(
-    CARDAnnotation,
-    artifact_format=CARDAnnotationDirectoryFormat)
-plugin.register_formats(CARDAnnotationFormat, CARDAnnotationDirectoryFormat,
-                        CARDDatabaseFormat, CARDDatabaseDirectoryFormat)
+    CARDAnnotationtxt,
+    artifact_format=CARDAnnotationtxtDirectoryFormat)
+plugin.register_semantic_type_to_format(
+    CARDAnnotationjson,
+    artifact_format=CARDAnnotationjsonDirectoryFormat)
+plugin.register_formats(CARDAnnotationtxtFormat, CARDAnnotationtxtDirectoryFormat,
+                        CARDDatabaseFormat, CARDDatabaseDirectoryFormat,
+                        CARDAnnotationjsonFormat, CARDAnnotationjsonDirectoryFormat)
 
 importlib.import_module('q2_amr.types._transformer')

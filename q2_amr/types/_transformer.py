@@ -15,7 +15,7 @@ from q2_types.feature_data._transformer import ProteinIterator
 from skbio import Protein, DNA
 
 from ..plugin_setup import plugin
-from ._format import CARDDatabaseFormat, CARDAnnotationFormat
+from ._format import CARDDatabaseFormat, CARDAnnotationtxtFormat, CARDAnnotationjsonFormat
 
 
 @plugin.register_transformer
@@ -112,13 +112,20 @@ def extract_sequence(seq_type, key1, key2, db):
     return sequence_object
 
 @plugin.register_transformer
-def _15(data: pd.DataFrame) -> CARDAnnotationFormat:
-    ff = CARDAnnotationFormat()
+def _15(data: pd.DataFrame) -> CARDAnnotationtxtFormat:
+    ff = CARDAnnotationtxtFormat()
     with ff.open() as fh:
         data.to_csv(fh, index=False, sep="\t")
     return ff
 
 @plugin.register_transformer
-def _16(data: CARDAnnotationFormat) -> pd.DataFrame:
+def _16(data: CARDAnnotationtxtFormat) -> pd.DataFrame:
     file = pd.read_csv(str(data), sep="\t")
     return file
+
+@plugin.register_transformer
+def _16(data: dict) -> CARDAnnotationjsonFormat:
+    ff = CARDAnnotationjsonFormat()
+    with ff.open() as fh:
+        json.dump(data, fh)
+    return ff
