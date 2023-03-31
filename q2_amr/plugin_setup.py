@@ -9,7 +9,7 @@ import importlib
 
 from q2_amr.types import CARDAnnotation, CARDDatabase, CARDDatabaseDirectoryFormat, CARDAnnotationFormat, \
     CARDDatabaseFormat, CARDAnnotationDirectoryFormat
-from q2_types.feature_data import Sequence, FeatureData
+from q2_types.feature_data import Sequence, FeatureData, ProteinSequence
 from qiime2.core.type import Str, Choices, Bool, Int
 
 from q2_amr.card import fetch_card_data, card_annotation
@@ -46,14 +46,7 @@ plugin.methods.register_function(
                    'phenotypes.'},
     name='Download CARD data.',
     description=('Downloads the CARD database from the CARD website.'),
-    citations=['Alcock BP, Huynh W, Chalil R, Smith KW, Raphenya AR, Wlodarski MA, Edalatmand A, Petkau A, Syed SA, '
-               'Tsang KK, Baker SJC, Dave M, McCarthy MC, Mukiri KM, Nasir JA, Golbon B, Imtiaz H, Jiang X, Kaur K, '
-               'Kwong M, Liang ZC, Niu KC, Shan P, Yang JYJ, Gray KL, Hoad GR, Jia B, Bhando T, Carfrae LA, Farha MA, '
-               'French S, Gordzevich R, Rachwalski K, Tu MM, Bordeleau E, Dooley D, Griffiths E, Zubyk HL, Brown ED, '
-               'Maguire F, Beiko RG, Hsiao WWL, Brinkman FSL, Van Domselaar G, McArthur AG. CARD 2023: expanded '
-               'curation, support for machine learning, and resistome prediction at the Comprehensive Antibiotic '
-               'Resistance Database. Nucleic Acids Res. 2023 Jan 6;51(D1):D690-D699. doi: 10.1093/nar/gkac920. PMID: '
-               '36263822; PMCID: PMC9825576.']
+    citations=[citations['alcock_card_2023']]
 )
 
 plugin.methods.register_function(
@@ -67,7 +60,7 @@ plugin.methods.register_function(
                 'low_quality': Bool,
                 'threads': Int},
     outputs=[('rgi_output', CARDAnnotation),
-             ('protein_fasta', FeatureData[Sequence]),
+             ('protein_fasta', FeatureData[ProteinSequence]),
              ('dna_fasta', FeatureData[Sequence])],
     input_descriptions={'sequences': 'Sequences to be annotated with rgi.'},
     parameter_descriptions={
@@ -85,9 +78,7 @@ plugin.methods.register_function(
         'dna_fasta': 'FASTA file with predicted dna sequences and ORF_ID and ARO accession in the Header.'},
     name='Annotation of sequence data with antimicrobial resistance gene information from CARD.',
     description=('Annotation of sequence data with antimicrobial resistance gene information from CARD.'),
-    citations=['Alcock et al. 2023. CARD 2023: expanded curation, support for machine learning, and resistome '
-               'prediction at the Comprehensive Antibiotic Resistance Database. Nucleic Acids Research, 51, '
-               'D690-D699 [PMID 36263822]']
+    citations=[citations['alcock_card_2023']]
 )
 
 # Registrations
