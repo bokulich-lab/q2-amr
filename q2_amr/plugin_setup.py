@@ -13,7 +13,7 @@ from q2_amr.types import CARDAnnotationtxt, CARDDatabase, CARDDatabaseDirectoryF
 from q2_types.feature_data import Sequence, FeatureData, ProteinSequence
 from qiime2.core.type import Str, Choices, Bool, Int
 
-from q2_amr.card import fetch_card_data, card_annotation
+from q2_amr.card import fetch_card_data, card_annotation #card_annotation_heatmap
 from qiime2.plugin import Citations, Plugin
 
 from q2_amr import __version__
@@ -84,6 +84,25 @@ plugin.methods.register_function(
     citations=[citations['alcock_card_2023']]
 )
 
+# plugin.methods.register_function(
+#     function=card_annotation_heatmap,
+#     inputs={},
+#     parameters={'version': Str % Choices(
+#         ['3.2.6', '3.2.5', '3.2.4', '3.2.3', '3.2.2', '3.2.1', '3.2.0', '3.1.4', '3.1.3', '3.1.2', '3.1.1', '3.1.0',
+#          '3.0.9', '3.0.8', '3.0.7', '3.0.6', '3.0.5', '3.0.4', '3.0.3', '3.0.2', '3.0.1', '3.0.0', '2.0.3', '2.0.2',
+#          '2.0.1', '2.0.0', '1.2.1', '1.2.0', '1.1.9', '1.1.8', '1.1.7', '1.1.6', '1.1.5', '1.1.4', '1.1.3', '1.1.2',
+#          '1.1.1', '1.1.0', '1.0.9', '1.0.8', '1.0.7', '1.0.6', '1.0.5', '1.0.4', '1.0.3', '1.0.2', '1.0.1', '1.0.0'])},
+#     outputs=[('card_df', CARDDatabase)],
+#     input_descriptions={},
+#     parameter_descriptions={
+#         'version': 'Specify what version of the CARD database will be downloaded (default = 3.2.6)'},
+#     output_descriptions={
+#         'card_df': 'The CARD is a bioinformatic database of resistance genes, their products and associated '
+#                    'phenotypes.'},
+#     name='Download CARD data.',
+#     description=('Downloads the CARD database from the CARD website.'),
+#     citations=[citations['alcock_card_2023']]
+# )
 # Registrations
 plugin.register_semantic_types(CARDDatabase, CARDAnnotationtxt, CARDAnnotationjson)
 
