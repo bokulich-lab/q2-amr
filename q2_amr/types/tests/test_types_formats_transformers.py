@@ -17,7 +17,7 @@ from qiime2.plugin.testing import TestPluginBase
 from q2_types.feature_data import (DNAIterator, DNAFASTAFormat, ProteinIterator, ProteinFASTAFormat)
 from skbio import DNA, Protein
 
-from q2_amr.card import fetch_card_data, card_annotation, card_annotation_df_to_fasta
+from q2_amr.card import fetch_data, annotate, card_annotation_df_to_fasta
 
 from q2_amr.types._format import CARDDatabaseFormat, CARDAnnotationtxtFormat
 
@@ -111,7 +111,7 @@ class TestCARDDatabaseTypesAndFormats(AMRTypesTestPluginBase):
         f = open(self.get_data_path('card.tar.bz2'), 'rb')
         mock_response = MagicMock(raw=f)
         mock_requests.return_value = mock_response
-        obs = fetch_card_data(version='3.2.6')
+        obs = fetch_data(version='3.2.6')
         self.assertIsInstance(obs, pd.DataFrame)
         mock_requests.assert_called_once_with('https://card.mcmaster.ca/download/0/broadstreet-v3.2.6.tar.bz2', stream=True)
         exp = pd.read_json(self.get_data_path('card_test.json')).transpose()
@@ -120,12 +120,12 @@ class TestCARDDatabaseTypesAndFormats(AMRTypesTestPluginBase):
     @patch('requests.get', side_effect=requests.ConnectionError)
     def test_fetch_card_data_connection_error(self, mock_requests):
         with self.assertRaisesRegex(requests.ConnectionError, 'Network connectivity problems.'):
-            fetch_card_data(version='3.2.6')
+            fetch_data(version='3.2.6')
 
     @patch('tarfile.open', side_effect=tarfile.ReadError)
     def test_fetch_card_data_tarfile_read_error(self, mock_requests):
         with self.assertRaisesRegex(tarfile.ReadError, 'Tarfile is invalid.'):
-            fetch_card_data(version='3.2.6')
+            fetch_data(version='3.2.6')
 
     def test_extract_sequence_dna(self):
         with open(self.get_data_path('card_test.json'), 'rb') as f:
@@ -180,7 +180,7 @@ class TestCARDAnnotationTypesAndFormats(AMRTypesTestPluginBase):
         filepath = self.get_data_path('rgi_output.txt')
         filepath2 = self.get_data_path('rgi_input.fna')
         exp = pd.read_csv(filepath, sep='\t')
-        obs = card_annotation(sequences=filepath2)[0]
+        obs = annotate(sequences=filepath2)[0]
         assert_frame_equal(exp, obs)
 
     def test_card_annotation_txt_to_fasta(self):

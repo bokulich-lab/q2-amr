@@ -24,7 +24,7 @@ setup(
         "qiime2.plugins": ["q2-amr=q2_amr.plugin_setup:plugin"]
     },
     package_data={
-        "q2_amr": ["citations.bib"],
+        "q2_amr": ["citations.bib","assets/rgi/*"],
     },
     zip_safe=False,
 )
