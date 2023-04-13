@@ -56,7 +56,7 @@ def annotate(sequences: DNAFASTAFormat,
         cmd.extend(['-a', f'{alignment_tool}'])
         cmd.extend(['-a', f'{input_type}'])
         try:
-            run_command(cmd, verbose=True)
+            run_command(cmd, tmp, verbose=True)
         except subprocess.CalledProcessError as e:
             raise Exception(
                 "An error was encountered while running rgi, "
