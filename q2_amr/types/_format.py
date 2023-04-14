@@ -5,6 +5,8 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
+import json
+
 import pandas as pd
 import qiime2.plugin.model as model
 from qiime2.plugin import ValidationError
@@ -33,7 +35,11 @@ CARDDatabaseDirectoryFormat = model.SingleFileDirectoryFormat(
 
 class CARDAnnotationtxtFormat(model.TextFileFormat):
     def _validate(self, n_records=None):
-        HEADER = ['ORF_ID', 'Contig', 'Start', 'Stop', 'Orientation', 'Cut_Off', 'Pass_Bitscore', 'Best_Hit_Bitscore', 'Best_Hit_ARO', 'Best_Identities', 'ARO', 'Model_type', 'SNPs_in_Best_Hit_ARO', 'Other_SNPs', 'Drug Class', 'Resistance Mechanism', 'AMR Gene Family', 'Predicted_DNA', 'Predicted_Protein', 'CARD_Protein_Sequence', 'Percentage Length of Reference Sequence', 'ID', 'Model_ID', 'Nudged', 'Note']
+        HEADER = ['ORF_ID', 'Contig', 'Start', 'Stop', 'Orientation', 'Cut_Off', 'Pass_Bitscore', 'Best_Hit_Bitscore',
+                  'Best_Hit_ARO', 'Best_Identities', 'ARO', 'Model_type', 'SNPs_in_Best_Hit_ARO', 'Other_SNPs',
+                  'Drug Class', 'Resistance Mechanism', 'AMR Gene Family', 'Predicted_DNA', 'Predicted_Protein',
+                  'CARD_Protein_Sequence', 'Percentage Length of Reference Sequence', 'ID', 'Model_ID', 'Nudged',
+                  'Note']
         df = pd.read_csv(str(self), sep="\t")
 
         header = list(df.columns)
@@ -47,22 +53,31 @@ class CARDAnnotationtxtFormat(model.TextFileFormat):
         self._validate()
 
 
-CARDAnnotationtxtDirectoryFormat = model.SingleFileDirectoryFormat(
-    'CARDAnnotationDirectoryFormat', 'amr_annotation.txt', CARDAnnotationtxtFormat)
-
-
 class CARDAnnotationjsonFormat(model.TextFileFormat):
     def _validate(self, n_records=None):
-        x = 1
-        if x is 2:
+        HEADER = ['bit_score', 'sequence_from_broadstreet', 'query_start', 'ARO_name', 'sequence_from_db', 'max_identities', 'orf_prot_sequence', 'query_snp', 'match', 'orf_strand', 'model_id', 'evalue', 'model_name', 'model_type', 'model_type_id', 'orf_from', 'ARO_accession', 'partial', 'orf_end', 'dna_sequence_from_broadstreet', 'perc_identity', 'query_end', 'cvterm_id', 'type_match', 'pass_evalue', 'pass_bitscore', 'ARO_category', 'snp', 'orf_dna_sequence', 'query', 'orf_start']
+
+        with open(str(self), 'r') as f:
+            json_str = f.read()
+            json_data = json.loads(json_str)
+
+        # Traverse the nested data structure to access the keys
+        keys = []
+        for k, v in json_data.items():
+            for sub_k, sub_v in v.items():
+                keys.extend(sub_v.keys())
+        # remove duplicates
+        keys = list(set(keys))
+
+        if keys != HEADER:
             raise ValidationError(
-                "Header line does not match CARDAnnotation format. Must consist of "
-                "the following values: " + ', '.join('n') +
-                ".\n\nFound instead: " + ', '.join('n'))
+                "Dict keys do not match CARDAnnotation format. Must consist of "
+                "the following values: " + ', '.join(HEADER) +
+                ".\n\nFound instead: " + ', '.join(keys))
 
     def _validate_(self, level):
         self._validate()
 
-
-CARDAnnotationjsonDirectoryFormat = model.SingleFileDirectoryFormat(
-    'CARDAnnotationjsonDirectoryFormat', 'amr_annotation.json', CARDAnnotationjsonFormat)
+class CARDAnnotationDirectoryFormat(model.DirectoryFormat):
+    json = model.File(r'amr_annotation.json', format=CARDAnnotationjsonFormat)
+    txt = model.File(r'amr_annotation.txt', format=CARDAnnotationtxtFormat)

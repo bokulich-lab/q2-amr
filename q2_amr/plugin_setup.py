@@ -11,7 +11,7 @@ from q2_amr.types import CARDAnnotationtxt, CARDDatabase, CARDDatabaseDirectoryF
     CARDDatabaseFormat, CARDAnnotationtxtDirectoryFormat, CARDAnnotationjsonDirectoryFormat, CARDAnnotationjsonFormat, \
     CARDAnnotationjson
 from q2_types.feature_data import Sequence, FeatureData, ProteinSequence
-from qiime2.core.type import Str, Choices, Bool, Int
+from qiime2.core.type import Str, Choices, Bool, Int, Range
 
 from q2_amr.card import fetch_data, annotate, heatmap  # heatmap
 from qiime2.plugin import Citations, Plugin
@@ -41,7 +41,7 @@ plugin.methods.register_function(
     parameter_descriptions={
         'version': 'Version of the CARD database to be downloaded.'},
     output_descriptions={
-        'card_df': 'CARD database of resistance genes, their products and associated '
+        'card_db': 'CARD database of resistance genes, their products and associated '
                    'phenotypes.'},
     name='Download CARD data.',
     description=('Downloads the CARD database from the CARD website.'),
@@ -57,9 +57,9 @@ plugin.methods.register_function(
                 'loose': Bool,
                 'nudge': Bool,
                 'low_quality': Bool,
-                'threads': Int},
-    outputs=[('amr_annotation_txt', CARDAnnotationtxt),
-             ('amr_annotation_json', CARDAnnotationjson),
+                'threads': Int % Range(1, None)},
+    outputs=[('amr_annotation', CARDAnnotation),
+             ('amr_annotation', CARDAnnotation),
              ('protein_fasta', FeatureData[ProteinSequence]),
              ('dna_fasta', FeatureData[Sequence])],
     input_descriptions={'sequences': 'Sequences to be annotated with rgi.'},
