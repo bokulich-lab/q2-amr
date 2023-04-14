@@ -7,9 +7,8 @@
 # ----------------------------------------------------------------------------
 import importlib
 
-from q2_amr.types import CARDAnnotationtxt, CARDDatabase, CARDDatabaseDirectoryFormat, CARDAnnotationtxtFormat, \
-    CARDDatabaseFormat, CARDAnnotationtxtDirectoryFormat, CARDAnnotationjsonDirectoryFormat, CARDAnnotationjsonFormat, \
-    CARDAnnotationjson
+from q2_amr.types import CARDDatabase, CARDDatabaseDirectoryFormat, CARDAnnotationtxtFormat, \
+    CARDDatabaseFormat, CARDAnnotationjsonFormat
 from q2_types.feature_data import Sequence, FeatureData, ProteinSequence
 from qiime2.core.type import Str, Choices, Bool, Int, Range
 
@@ -17,6 +16,8 @@ from q2_amr.card import fetch_data, annotate, heatmap  # heatmap
 from qiime2.plugin import Citations, Plugin
 
 from q2_amr import __version__
+from q2_amr.types._format import CARDAnnotationDirectoryFormat
+from q2_amr.types._type import CARDAnnotation
 
 citations = Citations.load("citations.bib", package="q2_amr")
 
@@ -84,7 +85,7 @@ plugin.methods.register_function(
 
 plugin.visualizers.register_function(
     function=heatmap,
-    inputs={'amr_annotation_json': CARDAnnotationjson},
+    inputs={'amr_annotation_json': CARDAnnotation},
     parameters={},
     input_descriptions={'amr_annotation_json': 'Sequences to be annotated with rgi.'},
     parameter_descriptions={},
@@ -94,19 +95,16 @@ plugin.visualizers.register_function(
 )
 
 #Registrations
-plugin.register_semantic_types(CARDDatabase, CARDAnnotationtxt, CARDAnnotationjson)
+plugin.register_semantic_types(CARDDatabase, CARDAnnotation)
 
 plugin.register_semantic_type_to_format(
     CARDDatabase,
     artifact_format=CARDDatabaseDirectoryFormat)
 plugin.register_semantic_type_to_format(
-    CARDAnnotationtxt,
-    artifact_format=CARDAnnotationtxtDirectoryFormat)
-plugin.register_semantic_type_to_format(
-    CARDAnnotationjson,
-    artifact_format=CARDAnnotationjsonDirectoryFormat)
-plugin.register_formats(CARDAnnotationtxtFormat, CARDAnnotationtxtDirectoryFormat,
-                        CARDDatabaseFormat, CARDDatabaseDirectoryFormat,
-                        CARDAnnotationjsonFormat, CARDAnnotationjsonDirectoryFormat)
+    CARDAnnotation,
+    artifact_format=CARDAnnotationDirectoryFormat)
+plugin.register_formats(CARDAnnotationtxtFormat, CARDAnnotationDirectoryFormat,
+                        CARDAnnotationjsonFormat,
+                        CARDDatabaseFormat, CARDDatabaseDirectoryFormat)
 
 importlib.import_module('q2_amr.types._transformer')
