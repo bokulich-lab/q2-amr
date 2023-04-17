@@ -1,5 +1,6 @@
 import json
 import os
+import shutil
 import subprocess
 import tarfile
 import tempfile
@@ -14,12 +15,15 @@ from q2_types.feature_data import ProteinFASTAFormat, DNAFASTAFormat
 
 from skbio import Protein, DNA
 
-from q2_amr.types import CARDAnnotationjsonFormat
+from q2_amr.types import CARDAnnotationjsonFormat, CARDDatabaseFormat, CARDAnnotationtxtFormat, \
+    CARDAnnotationDirectoryFormat, CARDAnnotation
 from q2_amr.utils import run_command
+
+CARD_URL = "https://card.mcmaster.ca/download/0/broadstreet-v{}.tar.bz2"
 
 
 def fetch_data(version: str = '3.2.6') -> pd.DataFrame:
-    url = f"https://card.mcmaster.ca/download/0/broadstreet-v{version}.tar.bz2"
+    url = CARD_URL.format(version)
     try:
         response = requests.get(url, stream=True)
     except requests.ConnectionError as e:
@@ -35,26 +39,26 @@ def fetch_data(version: str = '3.2.6') -> pd.DataFrame:
         return card_df
 
 
-def annotate(sequences: DNAFASTAFormat,
+def annotate(input_sequence: DNAFASTAFormat,
              alignment_tool: str = 'BLAST',
              input_type: str = 'contig',
              split_prodigal_jobs: bool = False,
-             loose: bool = False,
-             nudge: bool = True,
+             include_loose: bool = False,
+             exclude_nudge: bool = False,
              low_quality: bool = False,
-             threads: int = 8) -> (pd.DataFrame, dict, ProteinFASTAFormat, DNAFASTAFormat):
+             num_threads: int = 8) -> (CARDAnnotationDirectoryFormat, ProteinFASTAFormat, DNAFASTAFormat):
     with tempfile.TemporaryDirectory() as tmp:
-        cmd = [f'rgi main --input_sequence {str(sequences)} --output_file {tmp}/output -n {threads}']
-        if loose:
+        cmd = [f'rgi main --input_sequence {str(input_sequence)} --output_file {tmp}/output -n {num_threads}']
+        if include_loose:
             cmd.extend([" --include_loose"])
-        if not nudge:
+        if not exclude_nudge:
             cmd.extend([" --exclude_nudge"])
         if low_quality:
             cmd.extend([" --low_quality"])
         if split_prodigal_jobs:
             cmd.extend([" --split_prodigal_jobs"])
-        cmd.extend(['-a', f'{alignment_tool}'])
-        cmd.extend(['-a', f'{input_type}'])
+        cmd.extend([' --alignment_tool', f' {alignment_tool}'])
+        cmd.extend([' --input_type', f' {input_type}'])
         try:
             run_command(cmd, tmp, verbose=True)
         except subprocess.CalledProcessError as e:
@@ -63,11 +67,12 @@ def annotate(sequences: DNAFASTAFormat,
                 f"(return code {e.returncode}), please inspect "
                 "stdout and stderr to learn more."
             )
-        with open(f'{tmp}/output.json', 'r') as file:
-            amr_annotation_json = json.load(file)
-        amr_annotation_txt = pd.read_csv(f'{tmp}/output.txt', sep="\t")
-    protein_fasta, dna_fasta = card_annotation_df_to_fasta(amr_annotation_txt)
-    return amr_annotation_txt, amr_annotation_json, protein_fasta, dna_fasta
+        amr_annotation_df = pd.read_csv(f'{tmp}/output.txt', sep="\t")
+        amr_annotations = CARDAnnotationDirectoryFormat()
+        shutil.move(f'{tmp}/output.txt', f"{str(amr_annotations)}/amr_annotation.txt")
+        shutil.move(f'{tmp}/output.json', f"{str(amr_annotations)}/amr_annotation.json")
+    protein_annotation, dna_annotation = card_annotation_df_to_fasta(amr_annotation_df)
+    return amr_annotations, protein_annotation, dna_annotation
 
 
 def card_annotation_df_to_fasta(input_df: pd.DataFrame):

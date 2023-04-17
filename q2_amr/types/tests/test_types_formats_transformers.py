@@ -180,7 +180,7 @@ class TestCARDAnnotationTypesAndFormats(AMRTypesTestPluginBase):
         filepath = self.get_data_path('rgi_output.txt')
         filepath2 = self.get_data_path('rgi_input.fna')
         exp = pd.read_csv(filepath, sep='\t')
-        obs = annotate(sequences=filepath2)[0]
+        obs = annotate(input_sequence=filepath2)[0]
         assert_frame_equal(exp, obs)
 
     def test_card_annotation_txt_to_fasta(self):
@@ -199,8 +199,4 @@ class TestCARDAnnotationTypesAndFormats(AMRTypesTestPluginBase):
             dna_contents_exp = dna_fh_exp.read()
         self.assertEqual(protein_contents_obs, protein_contents_exp)
         self.assertEqual(dna_contents_obs, dna_contents_exp)
-        print(protein_contents_obs)
-        print(protein_contents_exp)
-        print(dna_contents_obs)
-        print(dna_contents_exp)
 

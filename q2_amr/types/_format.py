@@ -67,9 +67,9 @@ class CARDAnnotationjsonFormat(model.TextFileFormat):
             for sub_k, sub_v in v.items():
                 keys.extend(sub_v.keys())
         # remove duplicates
-        keys = list(set(keys))
+        keys = set(keys)
 
-        if keys != HEADER:
+        if keys != set(HEADER):
             raise ValidationError(
                 "Dict keys do not match CARDAnnotation format. Must consist of "
                 "the following values: " + ', '.join(HEADER) +
