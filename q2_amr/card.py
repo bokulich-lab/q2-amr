@@ -15,14 +15,14 @@ from q2_types.feature_data import ProteinFASTAFormat, DNAFASTAFormat
 
 from skbio import Protein, DNA
 
-from q2_amr.types import CARDAnnotationjsonFormat, CARDDatabaseFormat, CARDAnnotationtxtFormat, \
+from q2_amr.types import CARDAnnotationJSONFormat, CARDDatabaseFormat, CARDAnnotationTXTFormat, \
     CARDAnnotationDirectoryFormat, CARDAnnotation
 from q2_amr.utils import run_command
 
 CARD_URL = "https://card.mcmaster.ca/download/0/broadstreet-v{}.tar.bz2"
 
 
-def fetch_data(version: str = '3.2.6') -> pd.DataFrame:
+def fetch_card_db(version: str = '3.2.6') -> pd.DataFrame:
     url = CARD_URL.format(version)
     try:
         response = requests.get(url, stream=True)
@@ -39,40 +39,53 @@ def fetch_data(version: str = '3.2.6') -> pd.DataFrame:
         return card_df
 
 
-def annotate(input_sequence: DNAFASTAFormat,
-             alignment_tool: str = 'BLAST',
-             input_type: str = 'contig',
-             split_prodigal_jobs: bool = False,
-             include_loose: bool = False,
-             exclude_nudge: bool = False,
-             low_quality: bool = False,
-             num_threads: int = 8) -> (CARDAnnotationDirectoryFormat, ProteinFASTAFormat, DNAFASTAFormat):
+def annotate_card(input_sequence: DNAFASTAFormat,
+                  alignment_tool: str = 'BLAST',
+                  input_type: str = 'contig',
+                  split_prodigal_jobs: bool = False,
+                  include_loose: bool = False,
+                  exclude_nudge: bool = False,
+                  low_quality: bool = False,
+                  num_threads: int = 8) -> (CARDAnnotationDirectoryFormat, ProteinFASTAFormat, DNAFASTAFormat):
     with tempfile.TemporaryDirectory() as tmp:
-        cmd = [f'rgi main --input_sequence {str(input_sequence)} --output_file {tmp}/output -n {num_threads}']
-        if include_loose:
-            cmd.extend([" --include_loose"])
-        if not exclude_nudge:
-            cmd.extend([" --exclude_nudge"])
-        if low_quality:
-            cmd.extend([" --low_quality"])
-        if split_prodigal_jobs:
-            cmd.extend([" --split_prodigal_jobs"])
-        cmd.extend([' --alignment_tool', f' {alignment_tool}'])
-        cmd.extend([' --input_type', f' {input_type}'])
-        try:
-            run_command(cmd, tmp, verbose=True)
-        except subprocess.CalledProcessError as e:
-            raise Exception(
-                "An error was encountered while running rgi, "
-                f"(return code {e.returncode}), please inspect "
-                "stdout and stderr to learn more."
-            )
+        run_rgi_main(tmp, input_sequence, alignment_tool, input_type, split_prodigal_jobs, include_loose, exclude_nudge, low_quality, num_threads)
         amr_annotation_df = pd.read_csv(f'{tmp}/output.txt', sep="\t")
         amr_annotations = CARDAnnotationDirectoryFormat()
         shutil.move(f'{tmp}/output.txt', f"{str(amr_annotations)}/amr_annotation.txt")
         shutil.move(f'{tmp}/output.json', f"{str(amr_annotations)}/amr_annotation.json")
     protein_annotation, dna_annotation = card_annotation_df_to_fasta(amr_annotation_df)
     return amr_annotations, protein_annotation, dna_annotation
+
+
+def run_rgi_main(tmp,
+                 input_sequence: DNAFASTAFormat,
+                 alignment_tool: str = 'BLAST',
+                 input_type: str = 'contig',
+                 split_prodigal_jobs: bool = False,
+                 include_loose: bool = False,
+                 exclude_nudge: bool = False,
+                 low_quality: bool = False,
+                 num_threads: int = 8):
+    cmd = ['rgi', 'main', '--input_sequence', f'{str(input_sequence)}', '--output_file', f'{tmp}/output', '-n',
+           f'{num_threads}']
+    if include_loose:
+        cmd.append(["--include_loose"])
+    if not exclude_nudge:
+        cmd.append(["--exclude_nudge"])
+    if low_quality:
+        cmd.append(["--low_quality"])
+    if split_prodigal_jobs:
+        cmd.append([" --split_prodigal_jobs"])
+    cmd.append(['--alignment_tool', f'{alignment_tool}'])
+    cmd.append(['--input_type', f'{input_type}'])
+    try:
+        run_command(cmd, tmp, verbose=True)
+    except subprocess.CalledProcessError as e:
+        raise Exception(
+            "An error was encountered while running rgi, "
+            f"(return code {e.returncode}), please inspect "
+            "stdout and stderr to learn more."
+        )
 
 
 def card_annotation_df_to_fasta(input_df: pd.DataFrame):
@@ -92,7 +105,7 @@ def card_annotation_df_to_fasta(input_df: pd.DataFrame):
 
 
 def heatmap(output_dir: str,
-            amr_annotation_json: CARDAnnotationjsonFormat,
+            amr_annotation_json: CARDAnnotationJSONFormat,
             # clus: str = 'no',
             # cat: str = 'no',
             # frequency=False
@@ -152,7 +165,6 @@ def heatmap(output_dir: str,
     index = os.path.join(TEMPLATES, 'rgi', 'index.html')
     templates = [index]
     q2templates.render(templates, output_dir, context=context)
-
 
 # def card_bwt(sequences: SampleData[PairedEndSequencesWithQuality],
 #                     aligner: str = 'kma',

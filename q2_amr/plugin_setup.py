@@ -7,12 +7,12 @@
 # ----------------------------------------------------------------------------
 import importlib
 
-from q2_amr.types import CARDDatabase, CARDDatabaseDirectoryFormat, CARDAnnotationtxtFormat, \
-    CARDDatabaseFormat, CARDAnnotationjsonFormat
+from q2_amr.types import CARDDatabase, CARDDatabaseDirectoryFormat, CARDAnnotationTXTFormat, \
+    CARDDatabaseFormat, CARDAnnotationJSONFormat
 from q2_types.feature_data import Sequence, FeatureData, ProteinSequence
 from qiime2.core.type import Str, Choices, Bool, Int, Range
 
-from q2_amr.card import fetch_data, annotate, heatmap  # heatmap
+from q2_amr.card import fetch_card_db, annotate_card, heatmap  # heatmap
 from qiime2.plugin import Citations, Plugin
 
 from q2_amr import __version__
@@ -32,7 +32,7 @@ plugin = Plugin(
                       "gene information from CARD.",
 )
 plugin.methods.register_function(
-    function=fetch_data,
+    function=fetch_card_db,
     inputs={},
     parameters={'version': Str % Choices(
         ['3.2.6', '3.2.5', '3.2.4', '3.2.3', '3.2.2', '3.2.1', '3.2.0', '3.1.4', '3.1.3', '3.1.2', '3.1.1', '3.1.0',
@@ -50,7 +50,7 @@ plugin.methods.register_function(
 )
 
 plugin.methods.register_function(
-    function=annotate,
+    function=annotate_card,
     inputs={'input_sequence': FeatureData[Sequence]},
     parameters={'alignment_tool': Str % Choices(['BLAST', 'DIAMOND']),
                 'input_type': Str % Choices(['contig', 'protein']),
@@ -100,8 +100,8 @@ plugin.register_semantic_type_to_format(
 plugin.register_semantic_type_to_format(
     CARDAnnotation,
     artifact_format=CARDAnnotationDirectoryFormat)
-plugin.register_formats(CARDAnnotationtxtFormat, CARDAnnotationDirectoryFormat,
-                        CARDAnnotationjsonFormat,
+plugin.register_formats(CARDAnnotationTXTFormat, CARDAnnotationDirectoryFormat,
+                        CARDAnnotationJSONFormat,
                         CARDDatabaseFormat, CARDDatabaseDirectoryFormat)
 
 importlib.import_module('q2_amr.types._transformer')

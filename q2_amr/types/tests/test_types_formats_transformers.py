@@ -6,6 +6,7 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 import json
+import shutil
 import tarfile
 import pandas as pd
 import tempfile
@@ -17,9 +18,9 @@ from qiime2.plugin.testing import TestPluginBase
 from q2_types.feature_data import (DNAIterator, DNAFASTAFormat, ProteinIterator, ProteinFASTAFormat)
 from skbio import DNA, Protein
 
-from q2_amr.card import fetch_data, annotate, card_annotation_df_to_fasta
+from q2_amr.card import fetch_card_db, annotate_card, card_annotation_df_to_fasta
 
-from q2_amr.types._format import CARDDatabaseFormat, CARDAnnotationtxtFormat
+from q2_amr.types._format import CARDDatabaseFormat, CARDAnnotationTXTFormat, CARDAnnotationDirectoryFormat
 
 from q2_amr.types._transformer import extract_sequence, _read_from_card_file
 
@@ -107,11 +108,11 @@ class TestCARDDatabaseTypesAndFormats(AMRTypesTestPluginBase):
 
 
     @patch('requests.get')
-    def test_fetch_card_data(self, mock_requests):
+    def test_fetch_card_db(self, mock_requests):
         f = open(self.get_data_path('card.tar.bz2'), 'rb')
         mock_response = MagicMock(raw=f)
         mock_requests.return_value = mock_response
-        obs = fetch_data(version='3.2.6')
+        obs = fetch_card_db(version='3.2.6')
         self.assertIsInstance(obs, pd.DataFrame)
         mock_requests.assert_called_once_with('https://card.mcmaster.ca/download/0/broadstreet-v3.2.6.tar.bz2', stream=True)
         exp = pd.read_json(self.get_data_path('card_test.json')).transpose()
@@ -120,12 +121,12 @@ class TestCARDDatabaseTypesAndFormats(AMRTypesTestPluginBase):
     @patch('requests.get', side_effect=requests.ConnectionError)
     def test_fetch_card_data_connection_error(self, mock_requests):
         with self.assertRaisesRegex(requests.ConnectionError, 'Network connectivity problems.'):
-            fetch_data(version='3.2.6')
+            fetch_card_db(version='3.2.6')
 
     @patch('tarfile.open', side_effect=tarfile.ReadError)
     def test_fetch_card_data_tarfile_read_error(self, mock_requests):
         with self.assertRaisesRegex(tarfile.ReadError, 'Tarfile is invalid.'):
-            fetch_data(version='3.2.6')
+            fetch_card_db(version='3.2.6')
 
     def test_extract_sequence_dna(self):
         with open(self.get_data_path('card_test.json'), 'rb') as f:
@@ -164,24 +165,39 @@ class TestCARDAnnotationTypesAndFormats(AMRTypesTestPluginBase):
 
     def test_df_to_card_annotation_format_transformer(self):
         filepath = self.get_data_path('rgi_output.txt')
-        transformer = self.get_transformer(pd.DataFrame, CARDAnnotationtxtFormat)
+        transformer = self.get_transformer(pd.DataFrame, CARDAnnotationTXTFormat)
         df = pd.read_csv(filepath, sep="\t")
         obs = transformer(df)
-        self.assertIsInstance(obs, CARDAnnotationtxtFormat)
+        self.assertIsInstance(obs, CARDAnnotationTXTFormat)
 
     def test_card_annotation_format_to_df_transformer(self):
         filepath = self.get_data_path('rgi_output.txt')
-        transformer = self.get_transformer(CARDAnnotationtxtFormat, pd.DataFrame)
-        card_anno = CARDAnnotationtxtFormat(filepath, mode='r')
+        transformer = self.get_transformer(CARDAnnotationTXTFormat, pd.DataFrame)
+        card_anno = CARDAnnotationTXTFormat(filepath, mode='r')
         obs = transformer(card_anno)
         self.assertIsInstance(obs, pd.DataFrame)
 
-    def test_card_annotation(self):
-        filepath = self.get_data_path('rgi_output.txt')
-        filepath2 = self.get_data_path('rgi_input.fna')
-        exp = pd.read_csv(filepath, sep='\t')
-        obs = annotate(input_sequence=filepath2)[0]
-        assert_frame_equal(exp, obs)
+    @patch('requests.get')
+    def test_fetch_card_db(self, mock_requests):
+        f = open(self.get_data_path('card.tar.bz2'), 'rb')
+        mock_response = MagicMock(raw=f)
+        mock_requests.return_value = mock_response
+        obs = fetch_card_db(version='3.2.6')
+
+    @patch('q2_amr.card.run_rgi_main')
+    def test_annotate_card(self, mock_run_rgi_main):
+        output_txt = self.get_data_path('rgi_output.txt')
+        output_json = self.get_data_path('rgi_output.json')
+        def mock_run_rgi_main(tmp, input_sequence, alignment_tool, input_type, split_prodigal_jobs, include_loose,
+                              exclude_nudge, low_quality, num_threads):
+            shutil.copy(output_txt, f"{tmp}/output.txt")
+            shutil.copy(output_json, f"{tmp}/output.json")
+
+        with patch('q2_amr.card.run_rgi_main', side_effect=mock_run_rgi_main):
+            input_sequence = DNAFASTAFormat()
+            result = annotate_card(input_sequence)[0]
+            self.assertIsInstance(result, CARDAnnotationDirectoryFormat)
+
 
     def test_card_annotation_txt_to_fasta(self):
         filepath = self.get_data_path('rgi_output.txt')
