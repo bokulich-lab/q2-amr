@@ -6,6 +6,7 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 import json
+from copy import copy
 
 import pandas as pd
 import qiime2.plugin.model as model
@@ -15,7 +16,8 @@ from qiime2.plugin import ValidationError
 class CARDDatabaseFormat(model.TextFileFormat):
     def _validate(self, n_records=None):
         header_exp = ['model_id', 'model_name', 'model_type', 'model_type_id', 'model_description', 'model_param', 'model_sequences', 'ARO_accession', 'ARO_id', 'ARO_name', 'CARD_short_name', 'ARO_description', 'ARO_category', 'description', 'access']
-        header_exp_2 = header_exp
+
+        header_exp_2 = copy(header_exp)
         header_exp_2.pop(10)
         card_df = pd.read_json(str(self)).transpose()
         header_obs = list(card_df.columns)
