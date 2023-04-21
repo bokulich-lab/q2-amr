@@ -13,5 +13,5 @@ def run_command(cmd, cwd, verbose=True):
     if verbose:
         print(EXTERNAL_CMD_WARNING)
         print("\nCommand:", end=" ")
-        print("".join(cmd), end="\n\n")
-    subprocess.run(cmd, check=True, shell=True, cwd=cwd)
+        print(" ".join(cmd), end="\n\n")
+    subprocess.run(cmd, check=True, cwd=cwd)

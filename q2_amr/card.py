@@ -69,15 +69,15 @@ def run_rgi_main(tmp,
     cmd = ['rgi', 'main', '--input_sequence', f'{str(input_sequence)}', '--output_file', f'{tmp}/output', '-n',
            f'{num_threads}']
     if include_loose:
-        cmd.append(["--include_loose"])
+        cmd.append("--include_loose")
     if not exclude_nudge:
-        cmd.append(["--exclude_nudge"])
+        cmd.append("--exclude_nudge")
     if low_quality:
-        cmd.append(["--low_quality"])
+        cmd.append("--low_quality")
     if split_prodigal_jobs:
-        cmd.append([" --split_prodigal_jobs"])
-    cmd.append(['--alignment_tool', f'{alignment_tool}'])
-    cmd.append(['--input_type', f'{input_type}'])
+        cmd.append("--split_prodigal_jobs")
+    cmd.extend(['--alignment_tool', f'{alignment_tool}'])
+    cmd.extend(['--input_type', f'{input_type}'])
     try:
         run_command(cmd, tmp, verbose=True)
     except subprocess.CalledProcessError as e:
