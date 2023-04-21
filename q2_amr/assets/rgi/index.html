@@ -1,0 +1,34 @@
+{% extends 'tabbed.html' %}
+
+{% block tabcontent %}
+
+  <div class="row">
+    <div class="col-lg-12">
+      <h3>Downloads</h3>
+    </div>
+  </div>
+
+<div class="row">
+      <div class="col-lg-6">
+          <div class="btn-group">
+              <a href="rgi_data/heatmap.eps" class="btn btn-default" download="heatmap.eps"> Eps File </a>
+              <a href="rgi_data/heatmap.csv" class="btn btn-default" download="heatmap.csv"> Csv File </a>
+          </div>
+      </div>
+  </div>
+  <br>
+
+<div class="row">
+  <div class="col-lg-6">
+    <h3>My Picture</h3>
+    <img src="rgi_data/heatmap.png" alt="My Picture">
+  </div>
+</div>
+
+{% endblock %}
+
+{% block footer %}
+{% set loading_selector = '#loading' %}
+{% include 'js-error-handler.html' %}
+
+{% endblock %}
