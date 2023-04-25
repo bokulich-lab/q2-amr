@@ -218,9 +218,4 @@ class TestCARDAnnotationTypesAndFormats(AMRTypesTestPluginBase):
         self.assertEqual(protein_contents_obs, protein_contents_exp)
         self.assertEqual(dna_contents_obs, dna_contents_exp)
 
-    def test_bwt(self):
-        reads_path = "/Users/vinzent/Desktop/bokulich_project/data/rgi_bwt/amr_bwt/input/reads.qza"
-        database_path = "/Users/vinzent/Desktop/bokulich_project/data/rgi_bwt/amr_bwt/input/card_db.qza"
-        reads = Artifact.load(reads_path)
-        database = Artifact.load(database_path)
-        amr.visualizers.bwt(reads, database)
+
