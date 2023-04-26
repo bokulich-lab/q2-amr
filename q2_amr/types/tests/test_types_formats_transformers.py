@@ -6,6 +6,7 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 import json
+import os
 import shutil
 import tarfile
 import pandas as pd
@@ -13,6 +14,7 @@ import tempfile
 import pkg_resources
 import requests
 from pandas._testing import assert_frame_equal
+from q2_amr.types import CARDDatabaseDirectoryFormat
 
 from qiime2.plugin.testing import TestPluginBase
 from q2_types.feature_data import (DNAIterator, DNAFASTAFormat, ProteinIterator, ProteinFASTAFormat)
@@ -106,27 +108,25 @@ class TestCARDDatabaseTypesAndFormats(AMRTypesTestPluginBase):
         self.assertDictEqual(obs_dict, exp_dict)
         self.assertIsInstance(obs, DNAFASTAFormat)
 
-
     @patch('requests.get')
     def test_fetch_card_db(self, mock_requests):
         f = open(self.get_data_path('card.tar.bz2'), 'rb')
         mock_response = MagicMock(raw=f)
         mock_requests.return_value = mock_response
-        obs = fetch_card_db(version='3.2.6')
-        self.assertIsInstance(obs, pd.DataFrame)
-        mock_requests.assert_called_once_with('https://card.mcmaster.ca/download/0/broadstreet-v3.2.6.tar.bz2', stream=True)
-        exp = pd.read_json(self.get_data_path('card_test.json')).transpose()
-        assert_frame_equal(obs, exp)
+        obs = fetch_card_db()
+        self.assertTrue(os.path.exists(os.path.join(str(obs), "card.json")))
+        self.assertIsInstance(obs, CARDDatabaseDirectoryFormat)
+        mock_requests.assert_called_once_with('https://card.mcmaster.ca/latest/data', stream=True)
 
     @patch('requests.get', side_effect=requests.ConnectionError)
     def test_fetch_card_data_connection_error(self, mock_requests):
         with self.assertRaisesRegex(requests.ConnectionError, 'Network connectivity problems.'):
-            fetch_card_db(version='3.2.6')
+            fetch_card_db()
 
     @patch('tarfile.open', side_effect=tarfile.ReadError)
     def test_fetch_card_data_tarfile_read_error(self, mock_requests):
         with self.assertRaisesRegex(tarfile.ReadError, 'Tarfile is invalid.'):
-            fetch_card_db(version='3.2.6')
+            fetch_card_db()
 
     def test_extract_sequence_dna(self):
         with open(self.get_data_path('card_test.json'), 'rb') as f:
@@ -182,7 +182,7 @@ class TestCARDAnnotationTypesAndFormats(AMRTypesTestPluginBase):
         f = open(self.get_data_path('card.tar.bz2'), 'rb')
         mock_response = MagicMock(raw=f)
         mock_requests.return_value = mock_response
-        obs = fetch_card_db(version='3.2.6')
+        obs = fetch_card_db()
 
     @patch('q2_amr.card.run_rgi_main')
     def test_annotate_card(self, mock_run_rgi_main):
