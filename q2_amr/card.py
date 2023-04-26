@@ -50,7 +50,8 @@ def annotate_card(input_sequence: DNAFASTAFormat,
                   low_quality: bool = False,
                   num_threads: int = 8) -> (CARDAnnotationDirectoryFormat, ProteinFASTAFormat, DNAFASTAFormat):
     with tempfile.TemporaryDirectory() as tmp:
-        run_rgi_main(tmp, input_sequence, alignment_tool, input_type, split_prodigal_jobs, include_loose, exclude_nudge, low_quality, num_threads)
+        run_rgi_main(tmp, input_sequence, alignment_tool, input_type, split_prodigal_jobs, include_loose, exclude_nudge,
+                     low_quality, num_threads)
         amr_annotation_df = pd.read_csv(f'{tmp}/output.txt', sep="\t")
         amr_annotations = CARDAnnotationDirectoryFormat()
         shutil.move(f'{tmp}/output.txt', f"{str(amr_annotations)}/amr_annotation.txt")
@@ -190,7 +191,8 @@ def bwt(output_dir: str,
             os.makedirs(results_dir)
             load_card_db(tmp, card_database)
             preprocess_card_db(tmp)
-            run_rgi_bwt(tmp, fwd, rev, results_dir, samp, aligner, threads, local, include_baits, mapq, mapped, coverage)
+            run_rgi_bwt(tmp, fwd, rev, results_dir, samp, aligner, threads, local, include_baits, mapq, mapped,
+                        coverage)
             copy_tree(results_dir, os.path.join(output_dir, "bwt_data"))
         copy_tree(os.path.join(TEMPLATES, "bwt"), output_dir)
     context = {
@@ -237,10 +239,10 @@ def run_rgi_bwt(tmp,
         )
 
 
-def load_card_db(tmp, card_database):
-    cmd_load_card_db = ['rgi', 'load', '--card_json', f'{str(card_database)}', '--local']
+def load_card_db(tmp, card_db):
+    cmd = ['rgi', 'load', '--card_json', str(card_db), '--local']
     try:
-        run_command(cmd_load_card_db, tmp, verbose=True)
+        run_command(cmd, tmp, verbose=True)
     except subprocess.CalledProcessError as e:
         raise Exception(
             "An error was encountered while running rgi load, "
@@ -249,22 +251,28 @@ def load_card_db(tmp, card_database):
         )
 
 
-def preprocess_card_db(tmp):
-    cmd_preprocess_card_db_log = ['rgi', 'card_annotation', '-i', f'{tmp}/localDB/card.json', '>', 'card_annotation.log', '2>&1']
+def preprocess_card_db(tmp, card_db):
+    # cmd = ['rgi', 'card_annotation', '-i', str(card_db), '>', 'card_annotation.log', '2>&1']
+    # cmd = [f'rgi card_annotation -i {str(card_db)} > card_annotation.log 2>&1']
+    cmd = ['rgi', 'card_annotation', '-i', str(card_db)]
+
     try:
-        run_command(cmd_preprocess_card_db_log, tmp, verbose=True)
+        run_command(cmd, tmp, verbose=True)
     except subprocess.CalledProcessError as e:
         raise Exception(
             "An error was encountered while running rgi card_annotation, "
             f"(return code {e.returncode}), please inspect "
             "stdout and stderr to learn more."
         )
+
+
+def load_card_db_fasta(tmp, card_db):
     with open(f'{tmp}/card.json') as f:
         card_data = json.load(f)
         version = card_data['_version']
-    cmd_preprocess_card_db_fasta = ['rgi', 'load', '-i', f'{tmp}/localDB/card.json', '--card_annotation', f'card_database_v{version}.fasta', '--local']
+    cmd = ['rgi', 'load', '-i', str(card_db), '--card_annotation', f'card_database_v{version}.fasta', '--local']
     try:
-        run_command(cmd_preprocess_card_db_fasta, tmp, verbose=True)
+        run_command(cmd, tmp, verbose=True)
     except subprocess.CalledProcessError as e:
         raise Exception(
             "An error was encountered while running rgi load, "
