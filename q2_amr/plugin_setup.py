@@ -37,13 +37,10 @@ plugin = Plugin(
 plugin.methods.register_function(
     function=fetch_card_db,
     inputs={},
-    parameters={'version': Str % Choices(
-        ['3.2.6', '3.2.5', '3.2.4', '3.2.3', '3.2.2', '3.2.1', '3.2.0', '3.1.4', '3.1.3', '3.1.2', '3.1.1', '3.1.0',
-         '3.0.9', '3.0.8'])},
+    parameters={},
     outputs=[('card_db', CARDDatabase)],
     input_descriptions={},
-    parameter_descriptions={
-        'version': 'Version of the CARD database to be downloaded.'},
+    parameter_descriptions={},
     output_descriptions={
         'card_db': 'CARD database of resistance genes, their products and associated '
                    'phenotypes.'},
