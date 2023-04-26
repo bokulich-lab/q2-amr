@@ -16,16 +16,15 @@ from q2_types.feature_data import ProteinFASTAFormat, DNAFASTAFormat
 from skbio import Protein, DNA
 
 from q2_amr.types import CARDAnnotationJSONFormat, CARDDatabaseFormat, CARDAnnotationTXTFormat, \
-    CARDAnnotationDirectoryFormat, CARDAnnotation
+    CARDAnnotationDirectoryFormat, CARDAnnotation, CARDDatabaseDirectoryFormat
 from q2_amr.utils import run_command
 
-CARD_URL = "https://card.mcmaster.ca/download/0/broadstreet-v{}.tar.bz2"
+CARD_URL = "https://card.mcmaster.ca/latest/data"
 
 
-def fetch_card_db(version: str = '3.2.6') -> pd.DataFrame:
-    url = CARD_URL.format(version)
+def fetch_card_db() -> CARDDatabaseDirectoryFormat:
     try:
-        response = requests.get(url, stream=True)
+        response = requests.get(CARD_URL, stream=True)
     except requests.ConnectionError as e:
         raise requests.ConnectionError('Network connectivity problems.') from e
     with tempfile.TemporaryDirectory() as tmp_dir:
@@ -34,9 +33,9 @@ def fetch_card_db(version: str = '3.2.6') -> pd.DataFrame:
                 tar.extractall(path=tmp_dir)
         except tarfile.ReadError as a:
             raise tarfile.ReadError('Tarfile is invalid.') from a
-        card_path = os.path.join(tmp_dir, 'card.json')
-        card_df = pd.read_json(card_path).transpose()
-        return card_df
+        card_db = CARDDatabaseDirectoryFormat()
+        shutil.move(os.path.join(tmp_dir, 'card.json'), os.path.join(str(card_db), 'card.json'))
+        return card_db
 
 
 def annotate_card(input_sequence: DNAFASTAFormat,
