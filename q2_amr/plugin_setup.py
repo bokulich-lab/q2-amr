@@ -94,7 +94,7 @@ plugin.visualizers.register_function(
 plugin.visualizers.register_function(
     function=bwt,
     inputs={'reads': SampleData[PairedEndSequencesWithQuality],
-            'card_database': CARDDatabase},
+            'card_db': CARDDatabase},
     parameters={'aligner': Str % Choices(['kma', 'bowtie2', 'bwa']),
                 'local': Bool,
                 'include_baits': Bool,
@@ -103,7 +103,7 @@ plugin.visualizers.register_function(
                 'coverage': Float % Range(0, None, inclusive_start=False),
                 'threads': Int},
     input_descriptions={'reads': 'Paired end metagenomic reads.',
-                        'card_database': 'CARD Database'},
+                        'card_db': 'CARD Database'},
     parameter_descriptions={
         'aligner': 'Specify alignment tool kma, bowtie2 or bwa.',
         'local': 'Use local database (default: uses database in executable directory).',

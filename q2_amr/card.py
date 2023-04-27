@@ -171,7 +171,7 @@ def heatmap(output_dir: str,
 
 def bwt(output_dir: str,
         reads: SingleLanePerSamplePairedEndFastqDirFmt,
-        card_database: CARDDatabaseFormat,
+        card_db: CARDDatabaseFormat,
         aligner: str = 'kma',
         threads: int = 8,
         local: bool = False,
@@ -188,8 +188,9 @@ def bwt(output_dir: str,
         with tempfile.TemporaryDirectory() as tmp:
             results_dir = os.path.join(tmp, "results", samp)
             os.makedirs(results_dir)
-            load_card_db(tmp, card_database)
-            preprocess_card_db(tmp)
+            load_card_db(tmp, card_db)
+            preprocess_card_db(tmp, card_db)
+            load_card_db_fasta(tmp, card_db)
             run_rgi_bwt(tmp, fwd, rev, results_dir, samp, aligner, threads, local, include_baits, mapq, mapped,
                         coverage)
             copy_tree(results_dir, os.path.join(output_dir, "bwt_data"))
@@ -251,10 +252,7 @@ def load_card_db(tmp, card_db):
 
 
 def preprocess_card_db(tmp, card_db):
-    # cmd = ['rgi', 'card_annotation', '-i', str(card_db), '>', 'card_annotation.log', '2>&1']
-    # cmd = [f'rgi card_annotation -i {str(card_db)} > card_annotation.log 2>&1']
     cmd = ['rgi', 'card_annotation', '-i', str(card_db)]
-
     try:
         run_command(cmd, tmp, verbose=True)
     except subprocess.CalledProcessError as e:
@@ -266,7 +264,7 @@ def preprocess_card_db(tmp, card_db):
 
 
 def load_card_db_fasta(tmp, card_db):
-    with open(f'{tmp}/card.json') as f:
+    with open(str(card_db)) as f:
         card_data = json.load(f)
         version = card_data['_version']
     cmd = ['rgi', 'load', '-i', str(card_db), '--card_annotation', f'card_database_v{version}.fasta', '--local']
