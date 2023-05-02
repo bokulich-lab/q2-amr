@@ -4,6 +4,7 @@ import shutil
 import subprocess
 import tarfile
 import tempfile
+import zipfile
 from distutils.dir_util import copy_tree
 
 import pandas as pd
@@ -174,35 +175,36 @@ def bwt(output_dir: str,
         card_db: CARDDatabaseFormat,
         aligner: str = 'kma',
         threads: int = 8,
-        local: bool = False,
         include_baits: bool = False,
         mapq: int = None,
         mapped: int = None,
         coverage: float = None):
-    TEMPLATES = pkg_resources.resource_filename("q2_amr", "assets", "rgi")
+    TEMPLATES = pkg_resources.resource_filename("q2_amr", "assets")
     paired = isinstance(reads, SingleLanePerSamplePairedEndFastqDirFmt)
     manifest = reads.manifest.view(pd.DataFrame)
-    for samp in list(manifest.index):
-        fwd = manifest.loc[samp, "forward"]
-        rev = manifest.loc[samp, "reverse"] if paired else None
-        with tempfile.TemporaryDirectory() as tmp:
-            results_dir = os.path.join(tmp, "results", samp)
-            os.makedirs(results_dir)
-            load_card_db(tmp, card_db)
-            preprocess_card_db(tmp, card_db)
-            load_card_db_fasta(tmp, card_db)
-            run_rgi_bwt(tmp, fwd, rev, results_dir, samp, aligner, threads, local, include_baits, mapq, mapped,
-                        coverage)
-            copy_tree(results_dir, os.path.join(output_dir, "bwt_data"))
-        copy_tree(os.path.join(TEMPLATES, "bwt"), output_dir)
-    context = {
-        "tabs": [
-            {"title": "QC report", "url": "index.html"}]
-    }
-    index = os.path.join(TEMPLATES, 'bwt', 'index.html')
+    tar_filename = os.path.join(output_dir, "bwt_data", "bwt_output.tar")
+    os.makedirs(os.path.join(output_dir, "bwt_data"))
+    with tarfile.open(tar_filename, "w") as tar:
+        for samp in list(manifest.index):
+            fwd = manifest.loc[samp, "forward"]
+            rev = manifest.loc[samp, "reverse"] if paired else None
+            with tempfile.TemporaryDirectory() as tmp:
+                samp_dir = os.path.join(tmp, "bwt_output", samp)
+                os.makedirs(samp_dir)
+                load_card_db(tmp, card_db)
+                preprocess_card_db(tmp, card_db)
+                load_card_db_fasta(tmp, card_db)
+                run_rgi_bwt(tmp, fwd, rev, samp_dir, samp, aligner, threads, include_baits, mapq, mapped, coverage)
+                for root, dirs, files in os.walk(samp_dir):
+                    for file in files:
+                        filepath = os.path.join(root, file)
+                        tar.add(filepath, arcname=os.path.relpath(filepath, tmp))
+    copy_tree(os.path.join(TEMPLATES, "rgi", "bwt"), output_dir)
+
+    context = {"tabs": [{"title": "QC report", "url": "index.html"}]}
+    index = os.path.join(TEMPLATES, "rgi", "bwt", 'index.html')
     templates = [index]
     q2templates.render(templates, output_dir, context=context)
-
 
 def run_rgi_bwt(tmp,
                 fwd,
@@ -211,24 +213,21 @@ def run_rgi_bwt(tmp,
                 samp,
                 aligner: str = 'kma',
                 threads: int = 8,
-                local: bool = False,
                 include_baits: bool = False,
                 mapq: int = None,
                 mapped: int = None,
                 coverage: float = None):
-    cmd = ['rgi', 'bwt', '--read_one', f'{str(fwd)}', '--read_two', f'{str(rev)}', '--output_file',
-           f'{results_dir}/{samp}', '-n', f'{threads}']
-    if local:
-        cmd.append(["--local"])
-    if not include_baits:
-        cmd.append(["--include_baits"])
+    cmd = ['rgi', 'bwt', '--read_one', str(fwd), '--read_two', str(rev), '--output_file',
+           f'{results_dir}/{samp}', '-n', str(threads), '--local', '--clean']
+    if include_baits:
+        cmd.append("--include_baits")
     if mapq:
-        cmd.append(["--mapq" f"{mapq}"])
+        cmd.extend(["--mapq", str(mapq)])
     if mapped:
-        cmd.append(["--mapped", "{mapped}"])
+        cmd.extend(["--mapped", str(mapped)])
     if coverage:
-        cmd.append(["--coverage" f"{coverage}"])
-    cmd.append(['--aligner', f'{aligner}'])
+        cmd.extend(["--coverage", str(coverage)])
+    cmd.extend(['--aligner', aligner])
     try:
         run_command(cmd, tmp, verbose=True)
     except subprocess.CalledProcessError as e:

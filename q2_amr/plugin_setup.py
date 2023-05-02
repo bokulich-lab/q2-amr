@@ -96,7 +96,6 @@ plugin.visualizers.register_function(
     inputs={'reads': SampleData[PairedEndSequencesWithQuality],
             'card_db': CARDDatabase},
     parameters={'aligner': Str % Choices(['kma', 'bowtie2', 'bwa']),
-                'local': Bool,
                 'include_baits': Bool,
                 'mapq': Int % Range(1, None),
                 'mapped': Int % Range(1, None),
@@ -106,7 +105,6 @@ plugin.visualizers.register_function(
                         'card_db': 'CARD Database'},
     parameter_descriptions={
         'aligner': 'Specify alignment tool kma, bowtie2 or bwa.',
-        'local': 'Use local database (default: uses database in executable directory).',
         'include_baits': 'Include baits.',
         'mapq': 'Filter reads based on MAPQ score.',
         'mapped': 'Filter reads based on mapped reads.',
