@@ -82,13 +82,13 @@ plugin.methods.register_function(
 
 plugin.visualizers.register_function(
     function=heatmap,
-    inputs={'amr_annotation_json': List[CARDAnnotation]},
+    inputs={'amr_annotation': List[CARDAnnotation]},
     parameters={'cat': Str % Choices(['drug_class', 'resistance_mechanism', 'gene_family']),
                 'clus': Str % Choices(['samples', 'genes', 'both']),
                 'display': Str % Choices(['plain', 'fill', 'text']),
                 'frequency': Bool,
                 },
-    input_descriptions={'amr_annotation_json': 'Sequences to be annotated with rgi.'},
+    input_descriptions={'amr_annotation': 'Sequences to be annotated with rgi.'},
     parameter_descriptions={
         'cat': 'The option to organize resistance genes based on a category.',
         'clus': 'Specify data input type contig or protein.',

@@ -107,7 +107,7 @@ def card_annotation_df_to_fasta(input_df: pd.DataFrame):
 
 
 def heatmap(output_dir: str,
-            amr_annotation_list: CARDAnnotationJSONFormat,
+            amr_annotation: CARDAnnotationJSONFormat,
             clus: str = None,
             cat: str = None,
             display: str = 'plain',
@@ -118,8 +118,8 @@ def heatmap(output_dir: str,
         json_files_dict = os.path.join(tmp, "json_files")
         os.makedirs(results_dir)
         os.makedirs(json_files_dict)
-        for file in amr_annotation_list:
-            shutil.copy(os.path.join(file, 'amr_annotation.json'), json_files_dict)
+        for file in amr_annotation:
+            shutil.copy(file, json_files_dict)
         run_rgi_heatmap(tmp, json_files_dict, clus, cat, display, frequency)
         change_names(results_dir)
         copy_tree(os.path.join(TEMPLATES, "rgi"), output_dir)
