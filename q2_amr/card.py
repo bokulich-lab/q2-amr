@@ -197,7 +197,7 @@ def bwt(output_dir: str,
                 run_rgi_bwt(tmp, fwd, rev, samp_dir, samp, aligner, threads, include_baits, mapq, mapped, coverage)
                 for root, dirs, files in os.walk(samp_dir):
                     for file in files:
-                        filepath = os.path.join(root, file)
+                        filepath = str(os.path.join(root, file))
                         tar.add(filepath, arcname=os.path.relpath(filepath, tmp))
     copy_tree(os.path.join(TEMPLATES, "rgi", "bwt"), output_dir)
 
@@ -206,17 +206,8 @@ def bwt(output_dir: str,
     templates = [index]
     q2templates.render(templates, output_dir, context=context)
 
-def run_rgi_bwt(tmp,
-                fwd,
-                rev,
-                results_dir,
-                samp,
-                aligner: str = 'kma',
-                threads: int = 8,
-                include_baits: bool = False,
-                mapq: int = None,
-                mapped: int = None,
-                coverage: float = None):
+
+def run_rgi_bwt(tmp, fwd, rev, results_dir, samp, aligner, threads, include_baits, mapq, mapped, coverage):
     cmd = ['rgi', 'bwt', '--read_one', str(fwd), '--read_two', str(rev), '--output_file',
            f'{results_dir}/{samp}', '-n', str(threads), '--local', '--clean']
     if include_baits:
