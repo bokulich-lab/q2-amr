@@ -14,7 +14,9 @@ from qiime2.plugin import ValidationError
 
 class CARDDatabaseFormat(model.TextFileFormat):
     def _validate(self, n_records=None):
-        header_exp = ['model_id', 'model_name', 'model_type', 'model_type_id', 'model_description', 'model_param', 'model_sequences', 'ARO_accession', 'ARO_id', 'ARO_name', 'CARD_short_name', 'ARO_description', 'ARO_category', 'description', 'access']
+        header_exp = ['model_id', 'model_name', 'model_type', 'model_type_id', 'model_description', 'model_param',
+                      'model_sequences', 'ARO_accession', 'ARO_id', 'ARO_name', 'CARD_short_name', 'ARO_description',
+                      'ARO_category', 'description', 'access']
 
         header_exp_2 = copy(header_exp)
         header_exp_2.pop(10)
@@ -37,11 +39,12 @@ CARDDatabaseDirectoryFormat = model.SingleFileDirectoryFormat(
 
 class CARDAnnotationTXTFormat(model.TextFileFormat):
     def _validate(self, n_records=None):
-        header_exp = ['ORF_ID', 'Contig', 'Start', 'Stop', 'Orientation', 'Cut_Off', 'Pass_Bitscore', 'Best_Hit_Bitscore',
-                  'Best_Hit_ARO', 'Best_Identities', 'ARO', 'Model_type', 'SNPs_in_Best_Hit_ARO', 'Other_SNPs',
-                  'Drug Class', 'Resistance Mechanism', 'AMR Gene Family', 'Predicted_DNA', 'Predicted_Protein',
-                  'CARD_Protein_Sequence', 'Percentage Length of Reference Sequence', 'ID', 'Model_ID', 'Nudged',
-                  'Note']
+        header_exp = ['ORF_ID', 'Contig', 'Start', 'Stop', 'Orientation', 'Cut_Off', 'Pass_Bitscore',
+                      'Best_Hit_Bitscore',
+                      'Best_Hit_ARO', 'Best_Identities', 'ARO', 'Model_type', 'SNPs_in_Best_Hit_ARO', 'Other_SNPs',
+                      'Drug Class', 'Resistance Mechanism', 'AMR Gene Family', 'Predicted_DNA', 'Predicted_Protein',
+                      'CARD_Protein_Sequence', 'Percentage Length of Reference Sequence', 'ID', 'Model_ID', 'Nudged',
+                      'Note']
         df = pd.read_csv(str(self), sep="\t")
 
         header_obs = list(df.columns)
@@ -57,7 +60,11 @@ class CARDAnnotationTXTFormat(model.TextFileFormat):
 
 class CARDAnnotationJSONFormat(model.TextFileFormat):
     def _validate(self, n_records=None):
-        keys_exp = ['bit_score', 'sequence_from_broadstreet', 'query_start', 'ARO_name', 'sequence_from_db', 'max_identities', 'orf_prot_sequence', 'query_snp', 'match', 'orf_strand', 'model_id', 'evalue', 'model_name', 'model_type', 'model_type_id', 'orf_from', 'ARO_accession', 'partial', 'orf_end', 'dna_sequence_from_broadstreet', 'perc_identity', 'query_end', 'cvterm_id', 'type_match', 'pass_evalue', 'pass_bitscore', 'ARO_category', 'snp', 'orf_dna_sequence', 'query', 'orf_start']
+        keys_exp = ['bit_score', 'sequence_from_broadstreet', 'query_start', 'ARO_name', 'sequence_from_db',
+                    'max_identities', 'orf_prot_sequence', 'query_snp', 'match', 'orf_strand', 'model_id', 'evalue',
+                    'model_name', 'model_type', 'model_type_id', 'orf_from', 'ARO_accession', 'partial', 'orf_end',
+                    'dna_sequence_from_broadstreet', 'perc_identity', 'query_end', 'cvterm_id', 'type_match',
+                    'pass_evalue', 'pass_bitscore', 'ARO_category', 'snp', 'orf_dna_sequence', 'query', 'orf_start']
 
         with open(str(self), 'r') as f:
             json_str = f.read()
@@ -79,6 +86,7 @@ class CARDAnnotationJSONFormat(model.TextFileFormat):
 
     def _validate_(self, level):
         self._validate()
+
 
 class CARDAnnotationDirectoryFormat(model.DirectoryFormat):
     json = model.File(r'amr_annotation.json', format=CARDAnnotationJSONFormat)

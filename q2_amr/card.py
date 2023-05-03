@@ -12,11 +12,12 @@ import q2templates
 import requests
 import skbio
 from q2_types.feature_data import ProteinFASTAFormat, DNAFASTAFormat
+from qiime2.core.type import List
 
 from skbio import Protein, DNA
 
 from q2_amr.types import CARDAnnotationJSONFormat, CARDDatabaseFormat, CARDAnnotationTXTFormat, \
-    CARDAnnotationDirectoryFormat, CARDAnnotation
+    CARDAnnotationDirectoryFormat
 from q2_amr.utils import run_command
 
 CARD_URL = "https://card.mcmaster.ca/download/0/broadstreet-v{}.tar.bz2"
@@ -48,7 +49,8 @@ def annotate_card(input_sequence: DNAFASTAFormat,
                   low_quality: bool = False,
                   num_threads: int = 8) -> (CARDAnnotationDirectoryFormat, ProteinFASTAFormat, DNAFASTAFormat):
     with tempfile.TemporaryDirectory() as tmp:
-        run_rgi_main(tmp, input_sequence, alignment_tool, input_type, split_prodigal_jobs, include_loose, exclude_nudge, low_quality, num_threads)
+        run_rgi_main(tmp, input_sequence, alignment_tool, input_type, split_prodigal_jobs, include_loose, exclude_nudge,
+                     low_quality, num_threads)
         amr_annotation_df = pd.read_csv(f'{tmp}/output.txt', sep="\t")
         amr_annotations = CARDAnnotationDirectoryFormat()
         shutil.move(f'{tmp}/output.txt', f"{str(amr_annotations)}/amr_annotation.txt")
@@ -105,57 +107,21 @@ def card_annotation_df_to_fasta(input_df: pd.DataFrame):
 
 
 def heatmap(output_dir: str,
-            amr_annotation_json: CARDAnnotationJSONFormat,
-            # clus: str = 'no',
-            # cat: str = 'no',
-            # frequency=False
-            ) -> None:
+            amr_annotation_list: CARDAnnotationJSONFormat,
+            clus: str = None,
+            cat: str = None,
+            display: str = 'plain',
+            frequency: bool = False):
     TEMPLATES = pkg_resources.resource_filename("q2_amr", "assets")
     with tempfile.TemporaryDirectory() as tmp:
         results_dir = os.path.join(tmp, "results")
+        json_files_dict = os.path.join(tmp, "json_files")
         os.makedirs(results_dir)
-        cmd = [f'rgi heatmap --input {os.path.dirname(str(amr_annotation_json))} --output {tmp}/results/heatmap']
-        # if frequency:
-        #     cmd.extend(["--frequency"])
-        # if clus == 'both':
-        #     cmd.extend(["-clus both"])
-        # elif clus == 'samples':
-        #     cmd.extend(["-clus samples"])
-        # elif clus == 'genes':
-        #     cmd.extend(["-clus genes"])
-        # elif clus == 'no':
-        #     pass
-        # if cat == 'drug_class':
-        #     cmd.extend(["-cat drug_class"])
-        # elif cat == 'resistance_mechanism':
-        #     cmd.extend(["-cat resistance_mechanism"])
-        # elif cat == 'gene_family':
-        #     cmd.extend(["-cat gene_family"])
-        # elif cat == 'no':
-        #     pass
-        try:
-            run_command(cmd, verbose=True)
-        except subprocess.CalledProcessError as e:
-            raise Exception(
-                "An error was encountered while running rgi, "
-                f"(return code {e.returncode}), please inspect "
-                "stdout and stderr to learn more."
-            )
-        extensions = [".eps", ".csv", ".png"]  # Replace with the file extensions you want to rename
-        # Get all the files in the directory
-        files = os.listdir(results_dir)
-        # Loop through all the files in the directory
-        for filename in files:
-            # Check if the file extension is in the list of extensions you want to rename
-            if os.path.splitext(filename)[1] in extensions:
-                # Construct the new file name with the correct extension
-                file_ext = os.path.splitext(filename)[1]
-                new_filename = "heatmap" + file_ext
-
-                # Rename the file
-                old_path = os.path.join(results_dir, filename)
-                new_path = os.path.join(results_dir, new_filename)
-                os.rename(old_path, new_path)
+        os.makedirs(json_files_dict)
+        for file in amr_annotation_list:
+            shutil.copy(os.path.join(file, 'amr_annotation.json'), json_files_dict)
+        run_rgi_heatmap(tmp, json_files_dict, clus, cat, display, frequency)
+        change_names(results_dir)
         copy_tree(os.path.join(TEMPLATES, "rgi"), output_dir)
         copy_tree(results_dir, os.path.join(output_dir, "rgi_data"))
     context = {
@@ -165,3 +131,39 @@ def heatmap(output_dir: str,
     index = os.path.join(TEMPLATES, 'rgi', 'index.html')
     templates = [index]
     q2templates.render(templates, output_dir, context=context)
+
+
+def run_rgi_heatmap(tmp, json_files_dict, clus, cat, display, frequency):
+    cmd = ['rgi', 'heatmap', '--input', json_files_dict, '--output', f'{tmp}/results/heatmap',
+           "--display", str(display)]
+    if clus:
+        cmd.extend(["--clus", str(clus)])
+    if cat:
+        cmd.extend(["--cat", str(cat)])
+    if frequency:
+        cmd.append("--frequency")
+    try:
+        run_command(cmd, tmp, verbose=True)
+    except subprocess.CalledProcessError as e:
+        raise Exception(
+            "An error was encountered while running rgi, "
+            f"(return code {e.returncode}), please inspect "
+            "stdout and stderr to learn more."
+        )
+
+
+def change_names(results_dir):
+    extensions = [".eps", ".csv", ".png"]  # Replace with the file extensions you want to rename
+    # Get all the files in the directory
+    files = os.listdir(results_dir)
+    # Loop through all the files in the directory
+    for filename in files:
+        # Check if the file extension is in the list of extensions you want to rename
+        if os.path.splitext(filename)[1] in extensions:
+            # Construct the new file name with the correct extension
+            file_ext = os.path.splitext(filename)[1]
+            new_filename = "heatmap" + file_ext
+            # Rename the file
+            old_path = os.path.join(results_dir, filename)
+            new_path = os.path.join(results_dir, new_filename)
+            os.rename(old_path, new_path)

@@ -8,16 +8,15 @@
 import importlib
 
 from q2_amr.types import CARDDatabase, CARDDatabaseDirectoryFormat, CARDAnnotationTXTFormat, \
-    CARDDatabaseFormat, CARDAnnotationJSONFormat
+    CARDDatabaseFormat, CARDAnnotationJSONFormat, CARDAnnotation, CARDAnnotationDirectoryFormat
 from q2_types.feature_data import Sequence, FeatureData, ProteinSequence
-from qiime2.core.type import Str, Choices, Bool, Int, Range
+from qiime2.core.type import Str, Choices, Bool, Int, Range, List
 
-from q2_amr.card import fetch_card_db, annotate_card, heatmap  # heatmap
+from q2_amr.card import fetch_card_db, annotate_card, heatmap
 from qiime2.plugin import Citations, Plugin
 
 from q2_amr import __version__
-from q2_amr.types._format import CARDAnnotationDirectoryFormat
-from q2_amr.types._type import CARDAnnotation
+
 
 citations = Citations.load("citations.bib", package="q2_amr")
 
@@ -83,10 +82,18 @@ plugin.methods.register_function(
 
 plugin.visualizers.register_function(
     function=heatmap,
-    inputs={'amr_annotation_json': CARDAnnotation},
-    parameters={},
+    inputs={'amr_annotation_json': List[CARDAnnotation]},
+    parameters={'cat': Str % Choices(['drug_class', 'resistance_mechanism', 'gene_family']),
+                'clus': Str % Choices(['samples', 'genes', 'both']),
+                'display': Str % Choices(['plain', 'fill', 'text']),
+                'frequency': Bool,
+                },
     input_descriptions={'amr_annotation_json': 'Sequences to be annotated with rgi.'},
-    parameter_descriptions={},
+    parameter_descriptions={
+        'cat': 'The option to organize resistance genes based on a category.',
+        'clus': 'Specify data input type contig or protein.',
+        'display': 'Specify display options for categories',
+        'frequency': 'Represent samples based on resistance profile.',},
     name='Download CARD data.',
     description=('Downloads the CARD database from the CARD website.'),
     citations=[citations['alcock_card_2023']]
