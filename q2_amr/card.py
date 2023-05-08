@@ -217,15 +217,14 @@ def bwt(output_dir: str,
         metadata_tabulate(gene_df_list, tabulate_gene_dir, output_dir, "gene")
         copy_tree(os.path.join(TEMPLATES, "rgi", "bwt"), output_dir)
         context = {"tabs": [{"title": "Overview", "url": "index.html"},
-                            {"title": "Allele Data", "url": "allele_tab.html"},
-                            {"title": "Gene Data", "url": "gene_tab.html"}
+                            {"title": "Allele Mapping Data", "url": "allele_tab.html"},
+                            {"title": "Gene Mapping Data", "url": "gene_tab.html"}
                             ]}
         index = os.path.join(TEMPLATES, "rgi", "bwt", 'index.html')
         allele = os.path.join(TEMPLATES, "rgi", "bwt", 'allele_tab.html')
         gene = os.path.join(TEMPLATES, "rgi", "bwt", 'gene_tab.html')
         templates = [index, allele, gene]
         q2templates.render(templates, output_dir, context=context)
-
 
 
 def plot_sample_stats(sample_stats, output_dir):
@@ -251,6 +250,7 @@ def plot_sample_stats(sample_stats, output_dir):
     combined_chart = alt.vconcat(mapped_reads_plot, percentage_plot, spacing=0)
     combined_chart.save(os.path.join(output_dir, "sample_stats_plot.html"))
 
+
 def extract_sample_stats(samp_dir, samp, sample_stats):
     with open(os.path.join(samp_dir, f"{samp}.overall_mapping_stats.txt"), "r") as f:
         for line in f:
@@ -261,10 +261,12 @@ def extract_sample_stats(samp_dir, samp, sample_stats):
                 percentage = float(line.split()[3].strip('()').strip('%'))
         sample_stats[samp] = {'total_reads': total_reads, 'mapped_reads': mapped_reads, 'percentage': percentage}
 
+
 def read_in_txt(tmp, samp, type, df_list):
     df = pd.read_csv(os.path.join(tmp, "bwt_output", samp, f"{samp}.{type}_mapping_data.txt"), sep="\t")
     df["sample name"] = samp
     df_list.append(df)
+
 
 def metadata_tabulate(mapping_data_list, tabulate_dir, output_dir, name):
     mapping_data_cat = pd.concat(mapping_data_list, axis=0)
