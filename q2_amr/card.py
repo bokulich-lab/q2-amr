@@ -4,17 +4,19 @@ import shutil
 import subprocess
 import tarfile
 import tempfile
-import zipfile
+import altair as alt
 from distutils.dir_util import copy_tree
-
+from bs4 import BeautifulSoup
 import pandas as pd
 import pkg_resources
 import q2templates
 import requests
 import skbio
+from q2_metadata import tabulate
 from q2_types.feature_data import ProteinFASTAFormat, DNAFASTAFormat
 from q2_types.per_sample_sequences import PairedEndSequencesWithQuality, SingleLanePerSamplePairedEndFastqDirFmt
 from q2_types.sample_data import SampleData
+from qiime2 import Metadata
 
 from skbio import Protein, DNA
 
@@ -184,27 +186,103 @@ def bwt(output_dir: str,
     manifest = reads.manifest.view(pd.DataFrame)
     tar_filename = os.path.join(output_dir, "bwt_data", "bwt_output.tar")
     os.makedirs(os.path.join(output_dir, "bwt_data"))
-    with tarfile.open(tar_filename, "w") as tar:
+    os.makedirs(os.path.join(output_dir, "allele"))
+    os.makedirs(os.path.join(output_dir, "gene"))
+    allele_df_list = []
+    gene_df_list = []
+    sample_stats = {}
+    with tarfile.open(tar_filename, "w") as tar, tempfile.TemporaryDirectory() as tmp:
+        tabulate_allele_dir = os.path.join(tmp, "tabulate_allele")
+        tabulate_gene_dir = os.path.join(tmp, "tabulate_gene")
+        os.makedirs(tabulate_allele_dir)
+        os.makedirs(tabulate_gene_dir)
+        load_card_db(tmp, card_db)
+        preprocess_card_db(tmp, card_db)
+        load_card_db_fasta(tmp, card_db)
         for samp in list(manifest.index):
             fwd = manifest.loc[samp, "forward"]
             rev = manifest.loc[samp, "reverse"] if paired else None
-            with tempfile.TemporaryDirectory() as tmp:
-                samp_dir = os.path.join(tmp, "bwt_output", samp)
-                os.makedirs(samp_dir)
-                load_card_db(tmp, card_db)
-                preprocess_card_db(tmp, card_db)
-                load_card_db_fasta(tmp, card_db)
-                run_rgi_bwt(tmp, fwd, rev, samp_dir, samp, aligner, threads, include_baits, mapq, mapped, coverage)
-                for root, dirs, files in os.walk(samp_dir):
-                    for file in files:
-                        filepath = str(os.path.join(root, file))
-                        tar.add(filepath, arcname=os.path.relpath(filepath, tmp))
-    copy_tree(os.path.join(TEMPLATES, "rgi", "bwt"), output_dir)
+            samp_dir = os.path.join(tmp, "bwt_output", samp)
+            os.makedirs(samp_dir)
+            run_rgi_bwt(tmp, fwd, rev, samp_dir, samp, aligner, threads, include_baits, mapq, mapped, coverage)
+            read_in_txt(tmp, samp, "allele", allele_df_list)
+            read_in_txt(tmp, samp, "gene", gene_df_list)
+            extract_sample_stats(samp_dir, samp, sample_stats)
+            for root, dirs, files in os.walk(samp_dir):
+                for file in files:
+                    filepath = str(os.path.join(root, file))
+                    tar.add(filepath, arcname=os.path.relpath(filepath, tmp))
+        plot_sample_stats(sample_stats, output_dir)
+        metadata_tabulate(allele_df_list, tabulate_allele_dir, output_dir, "allele")
+        metadata_tabulate(gene_df_list, tabulate_gene_dir, output_dir, "gene")
+        copy_tree(os.path.join(TEMPLATES, "rgi", "bwt"), output_dir)
+        context = {"tabs": [{"title": "Overview", "url": "index.html"},
+                            {"title": "Allele Data", "url": "allele_tab.html"},
+                            {"title": "Gene Data", "url": "gene_tab.html"}
+                            ]}
+        index = os.path.join(TEMPLATES, "rgi", "bwt", 'index.html')
+        allele = os.path.join(TEMPLATES, "rgi", "bwt", 'allele_tab.html')
+        gene = os.path.join(TEMPLATES, "rgi", "bwt", 'gene_tab.html')
+        templates = [index, allele, gene]
+        q2templates.render(templates, output_dir, context=context)
 
-    context = {"tabs": [{"title": "QC report", "url": "index.html"}]}
-    index = os.path.join(TEMPLATES, "rgi", "bwt", 'index.html')
-    templates = [index]
-    q2templates.render(templates, output_dir, context=context)
+
+
+def plot_sample_stats(sample_stats, output_dir):
+    sample_stats_df = pd.DataFrame.from_dict(sample_stats, orient='index')
+    sample_stats_df.reset_index(inplace=True)
+
+    mapped_reads_plot = alt.Chart(sample_stats_df).mark_bar().encode(
+        x=alt.X('index:N', title=None, axis=alt.Axis(labels=False, ticks=False), band=0.4),
+        y=alt.Y('mapped_reads', title='Mapped Reads',
+                scale=alt.Scale(domain=(0, sample_stats_df['mapped_reads'].max() * 1.1))),
+        tooltip=[alt.Tooltip('index', title='Sample'), alt.Tooltip('mapped_reads', title='Mapped Reads'),
+                 alt.Tooltip('total_reads', title='Total Reads')]
+    ).properties(title='Mapped Reads', width=alt.Step(80), height=200)
+
+    percentage_plot = alt.Chart(sample_stats_df).mark_bar().encode(
+        x=alt.X('index:N', title=None, axis=alt.Axis(labelAngle=15), band=0.4),
+        y=alt.Y('percentage', title='Mapped Reads (%)',
+                scale=alt.Scale(domain=(0, sample_stats_df['percentage'].max() * 1.1))),
+        tooltip=[alt.Tooltip('index', title='Sample'), alt.Tooltip('percentage', title='Mapped Reads (%)'),
+                 alt.Tooltip('total_reads', title='Total Reads')]
+
+    ).properties(width=alt.Step(80), height=200)
+    combined_chart = alt.vconcat(mapped_reads_plot, percentage_plot, spacing=0)
+    combined_chart.save(os.path.join(output_dir, "sample_stats_plot.html"))
+
+def extract_sample_stats(samp_dir, samp, sample_stats):
+    with open(os.path.join(samp_dir, f"{samp}.overall_mapping_stats.txt"), "r") as f:
+        for line in f:
+            if "Total reads:" in line:
+                total_reads = int(line.split()[2])
+            elif "Mapped reads:" in line:
+                mapped_reads = int(line.split()[2])
+                percentage = float(line.split()[3].strip('()').strip('%'))
+        sample_stats[samp] = {'total_reads': total_reads, 'mapped_reads': mapped_reads, 'percentage': percentage}
+
+def read_in_txt(tmp, samp, type, df_list):
+    df = pd.read_csv(os.path.join(tmp, "bwt_output", samp, f"{samp}.{type}_mapping_data.txt"), sep="\t")
+    df["sample name"] = samp
+    df_list.append(df)
+
+def metadata_tabulate(mapping_data_list, tabulate_dir, output_dir, name):
+    mapping_data_cat = pd.concat(mapping_data_list, axis=0)
+    mapping_data_cat.reset_index(inplace=True, drop=True)
+    mapping_data_cat.index.name = "id"
+    mapping_data_cat.index = mapping_data_cat.index.astype(str)
+    metadata = Metadata(mapping_data_cat)
+    index_path = os.path.join(tabulate_dir, "index.html")
+    with open(index_path, "w"):
+        tabulate(tabulate_dir, metadata)
+    with open(index_path, 'r') as f:
+        soup = BeautifulSoup(f, 'html.parser')
+    element_to_remove = soup.find('div', {'id': 'q2templatesheader'})
+    element_to_remove.extract()
+    with open(index_path, "w") as f:
+        f.write(str(soup))
+    os.rename(index_path, os.path.join(tabulate_dir, f"{name}.html"))
+    copy_tree(tabulate_dir, os.path.join(output_dir, name))
 
 
 def run_rgi_bwt(tmp, fwd, rev, results_dir, samp, aligner, threads, include_baits, mapq, mapped, coverage):
