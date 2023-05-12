@@ -10,3 +10,6 @@ from qiime2.plugin import SemanticType
 
 CARDDatabase = SemanticType('CARDDatabase')
 CARDAnnotation = SemanticType('CARDAnnotation')
+CARDAlleleAnnotation = SemanticType('CARDAlleleAnnotation')
+CARDGeneAnnotation = SemanticType('CARDGeneAnnotation')
+

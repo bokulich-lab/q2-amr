@@ -7,6 +7,7 @@
 # ----------------------------------------------------------------------------
 import importlib
 
+from q2_types.feature_table import FeatureTable, Frequency
 from q2_types.per_sample_sequences import PairedEndSequencesWithQuality
 from q2_types.sample_data import SampleData
 
@@ -15,12 +16,13 @@ from q2_amr.types import CARDDatabase, CARDDatabaseDirectoryFormat, CARDAnnotati
 from q2_types.feature_data import Sequence, FeatureData, ProteinSequence
 from qiime2.core.type import Str, Choices, Bool, Int, Range, Float
 
-from q2_amr.card import fetch_card_db, annotate_card, heatmap, bwt  # heatmap
+from q2_amr.card import fetch_card_db, annotate_card, heatmap, annotate_reads, visualize_annotation_stats  # heatmap
 from qiime2.plugin import Citations, Plugin
 
 from q2_amr import __version__
-from q2_amr.types._format import CARDAnnotationDirectoryFormat
-from q2_amr.types._type import CARDAnnotation
+from q2_amr.types._format import CARDAnnotationDirectoryFormat, CARDAlleleAnnotationDirectoryFormat, \
+    CARDGeneAnnotationDirectoryFormat, CARDAlleleAnnotationFormat, CARDGeneAnnotationFormat, CARDAnnotationStatsFormat
+from q2_amr.types._type import CARDAnnotation, CARDAlleleAnnotation, CARDGeneAnnotation
 
 citations = Citations.load("citations.bib", package="q2_amr")
 
@@ -91,8 +93,8 @@ plugin.visualizers.register_function(
     citations=[citations['alcock_card_2023']]
 )
 
-plugin.visualizers.register_function(
-    function=bwt,
+plugin.methods.register_function(
+    function=annotate_reads,
     inputs={'reads': SampleData[PairedEndSequencesWithQuality],
             'card_db': CARDDatabase},
     parameters={'aligner': Str % Choices(['kma', 'bowtie2', 'bwa']),
@@ -101,6 +103,10 @@ plugin.visualizers.register_function(
                 'mapped': Int % Range(1, None),
                 'coverage': Float % Range(0, None, inclusive_start=False),
                 'threads': Int},
+    outputs=[('amr_allele_annotation', CARDAlleleAnnotation),
+             ('amr_gene_annotation', CARDGeneAnnotation),
+             ('allele_feature_table', FeatureTable[Frequency]),
+             ('gene_feature_table', FeatureTable[Frequency])],
     input_descriptions={'reads': 'Paired end metagenomic reads.',
                         'card_db': 'CARD Database'},
     parameter_descriptions={
@@ -110,13 +116,28 @@ plugin.visualizers.register_function(
         'mapped': 'Filter reads based on mapped reads.',
         'coverage': 'Filter reads based on coverage of reference sequence.',
         'threads': 'Number of threads (CPUs) to use.'},
+    output_descriptions={'amr_allele_annotation': 'AMR Annotation mapped on Alleles.',
+                         'amr_gene_annotation': 'AMR Annotation mapped on Genes.',
+                         'allele_feature_table': 'All samples together in one frequency count table.',
+                         'gene_feature_table': 'All samples together in one frequency count table.'},
     name='Annotation of metagenomic reads with antimicrobial resistance gene information from CARD.',
-    description=('Annotation of metagenomic reads with antimicrobial resistance gene information from CARD.'),
+    description='Annotation of metagenomic reads with antimicrobial resistance gene information from CARD.',
     citations=[citations['alcock_card_2023']]
 )
 
-#Registrations
-plugin.register_semantic_types(CARDDatabase, CARDAnnotation)
+plugin.visualizers.register_function(
+    function=visualize_annotation_stats,
+    inputs={'amr_reads_annotation': CARDGeneAnnotation},
+    parameters={},
+    input_descriptions={'amr_reads_annotation': 'Stats'},
+    parameter_descriptions={},
+    name='Download CARD data.',
+    description='Visualize mapping stats.',
+    citations=[citations['alcock_card_2023']]
+)
+
+# Registrations
+plugin.register_semantic_types(CARDDatabase, CARDAnnotation, CARDAlleleAnnotation, CARDGeneAnnotation)
 
 plugin.register_semantic_type_to_format(
     CARDDatabase,
@@ -124,8 +145,16 @@ plugin.register_semantic_type_to_format(
 plugin.register_semantic_type_to_format(
     CARDAnnotation,
     artifact_format=CARDAnnotationDirectoryFormat)
-plugin.register_formats(CARDAnnotationTXTFormat, CARDAnnotationDirectoryFormat,
-                        CARDAnnotationJSONFormat,
-                        CARDDatabaseFormat, CARDDatabaseDirectoryFormat)
+plugin.register_semantic_type_to_format(
+    CARDAlleleAnnotation,
+    artifact_format=CARDAlleleAnnotationDirectoryFormat)
+plugin.register_semantic_type_to_format(
+    CARDGeneAnnotation,
+    artifact_format=CARDGeneAnnotationDirectoryFormat)
+
+plugin.register_formats(CARDAnnotationTXTFormat, CARDAnnotationJSONFormat, CARDAnnotationDirectoryFormat,
+                        CARDDatabaseFormat, CARDDatabaseDirectoryFormat,
+                        CARDAlleleAnnotationFormat, CARDGeneAnnotationFormat, CARDAnnotationStatsFormat,
+                        CARDAlleleAnnotationDirectoryFormat, CARDGeneAnnotationDirectoryFormat)
 
 importlib.import_module('q2_amr.types._transformer')

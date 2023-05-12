@@ -22,6 +22,8 @@ from skbio import Protein, DNA
 
 from q2_amr.types import CARDAnnotationJSONFormat, CARDDatabaseFormat, CARDAnnotationTXTFormat, \
     CARDAnnotationDirectoryFormat, CARDAnnotation, CARDDatabaseDirectoryFormat
+
+from q2_amr.types._format import CARDAlleleAnnotationDirectoryFormat, CARDGeneAnnotationDirectoryFormat
 from q2_amr.utils import run_command
 
 CARD_URL = "https://card.mcmaster.ca/latest/data"
@@ -172,124 +174,70 @@ def heatmap(output_dir: str,
     q2templates.render(templates, output_dir, context=context)
 
 
-def bwt(output_dir: str,
-        reads: SingleLanePerSamplePairedEndFastqDirFmt,
-        card_db: CARDDatabaseFormat,
-        aligner: str = 'kma',
-        threads: int = 8,
-        include_baits: bool = False,
-        mapq: int = None,
-        mapped: int = None,
-        coverage: float = None):
-    TEMPLATES = pkg_resources.resource_filename("q2_amr", "assets")
+def annotate_reads(reads: SingleLanePerSamplePairedEndFastqDirFmt,
+                   card_db: CARDDatabaseFormat,
+                   aligner: str = 'kma',
+                   threads: int = 16,
+                   include_baits: bool = False,
+                   mapq: int = None,
+                   mapped: int = None,
+                   coverage: float = None) -> (CARDAlleleAnnotationDirectoryFormat, CARDGeneAnnotationDirectoryFormat, pd.DataFrame, pd.DataFrame):
     paired = isinstance(reads, SingleLanePerSamplePairedEndFastqDirFmt)
     manifest = reads.manifest.view(pd.DataFrame)
-    tar_filename = os.path.join(output_dir, "bwt_data", "bwt_output.tar")
-    os.makedirs(os.path.join(output_dir, "bwt_data"))
-    os.makedirs(os.path.join(output_dir, "allele"))
-    os.makedirs(os.path.join(output_dir, "gene"))
-    allele_df_list = []
-    gene_df_list = []
-    sample_stats = {}
-    with tarfile.open(tar_filename, "w") as tar, tempfile.TemporaryDirectory() as tmp:
-        tabulate_allele_dir = os.path.join(tmp, "tabulate_allele")
-        tabulate_gene_dir = os.path.join(tmp, "tabulate_gene")
-        os.makedirs(tabulate_allele_dir)
-        os.makedirs(tabulate_gene_dir)
+    allele_frequency_list, gene_frequency_list = [], []
+    amr_allele_annotation = CARDAlleleAnnotationDirectoryFormat()
+    amr_gene_annotation = CARDGeneAnnotationDirectoryFormat()
+    with tempfile.TemporaryDirectory() as tmp:
         load_card_db(tmp, card_db)
         preprocess_card_db(tmp, card_db)
         load_card_db_fasta(tmp, card_db)
         for samp in list(manifest.index):
             fwd = manifest.loc[samp, "forward"]
             rev = manifest.loc[samp, "reverse"] if paired else None
-            samp_dir = os.path.join(tmp, "bwt_output", samp)
-            os.makedirs(samp_dir)
-            run_rgi_bwt(tmp, fwd, rev, samp_dir, samp, aligner, threads, include_baits, mapq, mapped, coverage)
-            read_in_txt(tmp, samp, "allele", allele_df_list)
-            read_in_txt(tmp, samp, "gene", gene_df_list)
-            extract_sample_stats(samp_dir, samp, sample_stats)
-            for root, dirs, files in os.walk(samp_dir):
-                for file in files:
-                    filepath = str(os.path.join(root, file))
-                    tar.add(filepath, arcname=os.path.relpath(filepath, tmp))
-        plot_sample_stats(sample_stats, output_dir)
-        metadata_tabulate(allele_df_list, tabulate_allele_dir, output_dir, "allele")
-        metadata_tabulate(gene_df_list, tabulate_gene_dir, output_dir, "gene")
-        copy_tree(os.path.join(TEMPLATES, "rgi", "bwt"), output_dir)
-        context = {"tabs": [{"title": "Overview", "url": "index.html"},
-                            {"title": "Allele Mapping Data", "url": "allele_tab.html"},
-                            {"title": "Gene Mapping Data", "url": "gene_tab.html"}
-                            ]}
-        index = os.path.join(TEMPLATES, "rgi", "bwt", 'index.html')
-        allele = os.path.join(TEMPLATES, "rgi", "bwt", 'allele_tab.html')
-        gene = os.path.join(TEMPLATES, "rgi", "bwt", 'gene_tab.html')
-        templates = [index, allele, gene]
-        q2templates.render(templates, output_dir, context=context)
+            os.makedirs(os.path.join(str(amr_allele_annotation), samp))
+            os.makedirs(os.path.join(str(amr_gene_annotation), samp))
+            os.makedirs(os.path.join(tmp, samp))
+            run_rgi_bwt(tmp, samp, fwd, rev, aligner, threads, include_baits, mapq, mapped, coverage)
+            read_in_txt(tmp, samp, 'allele', allele_frequency_list)
+            read_in_txt(tmp, samp, 'gene', gene_frequency_list)
+            move_files(tmp, samp, "allele", amr_allele_annotation)
+            move_files(tmp, samp, "gene", amr_gene_annotation)
+    allele_feature_table = create_count_table(allele_frequency_list)
+    gene_feature_table = create_count_table(gene_frequency_list)
+    return amr_allele_annotation, amr_gene_annotation, allele_feature_table, gene_feature_table
 
 
-def plot_sample_stats(sample_stats, output_dir):
-    sample_stats_df = pd.DataFrame.from_dict(sample_stats, orient='index')
-    sample_stats_df.reset_index(inplace=True)
-
-    mapped_reads_plot = alt.Chart(sample_stats_df).mark_bar().encode(
-        x=alt.X('index:N', title=None, axis=alt.Axis(labels=False, ticks=False), band=0.4),
-        y=alt.Y('mapped_reads', title='Mapped Reads',
-                scale=alt.Scale(domain=(0, sample_stats_df['mapped_reads'].max() * 1.1))),
-        tooltip=[alt.Tooltip('index', title='Sample'), alt.Tooltip('mapped_reads', title='Mapped Reads'),
-                 alt.Tooltip('total_reads', title='Total Reads')]
-    ).properties(title='Mapped Reads', width=alt.Step(80), height=200)
-
-    percentage_plot = alt.Chart(sample_stats_df).mark_bar().encode(
-        x=alt.X('index:N', title=None, axis=alt.Axis(labelAngle=15), band=0.4),
-        y=alt.Y('percentage', title='Mapped Reads (%)',
-                scale=alt.Scale(domain=(0, sample_stats_df['percentage'].max() * 1.1))),
-        tooltip=[alt.Tooltip('index', title='Sample'), alt.Tooltip('percentage', title='Mapped Reads (%)'),
-                 alt.Tooltip('total_reads', title='Total Reads')]
-
-    ).properties(width=alt.Step(80), height=200)
-    combined_chart = alt.vconcat(mapped_reads_plot, percentage_plot, spacing=0)
-    combined_chart.save(os.path.join(output_dir, "sample_stats_plot.html"))
+def move_files(cwd, samp, sort, frmt):
+    shutil.move(os.path.join(cwd, samp, f"{samp}.{sort}_mapping_data.txt"),
+                os.path.join(os.path.join(str(frmt), samp), f"{samp}.{sort}_mapping_data.txt"))
+    shutil.copy(os.path.join(cwd, samp, f"{samp}.overall_mapping_stats.txt"),
+                os.path.join(os.path.join(str(frmt), samp), f"{samp}.overall_mapping_stats.txt"))
 
 
-def extract_sample_stats(samp_dir, samp, sample_stats):
-    with open(os.path.join(samp_dir, f"{samp}.overall_mapping_stats.txt"), "r") as f:
-        for line in f:
-            if "Total reads:" in line:
-                total_reads = int(line.split()[2])
-            elif "Mapped reads:" in line:
-                mapped_reads = int(line.split()[2])
-                percentage = float(line.split()[3].strip('()').strip('%'))
-        sample_stats[samp] = {'total_reads': total_reads, 'mapped_reads': mapped_reads, 'percentage': percentage}
+def create_count_table(df_list) -> pd.DataFrame:
+    df_merged = df_list[0]
+    for df in df_list[1:]:
+        df_merged = pd.merge(df_merged, df['ARO Accession'], on='ARO Accession', how='outer')
+    df_transposed = df_merged.transpose()
+    df_transposed = df_transposed.fillna(0)
+    df_transposed.columns = df_transposed.iloc[0]
+    df_transposed = df_transposed[1:]
+    df_transposed.columns.name = None
+    return df_transposed
 
 
-def read_in_txt(tmp, samp, type, df_list):
-    df = pd.read_csv(os.path.join(tmp, "bwt_output", samp, f"{samp}.{type}_mapping_data.txt"), sep="\t")
-    df["sample name"] = samp
-    df_list.append(df)
+def read_in_txt(tmp, samp, sort, frequency_list):
+    df = pd.read_csv(os.path.join(tmp, samp, f"{samp}.{sort}_mapping_data.txt"), sep="\t")
+    df = df[['ARO Accession']]
+    df = df.astype(str)
+    df[samp] = df.groupby('ARO Accession')['ARO Accession'].transform('count')
+    df = df.drop_duplicates(subset=['ARO Accession'])
+    frequency_list.append(df)
 
 
-def metadata_tabulate(mapping_data_list, tabulate_dir, output_dir, name):
-    mapping_data_cat = pd.concat(mapping_data_list, axis=0)
-    mapping_data_cat.reset_index(inplace=True, drop=True)
-    mapping_data_cat.index.name = "id"
-    mapping_data_cat.index = mapping_data_cat.index.astype(str)
-    metadata = Metadata(mapping_data_cat)
-    index_path = os.path.join(tabulate_dir, "index.html")
-    with open(index_path, "w"):
-        tabulate(tabulate_dir, metadata)
-    with open(index_path, 'r') as f:
-        soup = BeautifulSoup(f, 'html.parser')
-    element_to_remove = soup.find('div', {'id': 'q2templatesheader'})
-    element_to_remove.extract()
-    with open(index_path, "w") as f:
-        f.write(str(soup))
-    os.rename(index_path, os.path.join(tabulate_dir, f"{name}.html"))
-    copy_tree(tabulate_dir, os.path.join(output_dir, name))
-
-
-def run_rgi_bwt(tmp, fwd, rev, results_dir, samp, aligner, threads, include_baits, mapq, mapped, coverage):
+def run_rgi_bwt(cwd, samp, fwd, rev, aligner, threads, include_baits, mapq, mapped, coverage):
     cmd = ['rgi', 'bwt', '--read_one', str(fwd), '--read_two', str(rev), '--output_file',
-           f'{results_dir}/{samp}', '-n', str(threads), '--local', '--clean']
+           f'{cwd}/{samp}/{samp}', '-n', str(threads), '--local', '--clean']
     if include_baits:
         cmd.append("--include_baits")
     if mapq:
@@ -300,7 +248,7 @@ def run_rgi_bwt(tmp, fwd, rev, results_dir, samp, aligner, threads, include_bait
         cmd.extend(["--coverage", str(coverage)])
     cmd.extend(['--aligner', aligner])
     try:
-        run_command(cmd, tmp, verbose=True)
+        run_command(cmd, cwd, verbose=True)
     except subprocess.CalledProcessError as e:
         raise Exception(
             "An error was encountered while running rgi bwt, "
@@ -346,3 +294,55 @@ def load_card_db_fasta(tmp, card_db):
             f"(return code {e.returncode}), please inspect "
             "stdout and stderr to learn more."
         )
+
+
+def plot_sample_stats(sample_stats, output_dir):
+    sample_stats_df = pd.DataFrame.from_dict(sample_stats, orient='index')
+    sample_stats_df.reset_index(inplace=True)
+
+    mapped_reads_plot = alt.Chart(sample_stats_df).mark_bar().encode(
+        x=alt.X('index:N', title=None, axis=alt.Axis(labels=False, ticks=False), band=0.4),
+        y=alt.Y('mapped_reads', title='Mapped Reads',
+                scale=alt.Scale(domain=(0, sample_stats_df['mapped_reads'].max() * 1.1))),
+        tooltip=[alt.Tooltip('index', title='Sample'), alt.Tooltip('mapped_reads', title='Mapped Reads'),
+                 alt.Tooltip('total_reads', title='Total Reads')]
+    ).properties(title='Mapped Reads', width=alt.Step(80), height=200)
+
+    percentage_plot = alt.Chart(sample_stats_df).mark_bar().encode(
+        x=alt.X('index:N', title=None, axis=alt.Axis(labelAngle=15), band=0.4),
+        y=alt.Y('percentage', title='Mapped Reads (%)',
+                scale=alt.Scale(domain=(0, sample_stats_df['percentage'].max() * 1.1))),
+        tooltip=[alt.Tooltip('index', title='Sample'), alt.Tooltip('percentage', title='Mapped Reads (%)'),
+                 alt.Tooltip('total_reads', title='Total Reads')]
+
+    ).properties(width=alt.Step(80), height=200)
+    combined_chart = alt.vconcat(mapped_reads_plot, percentage_plot, spacing=0)
+    combined_chart.save(os.path.join(output_dir, "sample_stats_plot.html"))
+
+
+def extract_sample_stats(samp_dir, samp, sample_stats):
+    with open(os.path.join(samp_dir, f"{samp}.overall_mapping_stats.txt"), "r") as f:
+        for line in f:
+            if "Total reads:" in line:
+                total_reads = int(line.split()[2])
+            elif "Mapped reads:" in line:
+                mapped_reads = int(line.split()[2])
+                percentage = float(line.split()[3].strip('()').strip('%'))
+        sample_stats[samp] = {'total_reads': total_reads, 'mapped_reads': mapped_reads, 'percentage': percentage}
+
+
+def visualize_annotation_stats(output_dir: str,
+                               amr_reads_annotation: CARDGeneAnnotationDirectoryFormat):
+    directory = str(amr_reads_annotation)
+    sample_stats = {}
+    for samp in os.listdir(directory):
+        samp_dir = os.path.join(directory, samp)
+        extract_sample_stats(samp_dir, samp, sample_stats)
+    plot_sample_stats(sample_stats, output_dir)
+    TEMPLATES = pkg_resources.resource_filename("q2_amr", "assets")
+
+    copy_tree(os.path.join(TEMPLATES, "rgi", "visualize_annotation_stats"), output_dir)
+    context = {"tabs": [{"title": "Mapped Reads", "url": "index.html"}]}
+    index = os.path.join(TEMPLATES, "rgi", "visualize_annotation_stats", 'index.html')
+    templates = [index]
+    q2templates.render(templates, output_dir, context=context)

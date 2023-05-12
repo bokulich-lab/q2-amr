@@ -6,16 +6,20 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 import json
+import os
 
 import pandas as pd
+import qiime2
 import skbio
 from q2_types.feature_data import (
     DNAFASTAFormat, DNAIterator, ProteinFASTAFormat)
 from q2_types.feature_data._transformer import ProteinIterator
+from qiime2.core.type import Metadata
 from skbio import Protein, DNA
 
 from ..plugin_setup import plugin
-from ._format import CARDDatabaseFormat, CARDAnnotationTXTFormat, CARDAnnotationJSONFormat
+from ._format import CARDDatabaseFormat, CARDAnnotationTXTFormat, CARDAnnotationJSONFormat, \
+    CARDAlleleAnnotationDirectoryFormat, CARDGeneAnnotationDirectoryFormat
 
 
 @plugin.register_transformer
@@ -129,3 +133,32 @@ def _16(data: dict) -> CARDAnnotationJSONFormat:
     with ff.open() as fh:
         json.dump(data, fh)
     return ff
+
+@plugin.register_transformer
+def _18(data: CARDAlleleAnnotationDirectoryFormat) -> qiime2.Metadata:
+    df_list = []
+    for samp in os.listdir(str(data)):
+        df = pd.read_csv(os.path.join(str(data), samp, f"{samp}.allele_mapping_data.txt"), sep="\t")
+        df.insert(0, "Sample Name", samp)
+        df_list.append(df)
+    mapping_data_cat = pd.concat(df_list, axis=0)
+    mapping_data_cat.reset_index(inplace=True, drop=True)
+    mapping_data_cat.index.name = "id"
+    mapping_data_cat.index = mapping_data_cat.index.astype(str)
+    metadata = qiime2.Metadata(mapping_data_cat)
+    return metadata
+
+
+@plugin.register_transformer
+def _19(data: CARDGeneAnnotationDirectoryFormat) -> qiime2.Metadata:
+    df_list = []
+    for samp in os.listdir(str(data)):
+        df = pd.read_csv(os.path.join(str(data), samp, f"{samp}.gene_mapping_data.txt"), sep="\t")
+        df.insert(0, "Sample Name", samp)
+        df_list.append(df)
+    mapping_data_cat = pd.concat(df_list, axis=0)
+    mapping_data_cat.reset_index(inplace=True, drop=True)
+    mapping_data_cat.index.name = "id"
+    mapping_data_cat.index = mapping_data_cat.index.astype(str)
+    metadata = qiime2.Metadata(mapping_data_cat)
+    return metadata

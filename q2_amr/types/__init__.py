@@ -7,9 +7,13 @@
 # ----------------------------------------------------------------------------
 
 from ._format import (CARDDatabaseFormat, CARDDatabaseDirectoryFormat, CARDAnnotationTXTFormat,
-                      CARDAnnotationDirectoryFormat, CARDAnnotationJSONFormat)
-from ._type import CARDDatabase, CARDAnnotation
+                      CARDAnnotationDirectoryFormat, CARDAnnotationJSONFormat, CARDAlleleAnnotationFormat,
+                      CARDGeneAnnotationFormat, CARDAnnotationStatsFormat, CARDAlleleAnnotationDirectoryFormat,
+                      CARDGeneAnnotationDirectoryFormat)
+from ._type import CARDDatabase, CARDAnnotation, CARDAlleleAnnotation, CARDGeneAnnotation
 
 __all__ = ['CARDDatabaseFormat', 'CARDDatabaseDirectoryFormat',
            'CARDAnnotationTXTFormat', 'CARDAnnotationJSONFormat', 'CARDAnnotationDirectoryFormat',
-           'CARDDatabase', 'CARDAnnotation']
+           'CARDAlleleAnnotationFormat', 'CARDGeneAnnotationFormat', 'CARDAnnotationStatsFormat',
+           'CARDAlleleAnnotationDirectoryFormat', 'CARDGeneAnnotationDirectoryFormat',
+           'CARDDatabase', 'CARDAnnotation', 'CARDAlleleAnnotation', 'CARDGeneAnnotation']

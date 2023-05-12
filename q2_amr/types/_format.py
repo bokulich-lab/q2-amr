@@ -36,11 +36,12 @@ CARDDatabaseDirectoryFormat = model.SingleFileDirectoryFormat(
 
 class CARDAnnotationTXTFormat(model.TextFileFormat):
     def _validate(self, n_records=None):
-        header_exp = ['ORF_ID', 'Contig', 'Start', 'Stop', 'Orientation', 'Cut_Off', 'Pass_Bitscore', 'Best_Hit_Bitscore',
-                  'Best_Hit_ARO', 'Best_Identities', 'ARO', 'Model_type', 'SNPs_in_Best_Hit_ARO', 'Other_SNPs',
-                  'Drug Class', 'Resistance Mechanism', 'AMR Gene Family', 'Predicted_DNA', 'Predicted_Protein',
-                  'CARD_Protein_Sequence', 'Percentage Length of Reference Sequence', 'ID', 'Model_ID', 'Nudged',
-                  'Note']
+        header_exp = ['ORF_ID', 'Contig', 'Start', 'Stop', 'Orientation', 'Cut_Off', 'Pass_Bitscore',
+                      'Best_Hit_Bitscore',
+                      'Best_Hit_ARO', 'Best_Identities', 'ARO', 'Model_type', 'SNPs_in_Best_Hit_ARO', 'Other_SNPs',
+                      'Drug Class', 'Resistance Mechanism', 'AMR Gene Family', 'Predicted_DNA', 'Predicted_Protein',
+                      'CARD_Protein_Sequence', 'Percentage Length of Reference Sequence', 'ID', 'Model_ID', 'Nudged',
+                      'Note']
         df = pd.read_csv(str(self), sep="\t")
 
         header_obs = list(df.columns)
@@ -82,3 +83,98 @@ class CARDAnnotationJSONFormat(model.TextFileFormat):
 class CARDAnnotationDirectoryFormat(model.DirectoryFormat):
     json = model.File(r'amr_annotation.json', format=CARDAnnotationJSONFormat)
     txt = model.File(r'amr_annotation.txt', format=CARDAnnotationTXTFormat)
+
+
+class CARDAlleleAnnotationFormat(model.TextFileFormat):
+    def _validate(self, n_records=None):
+        header_exp = ['Reference Sequence', 'ARO Term', 'ARO Accession', 'Reference Model Type', 'Reference DB',
+                      'Reference Allele Source', 'Resistomes & Variants: Observed in Genome(s)',
+                      'Resistomes & Variants: Observed in Plasmid(s)', 'Resistomes & Variants: Observed Pathogen(s)',
+                      'Completely Mapped Reads', 'Mapped Reads with Flanking Sequence', 'All Mapped Reads',
+                      'Percent Coverage', 'Length Coverage (bp)', 'Average MAPQ (Completely Mapped Reads)',
+                      'Mate Pair Linkage', 'Reference Length', 'AMR Gene Family', 'Drug Class', 'Resistance Mechanism']
+
+        df = pd.read_csv(str(self), sep="\t")
+        header_obs = list(df.columns)
+        if header_obs != header_exp:
+            raise ValidationError(
+                "Header line does not match CARDAnnotation format. Must consist of "
+                "the following values: " + ', '.join(header_exp) +
+                ".\n\nFound instead: " + ', '.join(header_obs))
+
+    def _validate_(self, level):
+        self._validate()
+
+
+class CARDGeneAnnotationFormat(model.TextFileFormat):
+    def _validate(self, n_records=None):
+        header_exp = ['ARO Term', 'ARO Accession', 'Reference Model Type', 'Reference DB', 'Alleles with Mapped Reads',
+                      'Reference Allele(s) Identity to CARD Reference Protein (%)',
+                      'Resistomes & Variants: Observed in Genome(s)', 'Resistomes & Variants: Observed in Plasmid(s)',
+                      'Resistomes & Variants: Observed Pathogen(s)', 'Completely Mapped Reads',
+                      'Mapped Reads with Flanking Sequence', 'All Mapped Reads', 'Average Percent Coverage',
+                      'Average Length Coverage (bp)', 'Average MAPQ (Completely Mapped Reads)',
+                      'Number of Mapped Baits', 'Number of Mapped Baits with Reads', 'Average Number of reads per Bait',
+                      'Number of reads per Bait Coefficient of Variation (%)',
+                      'Number of reads mapping to baits and mapping to complete gene',
+                      'Number of reads mapping to baits and mapping to complete gene (%)',
+                      'Mate Pair Linkage (# reads)', 'Reference Length', 'AMR Gene Family', 'Drug Class',
+                      'Resistance Mechanism']
+
+        df = pd.read_csv(str(self), sep="\t")
+
+        header_obs = list(df.columns)
+        if header_obs != header_exp:
+            raise ValidationError(
+                "Header line does not match CARDAnnotation format. Must consist of "
+                "the following values: " + ', '.join(header_exp) +
+                ".\n\nFound instead: " + ', '.join(header_obs))
+
+    def _validate_(self, level):
+        self._validate()
+
+
+class CARDAnnotationStatsFormat(model.TextFileFormat):
+    def _validate(self, n_records=None):
+        header_exp = ['Stats for BAM file(s)', 'Total reads', 'Mapped reads', 'Forward strand', 'Reverse strand',
+                      'Failed QC', 'Duplicates', 'Paired-end reads', "'Proper-pairs'", 'Both pairs mapped', 'Read 1',
+                      'Read 2', 'Singletons']
+
+        with open(str(self), 'r') as file:
+            content = file.readlines()
+        header_obs = [line.split(':')[0] for line in content if ':' in line]
+
+        if header_obs != header_exp:
+            raise ValidationError(
+                "Header line does not match CARDAnnotation format. Must consist of "
+                "the following values: " + ', '.join(header_exp) +
+                ".\n\nFound instead: " + ', '.join(header_obs))
+
+    def _validate_(self, level):
+        self._validate()
+
+
+class CARDAlleleAnnotationDirectoryFormat(model.DirectoryFormat):
+    allele = model.FileCollection(r'.+\.(allele_mapping_data.txt)$', format=CARDAlleleAnnotationFormat)
+    stats = model.FileCollection(r'.+\.(overall_mapping_stats.txt)$', format=CARDAnnotationStatsFormat)
+
+    @allele.set_path_maker
+    def sequences_path_maker(self, sample_id):
+        return '%s/%s.allele_mapping_data.txt' % sample_id
+
+    @stats.set_path_maker
+    def sequences_path_maker(self, sample_id):
+        return '%s/%s.overall_mapping_stats.txt' % sample_id
+
+
+class CARDGeneAnnotationDirectoryFormat(model.DirectoryFormat):
+    gene = model.FileCollection(r'.+\.(gene_mapping_data.txt)$', format=CARDGeneAnnotationFormat)
+    stats = model.FileCollection(r'.+\.(overall_mapping_stats.txt)$', format=CARDAnnotationStatsFormat)
+
+    @gene.set_path_maker
+    def sequences_path_maker(self, sample_id):
+        return '%s/%s.gene_mapping_data.txt' % sample_id
+
+    @stats.set_path_maker
+    def sequences_path_maker(self, sample_id):
+        return '%s/%s.overall_mapping_stats.txt' % sample_id

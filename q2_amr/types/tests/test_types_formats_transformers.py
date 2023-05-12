@@ -13,9 +13,10 @@ import tarfile
 import pandas as pd
 import tempfile
 import pkg_resources
+import qiime2
 import requests
 from pandas._testing import assert_frame_equal
-from q2_amr.types import CARDDatabaseDirectoryFormat
+from q2_amr.types import CARDDatabaseDirectoryFormat, CARDGeneAnnotationDirectoryFormat
 
 from qiime2.plugin.testing import TestPluginBase
 from q2_types.feature_data import (DNAIterator, DNAFASTAFormat, ProteinIterator, ProteinFASTAFormat)
@@ -219,3 +220,16 @@ class TestCARDAnnotationTypesAndFormats(AMRTypesTestPluginBase):
         self.assertEqual(dna_contents_obs, dna_contents_exp)
 
 
+class TestCARDReadsAnnotationTypesAndFormats(AMRTypesTestPluginBase):
+
+    def test_protein_card_fasta_transformer(self):
+        transformer = self.get_transformer(CARDGeneAnnotationDirectoryFormat, qiime2.Metadata)
+        annotation = CARDGeneAnnotationDirectoryFormat()
+        os.makedirs(os.path.join(str(annotation), 'sample1'))
+        os.makedirs(os.path.join(str(annotation), 'sample2'))
+        shutil.copy(self.get_data_path('sample1.gene_mapping_data.txt'), os.path.join(str(annotation), 'sample1'))
+        shutil.copy(self.get_data_path('sample2.overall_mapping_stats.txt'), os.path.join(str(annotation), 'sample1'))
+        shutil.copy(self.get_data_path('sample2.gene_mapping_data.txt'), os.path.join(str(annotation), 'sample2'))
+        shutil.copy(self.get_data_path('sample2.overall_mapping_stats.txt'), os.path.join(str(annotation), 'sample1'))
+        metadata_obt = transformer(annotation)
+        self.assertIsInstance(metadata_obt, qiime2.Metadata)
