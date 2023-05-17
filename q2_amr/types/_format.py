@@ -154,7 +154,7 @@ class CARDAnnotationStatsFormat(model.TextFileFormat):
         self._validate()
 
 
-class CARDAlleleAnnotationDirectoryFormat(model.DirectoryFormat):
+class CARDAlleleAnnotationDirectoryFormat(MultiDirValidationMixin, model.DirectoryFormat):
     allele = model.FileCollection(r'.+\.(allele_mapping_data.txt)$', format=CARDAlleleAnnotationFormat)
     stats = model.FileCollection(r'.+\.(overall_mapping_stats.txt)$', format=CARDAnnotationStatsFormat)
 
@@ -167,7 +167,7 @@ class CARDAlleleAnnotationDirectoryFormat(model.DirectoryFormat):
         return '%s/%s.overall_mapping_stats.txt' % sample_id
 
 
-class CARDGeneAnnotationDirectoryFormat(model.DirectoryFormat):
+class CARDGeneAnnotationDirectoryFormat(MultiDirValidationMixin, model.DirectoryFormat):
     gene = model.FileCollection(r'.+\.(gene_mapping_data.txt)$', format=CARDGeneAnnotationFormat)
     stats = model.FileCollection(r'.+\.(overall_mapping_stats.txt)$', format=CARDAnnotationStatsFormat)
 
