@@ -167,7 +167,7 @@ class CARDAlleleAnnotationDirectoryFormat(MultiDirValidationMixin, model.Directo
         return '%s/%s.overall_mapping_stats.txt' % sample_id
 
 
-class CARDGeneAnnotationDirectoryFormat(MultiDirValidationMixin, model.DirectoryFormat):
+class CARDGeneAnnotationDirectoryFormat(model.DirectoryFormat):
     gene = model.FileCollection(r'.+\.(gene_mapping_data.txt)$', format=CARDGeneAnnotationFormat)
     stats = model.FileCollection(r'.+\.(overall_mapping_stats.txt)$', format=CARDAnnotationStatsFormat)
 
