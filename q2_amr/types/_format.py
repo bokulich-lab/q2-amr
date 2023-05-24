@@ -9,6 +9,7 @@ import json
 from copy import copy
 import pandas as pd
 import qiime2.plugin.model as model
+from q2_types_genomics.per_sample_data._format import MultiDirValidationMixin
 from qiime2.plugin import ValidationError
 
 
@@ -80,6 +81,7 @@ class CARDAnnotationJSONFormat(model.TextFileFormat):
     def _validate_(self, level):
         self._validate()
 
+
 class CARDAnnotationDirectoryFormat(model.DirectoryFormat):
     json = model.File(r'amr_annotation.json', format=CARDAnnotationJSONFormat)
     txt = model.File(r'amr_annotation.txt', format=CARDAnnotationTXTFormat)
@@ -96,9 +98,9 @@ class CARDAlleleAnnotationFormat(model.TextFileFormat):
 
         df = pd.read_csv(str(self), sep="\t")
         header_obs = list(df.columns)
-        if header_obs != header_exp:
+        if not set(header_exp).issubset(set(header_obs)):
             raise ValidationError(
-                "Header line does not match CARDAnnotation format. Must consist of "
+                "Header line does not match CARDAlleleAnnotationFormat. Must contain"
                 "the following values: " + ', '.join(header_exp) +
                 ".\n\nFound instead: " + ', '.join(header_obs))
 
@@ -122,11 +124,10 @@ class CARDGeneAnnotationFormat(model.TextFileFormat):
                       'Resistance Mechanism']
 
         df = pd.read_csv(str(self), sep="\t")
-
         header_obs = list(df.columns)
-        if header_obs != header_exp:
+        if not set(header_exp).issubset(set(header_obs)):
             raise ValidationError(
-                "Header line does not match CARDAnnotation format. Must consist of "
+                "Header line does not match CARDGeneAnnotationFormat. Must contain"
                 "the following values: " + ', '.join(header_exp) +
                 ".\n\nFound instead: " + ', '.join(header_obs))
 
@@ -143,10 +144,9 @@ class CARDAnnotationStatsFormat(model.TextFileFormat):
         with open(str(self), 'r') as file:
             content = file.readlines()
         header_obs = [line.split(':')[0] for line in content if ':' in line]
-
-        if header_obs != header_exp:
+        if not set(header_exp).issubset(set(header_obs)):
             raise ValidationError(
-                "Header line does not match CARDAnnotation format. Must consist of "
+                "Values do not match CARDAnnotationStatsFormat. Must contain"
                 "the following values: " + ', '.join(header_exp) +
                 ".\n\nFound instead: " + ', '.join(header_obs))
 
@@ -167,7 +167,7 @@ class CARDAlleleAnnotationDirectoryFormat(MultiDirValidationMixin, model.Directo
         return '%s/%s.overall_mapping_stats.txt' % sample_id
 
 
-class CARDGeneAnnotationDirectoryFormat(model.DirectoryFormat):
+class CARDGeneAnnotationDirectoryFormat(MultiDirValidationMixin, model.DirectoryFormat):
     gene = model.FileCollection(r'.+\.(gene_mapping_data.txt)$', format=CARDGeneAnnotationFormat)
     stats = model.FileCollection(r'.+\.(overall_mapping_stats.txt)$', format=CARDAnnotationStatsFormat)
 

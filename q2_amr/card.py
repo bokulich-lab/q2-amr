@@ -4,6 +4,8 @@ import shutil
 import subprocess
 import tarfile
 import tempfile
+from typing import Union
+
 import altair as alt
 from distutils.dir_util import copy_tree
 from bs4 import BeautifulSoup
@@ -14,7 +16,8 @@ import requests
 import skbio
 from q2_metadata import tabulate
 from q2_types.feature_data import ProteinFASTAFormat, DNAFASTAFormat
-from q2_types.per_sample_sequences import PairedEndSequencesWithQuality, SingleLanePerSamplePairedEndFastqDirFmt
+from q2_types.per_sample_sequences import PairedEndSequencesWithQuality, SingleLanePerSamplePairedEndFastqDirFmt, \
+    SingleLanePerSampleSingleEndFastqDirFmt
 from q2_types.sample_data import SampleData
 from qiime2 import Metadata
 
@@ -174,7 +177,7 @@ def heatmap(output_dir: str,
     q2templates.render(templates, output_dir, context=context)
 
 
-def annotate_reads(reads: SingleLanePerSamplePairedEndFastqDirFmt,
+def annotate_reads(reads: Union[SingleLanePerSamplePairedEndFastqDirFmt, SingleLanePerSampleSingleEndFastqDirFmt],
                    card_db: CARDDatabaseFormat,
                    aligner: str = 'kma',
                    threads: int = 16,
@@ -236,8 +239,10 @@ def read_in_txt(tmp, samp, sort, frequency_list):
 
 
 def run_rgi_bwt(cwd, samp, fwd, rev, aligner, threads, include_baits, mapq, mapped, coverage):
-    cmd = ['rgi', 'bwt', '--read_one', str(fwd), '--read_two', str(rev), '--output_file',
-           f'{cwd}/{samp}/{samp}', '-n', str(threads), '--local', '--clean']
+    cmd = ['rgi', 'bwt', '--read_one', str(fwd), '--output_file', f'{cwd}/{samp}/{samp}', '-n', str(threads),
+           '--local', '--clean']
+    if rev:
+        cmd.extend(['--read_two', str(rev)])
     if include_baits:
         cmd.append("--include_baits")
     if mapq:
