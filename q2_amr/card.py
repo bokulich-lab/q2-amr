@@ -337,7 +337,8 @@ def extract_sample_stats(samp_dir, samp, sample_stats):
 
 
 def visualize_annotation_stats(output_dir: str,
-                               amr_reads_annotation: CARDGeneAnnotationDirectoryFormat):
+                               amr_reads_annotation: Union[CARDGeneAnnotationDirectoryFormat,
+                                                           CARDAlleleAnnotationDirectoryFormat]):
     directory = str(amr_reads_annotation)
     sample_stats = {}
     for samp in os.listdir(directory):

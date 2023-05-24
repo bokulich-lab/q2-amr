@@ -127,12 +127,12 @@ plugin.methods.register_function(
 
 plugin.visualizers.register_function(
     function=visualize_annotation_stats,
-    inputs={'amr_reads_annotation': CARDGeneAnnotation},
+    inputs={'amr_reads_annotation': CARDGeneAnnotation | CARDAlleleAnnotation},
     parameters={},
-    input_descriptions={'amr_reads_annotation': 'Stats'},
+    input_descriptions={'amr_reads_annotation': 'AMR annotation mapped on alleles or genes.'},
     parameter_descriptions={},
-    name='Download CARD data.',
-    description='Visualize mapping stats.',
+    name='Visualize mapping statistics.',
+    description='Visualize mapping statistics.',
     citations=[citations['alcock_card_2023']]
 )
 
