@@ -7,6 +7,9 @@
 # ----------------------------------------------------------------------------
 import importlib
 
+from q2_types.sample_data import SampleData
+from q2_types_genomics.per_sample_data import MAGs
+
 from q2_amr.types import CARDDatabase, CARDDatabaseDirectoryFormat, CARDAnnotationTXTFormat, \
     CARDDatabaseFormat, CARDAnnotationJSONFormat
 from q2_types.feature_data import Sequence, FeatureData, ProteinSequence
@@ -48,32 +51,29 @@ plugin.methods.register_function(
 
 plugin.methods.register_function(
     function=annotate_card,
-    inputs={'input_sequence': FeatureData[Sequence]},
+    inputs={'mag': SampleData[MAGs],
+            'card_db': CARDDatabase},
     parameters={'alignment_tool': Str % Choices(['BLAST', 'DIAMOND']),
                 'input_type': Str % Choices(['contig', 'protein']),
                 'split_prodigal_jobs': Bool,
                 'include_loose': Bool,
-                'exclude_nudge': Bool,
+                'include_nudge': Bool,
                 'low_quality': Bool,
                 'num_threads': Int % Range(1, None)},
-    outputs=[('amr_annotations', CARDAnnotation),
-             ('protein_annotation', FeatureData[ProteinSequence]),
-             ('dna_annotation', FeatureData[Sequence])],
-    input_descriptions={'input_sequence': 'Sequences to be annotated with rgi.'},
+    outputs=[('amr_annotations', CARDAnnotation)],
+    input_descriptions={'mag': 'MAG to be annotated with CARD.',
+                        'card_db': 'CARD Database.'},
     parameter_descriptions={
         'alignment_tool': 'Specify alignment tool BLAST or DIAMOND.',
         'input_type': 'Specify data input type contig or protein.',
         'split_prodigal_jobs': 'Run multiple prodigal jobs simultaneously for contigs in a fasta file.',
         'include_loose': 'Include loose hits in addition to strict and perfect hits .',
-        'exclude_nudge': 'Include hits nudged from loose to strict hits.',
+        'include_nudge': 'Include hits nudged from loose to strict hits.',
         'low_quality': 'Use for short contigs to predict partial genes.',
         'num_threads': 'Number of threads (CPUs) to use in the BLAST search.'},
-    output_descriptions={
-        'amr_annotations': 'AMR Annotation as .txt and .json file.',
-        'protein_annotation': 'FASTA file with predicted protein sequences, ORF_ID and ARO accession in the Header.',
-        'dna_annotation': 'FASTA file with predicted dna sequences, ORF_ID and ARO accession in the Header.'},
-    name='Annotation of sequence data with antimicrobial resistance gene information from CARD.',
-    description=('Annotation of sequence data with antimicrobial resistance gene information from CARD.'),
+    output_descriptions={'amr_annotations': 'AMR Annotation as .txt and .json file.'},
+    name='Annotate MAGs with antimicrobial resistance gene information from CARD.',
+    description='Annotate MAGs with antimicrobial resistance gene information from CARD.',
     citations=[citations['alcock_card_2023']]
 )
 
