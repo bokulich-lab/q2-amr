@@ -60,7 +60,7 @@ plugin.methods.register_function(
                 'include_nudge': Bool,
                 'low_quality': Bool,
                 'num_threads': Int % Range(1, None)},
-    outputs=[('amr_annotations', CARDAnnotation)],
+    outputs=[('amr_annotations', SampleData[CARDAnnotation])],
     input_descriptions={'mag': 'MAG to be annotated with CARD.',
                         'card_db': 'CARD Database.'},
     parameter_descriptions={
@@ -95,7 +95,7 @@ plugin.register_semantic_type_to_format(
     CARDDatabase,
     artifact_format=CARDDatabaseDirectoryFormat)
 plugin.register_semantic_type_to_format(
-    CARDAnnotation,
+    SampleData[CARDAnnotation],
     artifact_format=CARDAnnotationDirectoryFormat)
 plugin.register_formats(CARDAnnotationTXTFormat, CARDAnnotationDirectoryFormat,
                         CARDAnnotationJSONFormat,
