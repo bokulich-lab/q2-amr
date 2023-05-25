@@ -306,15 +306,15 @@ def plot_sample_stats(sample_stats, output_dir):
     sample_stats_df.reset_index(inplace=True)
 
     mapped_reads_plot = alt.Chart(sample_stats_df).mark_bar().encode(
-        x=alt.X('index:N', title=None, axis=alt.Axis(labels=False, ticks=False), band=0.4),
+        x=alt.X('index:N', title=None, axis=alt.Axis(labels=False, ticks=False), bandPosition=0.1),
         y=alt.Y('mapped_reads', title='Mapped Reads',
                 scale=alt.Scale(domain=(0, sample_stats_df['mapped_reads'].max() * 1.1))),
         tooltip=[alt.Tooltip('index', title='Sample'), alt.Tooltip('mapped_reads', title='Mapped Reads'),
                  alt.Tooltip('total_reads', title='Total Reads')]
-    ).properties(title='Mapped Reads', width=alt.Step(80), height=200)
+    ).properties(title='Mapping Statistics', width=alt.Step(80), height=200)
 
     percentage_plot = alt.Chart(sample_stats_df).mark_bar().encode(
-        x=alt.X('index:N', title=None, axis=alt.Axis(labelAngle=15), band=0.4),
+        x=alt.X('index:N', title=None, axis=alt.Axis(labelAngle=15), bandPosition=0.1),
         y=alt.Y('percentage', title='Mapped Reads (%)',
                 scale=alt.Scale(domain=(0, sample_stats_df['percentage'].max() * 1.1))),
         tooltip=[alt.Tooltip('index', title='Sample'), alt.Tooltip('percentage', title='Mapped Reads (%)'),
