@@ -113,14 +113,19 @@ def heatmap(output_dir: str,
             display: str = 'plain',
             frequency: bool = False):
     TEMPLATES = pkg_resources.resource_filename("q2_amr", "assets")
+    annotation_dir = str(amr_annotation)
     with tempfile.TemporaryDirectory() as tmp:
         results_dir = os.path.join(tmp, "results")
-        json_files_dict = os.path.join(tmp, "json_files")
+        json_files_dir = os.path.join(tmp, "json_files")
         os.makedirs(results_dir)
-        os.makedirs(json_files_dict)
-        for file in amr_annotation:
-            shutil.copy(file, json_files_dict)
-        run_rgi_heatmap(tmp, json_files_dict, clus, cat, display, frequency)
+        os.makedirs(json_files_dir)
+        for sample in os.listdir(annotation_dir):
+            for bin in os.listdir(os.path.join(annotation_dir, sample)):
+                for file in os.listdir(os.path.join(annotation_dir, sample, bin)):
+                    if file.endswith('.json'):
+                        shutil.copy(os.path.join(annotation_dir, sample, bin, file), json_files_dir)
+
+        run_rgi_heatmap(tmp, json_files_dir, clus, cat, display, frequency)
         change_names(results_dir)
         copy_tree(os.path.join(TEMPLATES, "rgi"), output_dir)
         copy_tree(results_dir, os.path.join(output_dir, "rgi_data"))
@@ -133,13 +138,12 @@ def heatmap(output_dir: str,
     q2templates.render(templates, output_dir, context=context)
 
 
-def run_rgi_heatmap(tmp, json_files_dict, clus, cat, display, frequency):
-    cmd = ['rgi', 'heatmap', '--input', json_files_dict, '--output', f'{tmp}/results/heatmap',
-           "--display", str(display)]
+def run_rgi_heatmap(tmp, json_files_dir, clus, cat, display, frequency):
+    cmd = ['rgi', 'heatmap', '--input', json_files_dir, '--output', f'{tmp}/results/heatmap', "--display", display]
     if clus:
-        cmd.extend(["--clus", str(clus)])
+        cmd.extend(["--clus", clus])
     if cat:
-        cmd.extend(["--cat", str(cat)])
+        cmd.extend(["--cat", cat])
     if frequency:
         cmd.append("--frequency")
     try:
