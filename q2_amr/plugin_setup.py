@@ -16,7 +16,7 @@ from q2_amr.types import CARDDatabase, CARDDatabaseDirectoryFormat, CARDAnnotati
 from q2_types.feature_data import Sequence, FeatureData, ProteinSequence
 from qiime2.core.type import Str, Choices, Bool, Int, Range, Float
 
-from q2_amr.card import fetch_card_db, annotate_card, heatmap, annotate_reads, visualize_annotation_stats  # heatmap
+from q2_amr.card import fetch_card_db, annotate_card, heatmap, annotate_reads_card, visualize_annotation_stats  # heatmap
 from qiime2.plugin import Citations, Plugin
 
 from q2_amr import __version__
@@ -94,7 +94,7 @@ plugin.visualizers.register_function(
 )
 
 plugin.methods.register_function(
-    function=annotate_reads,
+    function=annotate_reads_card,
     inputs={'reads': SampleData[PairedEndSequencesWithQuality | SequencesWithQuality],
             'card_db': CARDDatabase},
     parameters={'aligner': Str % Choices(['kma', 'bowtie2', 'bwa']),

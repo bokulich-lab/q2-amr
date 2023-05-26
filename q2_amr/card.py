@@ -177,14 +177,14 @@ def heatmap(output_dir: str,
     q2templates.render(templates, output_dir, context=context)
 
 
-def annotate_reads(reads: Union[SingleLanePerSamplePairedEndFastqDirFmt, SingleLanePerSampleSingleEndFastqDirFmt],
-                   card_db: CARDDatabaseFormat,
-                   aligner: str = 'kma',
-                   threads: int = 16,
-                   include_baits: bool = False,
-                   mapq: int = None,
-                   mapped: int = None,
-                   coverage: float = None) -> (CARDAlleleAnnotationDirectoryFormat, CARDGeneAnnotationDirectoryFormat, pd.DataFrame, pd.DataFrame):
+def annotate_reads_card(reads: Union[SingleLanePerSamplePairedEndFastqDirFmt, SingleLanePerSampleSingleEndFastqDirFmt],
+                        card_db: CARDDatabaseFormat,
+                        aligner: str = 'kma',
+                        threads: int = 16,
+                        include_baits: bool = False,
+                        mapq: int = None,
+                        mapped: int = None,
+                        coverage: float = None) -> (CARDAlleleAnnotationDirectoryFormat, CARDGeneAnnotationDirectoryFormat, pd.DataFrame, pd.DataFrame):
     paired = isinstance(reads, SingleLanePerSamplePairedEndFastqDirFmt)
     manifest = reads.manifest.view(pd.DataFrame)
     allele_frequency_list, gene_frequency_list = [], []

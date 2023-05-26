@@ -5,7 +5,7 @@ from q2_types.feature_data import DNAFASTAFormat
 from qiime2 import Artifact
 from qiime2.plugin.testing import TestPluginBase
 
-from q2_amr.card import load_card_db, preprocess_card_db, load_card_db_fasta, annotate_reads
+from q2_amr.card import load_card_db, preprocess_card_db, load_card_db_fasta, annotate_reads_card
 from q2_amr.types import CARDDatabaseFormat
 
 
@@ -31,8 +31,8 @@ class TestBwt(TestPluginBase):
             preprocess_card_db(tmp, a)
             assert os.path.exists(os.path.join(tmp, 'card_database_v3.2.5.fasta'))
 
-    def test_bwt(self):
+    def test_annotate_reads_card(self):
         card_db = Artifact.load(self.get_data_path('card_db.qza'))
         reads = self.get_data_path('reads.qza')
         with tempfile.TemporaryDirectory() as tmp:
-            annotate_reads(tmp, reads, card_db)
+            annotate_reads_card(tmp, reads, card_db)
