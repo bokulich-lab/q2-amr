@@ -39,27 +39,28 @@ def fetch_card_db() -> CARDDatabaseDirectoryFormat:
         return card_db
 
 
-def annotate_card(mag: MultiMAGSequencesDirFmt,
-                  card_db: CARDDatabaseFormat,
-                  alignment_tool: str = 'BLAST',
-                  input_type: str = 'contig',
-                  split_prodigal_jobs: bool = False,
-                  include_loose: bool = False,
-                  include_nudge: bool = False,
-                  low_quality: bool = False,
-                  num_threads: int = 8) -> CARDAnnotationDirectoryFormat:
+def annotate_mags_card(mag: MultiMAGSequencesDirFmt,
+                       card_db: CARDDatabaseFormat,
+                       alignment_tool: str = 'BLAST',
+                       input_type: str = 'contig',
+                       split_prodigal_jobs: bool = False,
+                       include_loose: bool = False,
+                       include_nudge: bool = False,
+                       low_quality: bool = False,
+                       num_threads: int = 8) -> CARDAnnotationDirectoryFormat:
     manifest = mag.manifest.view(pd.DataFrame)
     amr_annotations = CARDAnnotationDirectoryFormat()
     with tempfile.TemporaryDirectory() as tmp:
         load_card_db(tmp, card_db)
         for samp_bin in list(manifest.index):
-            mag_dir = os.path.join(str(amr_annotations), samp_bin[0], samp_bin[1])
-            os.makedirs(mag_dir, exist_ok=True)
+            bin_dir = os.path.join(str(amr_annotations), samp_bin[0], samp_bin[1])
+            os.makedirs(bin_dir, exist_ok=True)
             input_sequence = manifest.loc[samp_bin, "filename"]
             run_rgi_main(tmp, input_sequence, alignment_tool, input_type, split_prodigal_jobs, include_loose,
                          include_nudge, low_quality, num_threads)
-            shutil.move(f'{tmp}/output.txt', f"{mag_dir}/{samp_bin[0]}_{samp_bin[1]}_amr_annotation.txt")
-            shutil.move(f'{tmp}/output.json', f"{mag_dir}/{samp_bin[0]}_{samp_bin[1]}_amr_annotation.json")
+            shutil.move(f'{tmp}/output.txt', f"{bin_dir}/amr_annotation.txt")
+            shutil.move(f'{tmp}/output.json', f"{bin_dir}/amr_annotation.json")
+    print('a')
     return amr_annotations
 
 
@@ -102,22 +103,6 @@ def load_card_db(tmp, card_db):
             f"(return code {e.returncode}), please inspect "
             "stdout and stderr to learn more."
         )
-
-
-def card_annotation_df_to_fasta(input_df: pd.DataFrame):
-    protein_fasta = ProteinFASTAFormat()
-    dna_fasta = DNAFASTAFormat()
-    with open(str(protein_fasta), 'a') as proteinf, open(str(dna_fasta), 'a') as dnaf:
-        for index, row in input_df.iterrows():
-            protein_object = Protein(row['Predicted_Protein'])
-            protein_object.metadata['id'] = row['ORF_ID']
-            protein_object.metadata['description'] = row['ARO']
-            skbio.io.write(protein_object, format='fasta', into=proteinf)
-            dna_object = DNA(row['Predicted_DNA'])
-            dna_object.metadata['id'] = row['ORF_ID']
-            dna_object.metadata['description'] = row['ARO']
-            skbio.io.write(dna_object, format='fasta', into=dnaf)
-    return protein_fasta, dna_fasta
 
 
 def heatmap(output_dir: str,

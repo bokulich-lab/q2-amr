@@ -92,8 +92,8 @@ class CARDAnnotationDirectoryFormat(MultiDirValidationMixin, model.DirectoryForm
 
     @json.set_path_maker
     def json_path_maker(self, sample_id, bin_id):
-        return f"{sample_id}/{bin_id}/{sample_id}_{bin_id}_amr_annotation.json"
+        return f"{sample_id}/{bin_id}/amr_annotation.json"
 
     @txt.set_path_maker
     def txt_path_maker(self, sample_id, bin_id):
-        return f"{sample_id}/{bin_id}/{sample_id}_{bin_id}_amr_annotation.txt"
+        return f"{sample_id}/{bin_id}/amr_annotation.txt"

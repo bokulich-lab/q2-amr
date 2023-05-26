@@ -15,7 +15,7 @@ from q2_amr.types import CARDDatabase, CARDDatabaseDirectoryFormat, CARDAnnotati
 from q2_types.feature_data import Sequence, FeatureData, ProteinSequence
 from qiime2.core.type import Str, Choices, Bool, Int, Range
 
-from q2_amr.card import fetch_card_db, annotate_card, heatmap  # heatmap
+from q2_amr.card import fetch_card_db, annotate_mags_card, heatmap  # heatmap
 from qiime2.plugin import Citations, Plugin
 
 from q2_amr import __version__
@@ -50,7 +50,7 @@ plugin.methods.register_function(
 )
 
 plugin.methods.register_function(
-    function=annotate_card,
+    function=annotate_mags_card,
     inputs={'mag': SampleData[MAGs],
             'card_db': CARDDatabase},
     parameters={'alignment_tool': Str % Choices(['BLAST', 'DIAMOND']),
