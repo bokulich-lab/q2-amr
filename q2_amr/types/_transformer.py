@@ -11,7 +11,7 @@ import shutil
 
 import pandas as pd
 import skbio
-from q2_types_genomics.genome_data import GenesDirectoryFormat
+from q2_types_genomics.genome_data import GenesDirectoryFormat, ProteinsDirectoryFormat
 
 from q2_amr.types import CARDAnnotationDirectoryFormat
 from q2_types.feature_data import (
@@ -135,37 +135,41 @@ def _16(data: dict) -> CARDAnnotationJSONFormat:
         json.dump(data, fh)
     return ff
 
+
 @plugin.register_transformer
 def _16(data: CARDAnnotationDirectoryFormat) -> GenesDirectoryFormat:
     genes_directory = GenesDirectoryFormat()
+    create_dir_structure(data, 'DNA', genes_directory)
+    return genes_directory
+
+
+@plugin.register_transformer
+def _17(data: CARDAnnotationDirectoryFormat) -> ProteinsDirectoryFormat:
+    proteins_directory = ProteinsDirectoryFormat()
+    create_dir_structure(data, 'Protein', proteins_directory)
+    return proteins_directory
+
+
+def create_dir_structure(data, seq_type, genes_protein_directory):
     annotation_dir = str(data)
     for sample in os.listdir(annotation_dir):
         for bin in os.listdir(os.path.join(annotation_dir, sample)):
             for file in os.listdir(os.path.join(annotation_dir, sample, bin)):
                 if file.endswith('.txt'):
                     txt_file_path = os.path.join(annotation_dir, sample, bin, file)
-                    os.makedirs(os.path.join(str(genes_directory), sample), exist_ok=True)
-                    fasta = card_annotation_df_to_fasta(txt_file_path, 'gene')
-                    shutil.move(str(fasta), os.path.join(str(genes_directory), sample, f'{bin}_genes.fasta'))
-    return genes_directory
+                    os.makedirs(os.path.join(str(genes_protein_directory), sample), exist_ok=True)
+                    fasta = card_annotation_df_to_fasta(txt_file_path, seq_type)
+                    filename = f'{bin}_genes.fasta' if seq_type == "DNA" else f'{bin}_proteins.fasta'
+                    shutil.move(str(fasta), os.path.join(str(genes_protein_directory), sample, filename))
 
 
-def card_annotation_df_to_fasta(txt_file_path: str, sort):
+def card_annotation_df_to_fasta(txt_file_path: str, seq_type: str):
     annotation_df = pd.read_csv(txt_file_path, sep='\t')
-    if sort is "gene":
-        fasta = DNAFASTAFormat()
-        with open(str(fasta), 'a') as dnaf:
-            for index, row in annotation_df.iterrows():
-                dna_object = DNA(row['Predicted_DNA'])
-                dna_object.metadata['id'] = row['ORF_ID']
-                dna_object.metadata['description'] = row['ARO']
-                skbio.io.write(dna_object, format='fasta', into=dnaf)
-    else:
-        fasta = ProteinFASTAFormat()
-        with open(str(fasta), 'a') as proteinf:
-            for index, row in annotation_df.iterrows():
-                protein_object = Protein(row['Predicted_Protein'])
-                protein_object.metadata['id'] = row['ORF_ID']
-                protein_object.metadata['description'] = row['ARO']
-                skbio.io.write(protein_object, format='fasta', into=proteinf)
-    return fasta
+    fasta_format, sequence_class = (DNAFASTAFormat(), DNA) if seq_type == "DNA" else (ProteinFASTAFormat(), Protein)
+    with open(str(fasta_format), 'a') as fasta_file:
+        for index, row in annotation_df.iterrows():
+            sequence_object = sequence_class(row[f'Predicted_{seq_type}'])
+            sequence_object.metadata['id'] = row['ORF_ID']
+            sequence_object.metadata['description'] = row['ARO']
+            skbio.io.write(sequence_object, format='fasta', into=fasta_file)
+    return fasta_format

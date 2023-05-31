@@ -14,7 +14,7 @@ import tempfile
 import pkg_resources
 import requests
 from pandas._testing import assert_frame_equal
-from q2_types_genomics.genome_data import GenesDirectoryFormat
+from q2_types_genomics.genome_data import GenesDirectoryFormat, ProteinsDirectoryFormat
 from q2_types_genomics.per_sample_data import MultiMAGSequencesDirFmt
 
 from q2_amr.types import CARDDatabaseDirectoryFormat
@@ -133,8 +133,15 @@ class TestCARDDatabaseTypesAndFormats(AMRTypesTestPluginBase):
         with open(self.get_data_path('card_test.json'), 'rb') as f:
             db = json.load(f)
         obs = extract_sequence('dna', '2', '1188', db)
-        exp = DNA(
-            "ATGAAAGCATATTTCATCGCCATACTTACCTTATTCACTTGTATAGCTACCGTCGTCCGGGCGCAGCAAATGTCTGAACTTGAAAACCGGATTGACAGTCTGCTCAATGGCAAGAAAGCCACCGTTGGTATAGCCGTATGGACAGACAAAGGAGACATGCTCCGGTATAACGACCATGTACACTTCCCCTTGCTCAGTGTATTCAAATTCCATGTGGCACTGGCCGTACTGGACAAGATGGATAAGCAAAGCATCAGTCTGGACAGCATTGTTTCCATAAAGGCATCCCAAATGCCGCCCAATACCTACAGCCCCCTGCGGAAGAAGTTTCCCGACCAGGATTTCACGATTACGCTTAGGGAACTGATGCAATACAGCATTTCCCAAAGCGACAACAATGCCTGCGACATCTTGATAGAATATGCAGGAGGCATCAAACATATCAACGACTATATCCACCGGTTGAGTATCGACTCCTTCAACCTCTCGGAAACAGAAGACGGCATGCACTCCAGCTTCGAGGCTGTATACCGCAACTGGAGTACTCCTTCCGCTATGGTCCGACTACTGAGAACGGCTGATGAAAAAGAGTTGTTCTCCAACAAGGAGCTGAAAGACTTCTTGTGGCAGACCATGATAGATACTGAAACCGGTGCCAACAAACTGAAAGGTATGTTGCCAGCCAAAACCGTGGTAGGACACAAGACCGGCTCTTCCGACCGCAATGCCGACGGTATGAAAACTGCAGATAATGATGCCGGCCTCGTTATCCTTCCCGACGGCCGGAAATACTACATTGCCGCCTTCGTCATGGACTCATACGAGACGGATGAGGACAATGCGAACATCATCGCCCGCATATCACGCATGGTATATGATGCGATGAGATGA")
+        exp = DNA("ATGAAAGCATATTTCATCGCCATACTTACCTTATTCACTTGTATAGCTACCGTCGTCCGGGCGCAGCAAATGTCTGAACTTGAAAACCGGATTGACAGTC"
+                  "TGCTCAATGGCAAGAAAGCCACCGTTGGTATAGCCGTATGGACAGACAAAGGAGACATGCTCCGGTATAACGACCATGTACACTTCCCCTTGCTCAGTGT"
+                  "ATTCAAATTCCATGTGGCACTGGCCGTACTGGACAAGATGGATAAGCAAAGCATCAGTCTGGACAGCATTGTTTCCATAAAGGCATCCCAAATGCCGCCC"
+                  "AATACCTACAGCCCCCTGCGGAAGAAGTTTCCCGACCAGGATTTCACGATTACGCTTAGGGAACTGATGCAATACAGCATTTCCCAAAGCGACAACAATG"
+                  "CCTGCGACATCTTGATAGAATATGCAGGAGGCATCAAACATATCAACGACTATATCCACCGGTTGAGTATCGACTCCTTCAACCTCTCGGAAACAGAAGA"
+                  "CGGCATGCACTCCAGCTTCGAGGCTGTATACCGCAACTGGAGTACTCCTTCCGCTATGGTCCGACTACTGAGAACGGCTGATGAAAAAGAGTTGTTCTCC"
+                  "AACAAGGAGCTGAAAGACTTCTTGTGGCAGACCATGATAGATACTGAAACCGGTGCCAACAAACTGAAAGGTATGTTGCCAGCCAAAACCGTGGTAGGAC"
+                  "ACAAGACCGGCTCTTCCGACCGCAATGCCGACGGTATGAAAACTGCAGATAATGATGCCGGCCTCGTTATCCTTCCCGACGGCCGGAAATACTACATTGC"
+                  "CGCCTTCGTCATGGACTCATACGAGACGGATGAGGACAATGCGAACATCATCGCCCGCATATCACGCATGGTATATGATGCGATGAGATGA")
         exp.metadata['id'] = 'gb|GQ343019.1|+|132-1023|ARO:3002999|CblA-1'
         exp.metadata['description'] = '[mixed culture bacterium AX_gF3SD01_15]'
         self.assertEqual(exp, obs)
@@ -144,8 +151,10 @@ class TestCARDDatabaseTypesAndFormats(AMRTypesTestPluginBase):
         with open(self.get_data_path('card_test.json'), 'rb') as f:
             db = json.load(f)
         obs = extract_sequence('protein', '2', '1188', db)
-        exp = Protein(
-            "MKAYFIAILTLFTCIATVVRAQQMSELENRIDSLLNGKKATVGIAVWTDKGDMLRYNDHVHFPLLSVFKFHVALAVLDKMDKQSISLDSIVSIKASQMPPNTYSPLRKKFPDQDFTITLRELMQYSISQSDNNACDILIEYAGGIKHINDYIHRLSIDSFNLSETEDGMHSSFEAVYRNWSTPSAMVRLLRTADEKELFSNKELKDFLWQTMIDTETGANKLKGMLPAKTVVGHKTGSSDRNADGMKTADNDAGLVILPDGRKYYIAAFVMDSYETDEDNANIIARISRMVYDAMR")
+        exp = Protein("MKAYFIAILTLFTCIATVVRAQQMSELENRIDSLLNGKKATVGIAVWTDKGDMLRYNDHVHFPLLSVFKFHVALAVLDKMDKQSISLDSIVSIKAS"
+                      "QMPPNTYSPLRKKFPDQDFTITLRELMQYSISQSDNNACDILIEYAGGIKHINDYIHRLSIDSFNLSETEDGMHSSFEAVYRNWSTPSAMVRLLRT"
+                      "ADEKELFSNKELKDFLWQTMIDTETGANKLKGMLPAKTVVGHKTGSSDRNADGMKTADNDAGLVILPDGRKYYIAAFVMDSYETDEDNANIIARIS"
+                      "RMVYDAMR")
         exp.metadata['id'] = 'gb|ACT97415.1|ARO:3002999|CblA-1'
         exp.metadata['description'] = '[mixed culture bacterium AX_gF3SD01_15]'
         self.assertEqual(exp, obs)
@@ -186,37 +195,12 @@ class TestCARDAnnotationTypesAndFormats(AMRTypesTestPluginBase):
         mock_requests.return_value = mock_response
         obs = fetch_card_db()
 
-    @patch('q2_amr.card.run_rgi_main')
-    def test_annotate_card(self, mock_run_rgi_main):
-        output_txt = self.get_data_path('rgi_output.txt')
-        output_json = self.get_data_path('rgi_output.json')
-        manifest = self.get_data_path('MANIFEST')
-
-        def mock_run_rgi_main(tmp, input_sequence, alignment_tool, input_type, split_prodigal_jobs, include_loose,
-                              exclude_nudge, low_quality, num_threads):
-            shutil.copy(output_txt, f"{tmp}/output.txt")
-            shutil.copy(output_json, f"{tmp}/output.json")
-
-        def mock_load_card_db(tmp, card_db):
-            pass
-
-
-        with patch('q2_amr.card.run_rgi_main', side_effect=mock_run_rgi_main):
-            with patch('q2_amr.card.load_card_db', side_effect=mock_load_card_db):
-                mag = MultiMAGSequencesDirFmt()
-                card_db = CARDDatabaseFormat()
-                shutil.copy(manifest, str(mag))
-                result = annotate_mags_card(mag, card_db)
-                self.assertIsInstance(result, CARDAnnotationDirectoryFormat)
-                self.assertTrue(os.path.exists(os.path.join(str(result), 'sample1', 'bin1', 'amr_annotation.txt')))
-                self.assertTrue(os.path.exists(os.path.join(str(result), 'sample1', 'bin1', 'amr_annotation.json')))
-
     def test_card_annotation_df_to_fasta(self):
         filepath = self.get_data_path('rgi_output.txt')
         filepath2 = self.get_data_path('rgi_output_protein.fna')
         filepath3 = self.get_data_path('rgi_output_dna.fna')
-        protein = card_annotation_df_to_fasta(filepath, 'protein')
-        dna = card_annotation_df_to_fasta(filepath, 'gene')
+        protein = card_annotation_df_to_fasta(filepath, 'Protein')
+        dna = card_annotation_df_to_fasta(filepath, 'DNA')
         with open(str(protein), 'r') as protein_fh_obs:
             protein_contents_obs = protein_fh_obs.read()
         with open(str(dna), 'r') as dna_fh_obs:
@@ -235,3 +219,11 @@ class TestCARDAnnotationTypesAndFormats(AMRTypesTestPluginBase):
         self.assertIsInstance(obs, GenesDirectoryFormat)
         self.assertTrue(os.path.exists(os.path.join(str(obs), 'sample1', 'bin1_genes.fasta')))
         self.assertTrue(os.path.exists(os.path.join(str(obs), 'sample2', 'bin1_genes.fasta')))
+
+    def test_CARDAnnotationDirectoryFormat_to_ProteinsDirectoryFormat_transformer(self):
+        filepath = self.get_data_path('data')
+        transformer = self.get_transformer(CARDAnnotationDirectoryFormat, ProteinsDirectoryFormat)
+        obs = transformer(filepath)
+        self.assertIsInstance(obs, ProteinsDirectoryFormat)
+        self.assertTrue(os.path.exists(os.path.join(str(obs), 'sample1', 'bin1_proteins.fasta')))
+        self.assertTrue(os.path.exists(os.path.join(str(obs), 'sample2', 'bin1_proteins.fasta')))
