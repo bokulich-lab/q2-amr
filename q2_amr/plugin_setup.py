@@ -59,7 +59,7 @@ plugin.methods.register_function(
                 'include_loose': Bool,
                 'include_nudge': Bool,
                 'low_quality': Bool,
-                'num_threads': Int % Range(1, None)},
+                'num_threads': Int % Range(1, 9)},
     outputs=[('amr_annotations', SampleData[CARDAnnotation])],
     input_descriptions={'mag': 'MAG to be annotated with CARD.',
                         'card_db': 'CARD Database.'},

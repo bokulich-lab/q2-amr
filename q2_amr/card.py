@@ -77,7 +77,7 @@ def run_rgi_main(tmp,
            '--alignment_tool', alignment_tool, '--input_type', input_type, '--local']
     if include_loose:
         cmd.append("--include_loose")
-    if not include_nudge:
+    if include_nudge:
         cmd.append("--include_nudge")
     if low_quality:
         cmd.append("--low_quality")
