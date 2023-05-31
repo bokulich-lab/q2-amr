@@ -184,7 +184,8 @@ def annotate_reads_card(reads: Union[SingleLanePerSamplePairedEndFastqDirFmt, Si
                         include_baits: bool = False,
                         mapq: int = None,
                         mapped: int = None,
-                        coverage: float = None) -> (CARDAlleleAnnotationDirectoryFormat, CARDGeneAnnotationDirectoryFormat, pd.DataFrame, pd.DataFrame):
+                        coverage: float = None) -> (CARDAlleleAnnotationDirectoryFormat,
+                                                    CARDGeneAnnotationDirectoryFormat, pd.DataFrame, pd.DataFrame):
     paired = isinstance(reads, SingleLanePerSamplePairedEndFastqDirFmt)
     manifest = reads.manifest.view(pd.DataFrame)
     allele_frequency_list, gene_frequency_list = [], []
@@ -210,9 +211,9 @@ def annotate_reads_card(reads: Union[SingleLanePerSamplePairedEndFastqDirFmt, Si
     return amr_allele_annotation, amr_gene_annotation, allele_feature_table, gene_feature_table
 
 
-def move_files(cwd, samp, sort, frmt):
-    shutil.move(os.path.join(cwd, samp, f"{samp}.{sort}_mapping_data.txt"),
-                os.path.join(os.path.join(str(frmt), samp), f"{samp}.{sort}_mapping_data.txt"))
+def move_files(cwd, samp, map_type, frmt):
+    shutil.move(os.path.join(cwd, samp, f"{samp}.{map_type}_mapping_data.txt"),
+                os.path.join(os.path.join(str(frmt), samp), f"{samp}.{map_type}_mapping_data.txt"))
     shutil.copy(os.path.join(cwd, samp, f"{samp}.overall_mapping_stats.txt"),
                 os.path.join(os.path.join(str(frmt), samp), f"{samp}.overall_mapping_stats.txt"))
 
@@ -229,8 +230,8 @@ def create_count_table(df_list) -> pd.DataFrame:
     return df_transposed
 
 
-def read_in_txt(tmp, samp, sort, frequency_list):
-    df = pd.read_csv(os.path.join(tmp, samp, f"{samp}.{sort}_mapping_data.txt"), sep="\t")
+def read_in_txt(tmp, samp, map_type, frequency_list):
+    df = pd.read_csv(os.path.join(tmp, samp, f"{samp}.{map_type}_mapping_data.txt"), sep="\t")
     df = df[['ARO Accession']]
     df = df.astype(str)
     df[samp] = df.groupby('ARO Accession')['ARO Accession'].transform('count')
