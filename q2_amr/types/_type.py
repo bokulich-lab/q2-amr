@@ -8,5 +8,5 @@
 from q2_types.sample_data import SampleData
 from qiime2.plugin import SemanticType
 
-CARDDatabase = SemanticType('CARDDatabase')
-CARDAnnotation = SemanticType('CARDAnnotation', variant_of=SampleData.field['type'])
+CARDDatabase = SemanticType("CARDDatabase")
+CARDAnnotation = SemanticType("CARDAnnotation", variant_of=SampleData.field["type"])
