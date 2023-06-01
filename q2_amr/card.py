@@ -211,11 +211,9 @@ def annotate_reads_card(reads: Union[SingleLanePerSamplePairedEndFastqDirFmt, Si
     return amr_allele_annotation, amr_gene_annotation, allele_feature_table, gene_feature_table
 
 
-def move_files(cwd, samp, map_type, frmt):
-    shutil.move(os.path.join(cwd, samp, f"{samp}.{map_type}_mapping_data.txt"),
-                os.path.join(os.path.join(str(frmt), samp), f"{samp}.{map_type}_mapping_data.txt"))
-    shutil.copy(os.path.join(cwd, samp, f"{samp}.overall_mapping_stats.txt"),
-                os.path.join(os.path.join(str(frmt), samp), f"{samp}.overall_mapping_stats.txt"))
+def move_files(cwd, samp, map_type, des_dir):
+    shutil.move(os.path.join(cwd, samp, f"{samp}.{map_type}_mapping_data.txt"), os.path.join(str(des_dir), samp))
+    shutil.copy(os.path.join(cwd, samp, f"{samp}.overall_mapping_stats.txt"), os.path.join(str(des_dir), samp))
 
 
 def create_count_table(df_list) -> pd.DataFrame:
