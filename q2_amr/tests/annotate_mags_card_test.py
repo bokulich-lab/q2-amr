@@ -1,10 +1,8 @@
 import os
 import shutil
-import tempfile
 from unittest.mock import patch
 
 from q2_types_genomics.per_sample_data import MultiMAGSequencesDirFmt
-from qiime2 import Artifact
 from qiime2.plugin.testing import TestPluginBase
 
 from q2_amr.card import annotate_mags_card, load_card_db, run_rgi_main
@@ -15,12 +13,14 @@ class TestAnnotateMagsCard(TestPluginBase):
     package = "q2_amr.tests"
 
     def test_load_card_db(self):
-        card_db = Artifact.load(self.get_data_path("card_db_test.qza"))
-        a = card_db.view(CARDDatabaseFormat)
-        with tempfile.TemporaryDirectory() as tmp:
-            load_card_db(tmp, a)
-            assert os.path.exists(os.path.join(tmp, "localDB", "card.json"))
-            assert os.path.exists(os.path.join(tmp, "localDB", "loaded_databases.json"))
+        card_db = CARDDatabaseFormat()
+        with patch("q2_amr.card.run_command") as mock_run_command:
+            load_card_db("path_tmp", card_db)
+            mock_run_command.assert_called_once_with(
+                ["rgi", "load", "--card_json", str(card_db), "--local"],
+                "path_tmp",
+                verbose=True,
+            )
 
     def test_annotate_mags_card(self):
         output_txt = self.get_data_path("rgi_output.txt")
