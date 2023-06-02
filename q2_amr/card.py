@@ -12,13 +12,11 @@ import pandas as pd
 import pkg_resources
 import q2templates
 import requests
-import skbio
-from q2_types.feature_data import DNAFASTAFormat, ProteinFASTAFormat
 from q2_types.per_sample_sequences import (
     SingleLanePerSamplePairedEndFastqDirFmt,
     SingleLanePerSampleSingleEndFastqDirFmt,
 )
-from skbio import DNA, Protein
+from q2_types_genomics.per_sample_data import MultiMAGSequencesDirFmt
 
 from q2_amr.types import (
     CARDAnnotationDirectoryFormat,
@@ -53,44 +51,50 @@ def fetch_card_db() -> CARDDatabaseDirectoryFormat:
         return card_db
 
 
-def annotate_card(
-    input_sequence: DNAFASTAFormat,
+def annotate_mags_card(
+    mag: MultiMAGSequencesDirFmt,
+    card_db: CARDDatabaseFormat,
     alignment_tool: str = "BLAST",
     input_type: str = "contig",
     split_prodigal_jobs: bool = False,
     include_loose: bool = False,
-    exclude_nudge: bool = False,
+    include_nudge: bool = False,
     low_quality: bool = False,
     num_threads: int = 8,
-) -> (CARDAnnotationDirectoryFormat, ProteinFASTAFormat, DNAFASTAFormat):
+) -> CARDAnnotationDirectoryFormat:
+    manifest = mag.manifest.view(pd.DataFrame)
+    amr_annotations = CARDAnnotationDirectoryFormat()
     with tempfile.TemporaryDirectory() as tmp:
-        run_rgi_main(
-            tmp,
-            input_sequence,
-            alignment_tool,
-            input_type,
-            split_prodigal_jobs,
-            include_loose,
-            exclude_nudge,
-            low_quality,
-            num_threads,
-        )
-        amr_annotation_df = pd.read_csv(f"{tmp}/output.txt", sep="\t")
-        amr_annotations = CARDAnnotationDirectoryFormat()
-        shutil.move(f"{tmp}/output.txt", f"{str(amr_annotations)}/amr_annotation.txt")
-        shutil.move(f"{tmp}/output.json", f"{str(amr_annotations)}/amr_annotation.json")
-    protein_annotation, dna_annotation = card_annotation_df_to_fasta(amr_annotation_df)
-    return amr_annotations, protein_annotation, dna_annotation
+        load_card_db(tmp, card_db)
+        for samp_bin in list(manifest.index):
+            bin_dir = os.path.join(str(amr_annotations), samp_bin[0], samp_bin[1])
+            os.makedirs(bin_dir, exist_ok=True)
+            input_sequence = manifest.loc[samp_bin, "filename"]
+            run_rgi_main(
+                tmp,
+                input_sequence,
+                alignment_tool,
+                input_type,
+                split_prodigal_jobs,
+                include_loose,
+                include_nudge,
+                low_quality,
+                num_threads,
+            )
+            shutil.move(f"{tmp}/output.txt", f"{bin_dir}/amr_annotation.txt")
+            shutil.move(f"{tmp}/output.json", f"{bin_dir}/amr_annotation.json")
+    print("a")
+    return amr_annotations
 
 
 def run_rgi_main(
     tmp,
-    input_sequence: DNAFASTAFormat,
+    input_sequence: str,
     alignment_tool: str = "BLAST",
     input_type: str = "contig",
     split_prodigal_jobs: bool = False,
     include_loose: bool = False,
-    exclude_nudge: bool = False,
+    include_nudge: bool = False,
     low_quality: bool = False,
     num_threads: int = 8,
 ):
@@ -98,22 +102,25 @@ def run_rgi_main(
         "rgi",
         "main",
         "--input_sequence",
-        f"{str(input_sequence)}",
+        input_sequence,
         "--output_file",
         f"{tmp}/output",
         "-n",
-        f"{num_threads}",
+        str(num_threads),
+        "--alignment_tool",
+        alignment_tool,
+        "--input_type",
+        input_type,
+        "--local",
     ]
     if include_loose:
         cmd.append("--include_loose")
-    if not exclude_nudge:
-        cmd.append("--exclude_nudge")
+    if include_nudge:
+        cmd.append("--include_nudge")
     if low_quality:
         cmd.append("--low_quality")
     if split_prodigal_jobs:
         cmd.append("--split_prodigal_jobs")
-    cmd.extend(["--alignment_tool", f"{alignment_tool}"])
-    cmd.extend(["--input_type", f"{input_type}"])
     try:
         run_command(cmd, tmp, verbose=True)
     except subprocess.CalledProcessError as e:
@@ -124,20 +131,16 @@ def run_rgi_main(
         )
 
 
-def card_annotation_df_to_fasta(input_df: pd.DataFrame):
-    protein_fasta = ProteinFASTAFormat()
-    dna_fasta = DNAFASTAFormat()
-    with open(str(protein_fasta), "a") as proteinf, open(str(dna_fasta), "a") as dnaf:
-        for index, row in input_df.iterrows():
-            protein_object = Protein(row["Predicted_Protein"])
-            protein_object.metadata["id"] = row["ORF_ID"]
-            protein_object.metadata["description"] = row["ARO"]
-            skbio.io.write(protein_object, format="fasta", into=proteinf)
-            dna_object = DNA(row["Predicted_DNA"])
-            dna_object.metadata["id"] = row["ORF_ID"]
-            dna_object.metadata["description"] = row["ARO"]
-            skbio.io.write(dna_object, format="fasta", into=dnaf)
-    return protein_fasta, dna_fasta
+def load_card_db(tmp, card_db):
+    cmd = ["rgi", "load", "--card_json", str(card_db), "--local"]
+    try:
+        run_command(cmd, tmp, verbose=True)
+    except subprocess.CalledProcessError as e:
+        raise Exception(
+            "An error was encountered while running rgi load, "
+            f"(return code {e.returncode}), please inspect "
+            "stdout and stderr to learn more."
+        )
 
 
 def heatmap(
@@ -332,18 +335,6 @@ def run_rgi_bwt(
     except subprocess.CalledProcessError as e:
         raise Exception(
             "An error was encountered while running rgi bwt, "
-            f"(return code {e.returncode}), please inspect "
-            "stdout and stderr to learn more."
-        )
-
-
-def load_card_db(tmp, card_db):
-    cmd = ["rgi", "load", "--card_json", str(card_db), "--local"]
-    try:
-        run_command(cmd, tmp, verbose=True)
-    except subprocess.CalledProcessError as e:
-        raise Exception(
-            "An error was encountered while running rgi load, "
             f"(return code {e.returncode}), please inspect "
             "stdout and stderr to learn more."
         )

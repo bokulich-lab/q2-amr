@@ -103,67 +103,69 @@ class CARDAnnotationTXTFormat(model.TextFileFormat):
 class CARDAnnotationJSONFormat(model.TextFileFormat):
     def _validate(self, n_records=None):
         keys_exp = [
-            "bit_score",
-            "sequence_from_broadstreet",
-            "query_start",
-            "ARO_name",
-            "sequence_from_db",
-            "max_identities",
-            "orf_prot_sequence",
-            "query_snp",
             "match",
-            "orf_strand",
-            "model_id",
-            "evalue",
-            "model_name",
-            "model_type",
-            "model_type_id",
-            "orf_from",
-            "ARO_accession",
-            "partial",
-            "orf_end",
-            "dna_sequence_from_broadstreet",
-            "perc_identity",
-            "query_end",
             "cvterm_id",
-            "type_match",
-            "pass_evalue",
-            "pass_bitscore",
+            "orf_prot_sequence",
+            "model_id",
             "ARO_category",
-            "snp",
-            "orf_dna_sequence",
-            "query",
             "orf_start",
+            "ARO_accession",
+            "evalue",
+            "sequence_from_broadstreet",
+            "query",
+            "model_type_id",
+            "model_type",
+            "bit_score",
+            "sequence_from_db",
+            "query_end",
+            "orf_dna_sequence",
+            "pass_bitscore",
+            "orf_end",
+            "pass_evalue",
+            "query_start",
+            "perc_identity",
+            "type_match",
+            "max_identities",
+            "orf_from",
+            "ARO_name",
+            "model_name",
+            "orf_strand",
         ]
-
+        keys_obs = []
         with open(str(self), "r") as f:
             json_str = f.read()
             json_data = json.loads(json_str)
 
-        # Traverse the nested data structure to access the keys
-        keys_obs = []
         for k, v in json_data.items():
             for sub_k, sub_v in v.items():
                 keys_obs.extend(sub_v.keys())
-        # remove duplicates
-        keys_obs = set(keys_obs)
 
-        if keys_obs != set(keys_exp):
+        if keys_obs and not set(keys_exp).issubset(set(keys_obs)):
             raise ValidationError(
                 "Dict keys do not match CARDAnnotation format. Must consist of "
                 "the following values: "
                 + ", ".join(keys_exp)
                 + ".\n\nFound instead: "
-                + ", ".join(keys_obs)
+                + ", ".join(set(keys_obs))
             )
 
     def _validate_(self, level):
         self._validate()
 
 
-class CARDAnnotationDirectoryFormat(model.DirectoryFormat):
-    json = model.File(r"amr_annotation.json", format=CARDAnnotationJSONFormat)
-    txt = model.File(r"amr_annotation.txt", format=CARDAnnotationTXTFormat)
+class CARDAnnotationDirectoryFormat(MultiDirValidationMixin, model.DirectoryFormat):
+    json = model.FileCollection(
+        r".+amr_annotation.json$", format=CARDAnnotationJSONFormat
+    )
+    txt = model.FileCollection(r".+amr_annotation.txt$", format=CARDAnnotationTXTFormat)
+
+    @json.set_path_maker
+    def json_path_maker(self, sample_id, bin_id):
+        return f"{sample_id}/{bin_id}/amr_annotation.json"
+
+    @txt.set_path_maker
+    def txt_path_maker(self, sample_id, bin_id):
+        return f"{sample_id}/{bin_id}/amr_annotation.txt"
 
 
 class CARDAlleleAnnotationFormat(model.TextFileFormat):

@@ -23,17 +23,22 @@ from q2_types.feature_data import (
     ProteinFASTAFormat,
     ProteinIterator,
 )
+from q2_types_genomics.genome_data import GenesDirectoryFormat, ProteinsDirectoryFormat
 from qiime2.plugin.testing import TestPluginBase
 from skbio import DNA, Protein
 
-from q2_amr.card import annotate_card, card_annotation_df_to_fasta, fetch_card_db
+from q2_amr.card import fetch_card_db
 from q2_amr.types import CARDDatabaseDirectoryFormat, CARDGeneAnnotationDirectoryFormat
 from q2_amr.types._format import (
     CARDAnnotationDirectoryFormat,
     CARDAnnotationTXTFormat,
     CARDDatabaseFormat,
 )
-from q2_amr.types._transformer import _read_from_card_file, extract_sequence
+from q2_amr.types._transformer import (
+    _read_from_card_file,
+    card_annotation_df_to_fasta,
+    extract_sequence,
+)
 
 
 class AMRTypesTestPluginBase(TestPluginBase):
@@ -207,36 +212,12 @@ class TestCARDAnnotationTypesAndFormats(AMRTypesTestPluginBase):
         mock_response = MagicMock(raw=f)
         mock_requests.return_value = mock_response
 
-    @patch("q2_amr.card.run_rgi_main")
-    def test_annotate_card(self, mock_run_rgi_main):
-        output_txt = self.get_data_path("rgi_output.txt")
-        output_json = self.get_data_path("rgi_output.json")
-
-        def mock_run_rgi_main(
-            tmp,
-            input_sequence,
-            alignment_tool,
-            input_type,
-            split_prodigal_jobs,
-            include_loose,
-            exclude_nudge,
-            low_quality,
-            num_threads,
-        ):
-            shutil.copy(output_txt, f"{tmp}/output.txt")
-            shutil.copy(output_json, f"{tmp}/output.json")
-
-        with patch("q2_amr.card.run_rgi_main", side_effect=mock_run_rgi_main):
-            input_sequence = DNAFASTAFormat()
-            result = annotate_card(input_sequence)[0]
-            self.assertIsInstance(result, CARDAnnotationDirectoryFormat)
-
-    def test_card_annotation_txt_to_fasta(self):
+    def test_card_annotation_df_to_fasta(self):
         filepath = self.get_data_path("rgi_output.txt")
         filepath2 = self.get_data_path("rgi_output_protein.fna")
         filepath3 = self.get_data_path("rgi_output_dna.fna")
-        df = pd.read_csv(filepath, sep="\t")
-        protein, dna = card_annotation_df_to_fasta(df)
+        protein = card_annotation_df_to_fasta(filepath, "Protein")
+        dna = card_annotation_df_to_fasta(filepath, "DNA")
         with open(str(protein), "r") as protein_fh_obs:
             protein_contents_obs = protein_fh_obs.read()
         with open(str(dna), "r") as dna_fh_obs:
@@ -247,6 +228,34 @@ class TestCARDAnnotationTypesAndFormats(AMRTypesTestPluginBase):
             dna_contents_exp = dna_fh_exp.read()
         self.assertEqual(protein_contents_obs, protein_contents_exp)
         self.assertEqual(dna_contents_obs, dna_contents_exp)
+
+    def test_CARDAnnotationDirectoryFormat_to_GenesDirectoryFormat_transformer(self):
+        filepath = self.get_data_path("data")
+        transformer = self.get_transformer(
+            CARDAnnotationDirectoryFormat, GenesDirectoryFormat
+        )
+        obs = transformer(filepath)
+        self.assertIsInstance(obs, GenesDirectoryFormat)
+        self.assertTrue(
+            os.path.exists(os.path.join(str(obs), "sample1", "bin1_genes.fasta"))
+        )
+        self.assertTrue(
+            os.path.exists(os.path.join(str(obs), "sample2", "bin1_genes.fasta"))
+        )
+
+    def test_CARDAnnotationDirectoryFormat_to_ProteinsDirectoryFormat_transformer(self):
+        filepath = self.get_data_path("data")
+        transformer = self.get_transformer(
+            CARDAnnotationDirectoryFormat, ProteinsDirectoryFormat
+        )
+        obs = transformer(filepath)
+        self.assertIsInstance(obs, ProteinsDirectoryFormat)
+        self.assertTrue(
+            os.path.exists(os.path.join(str(obs), "sample1", "bin1_proteins.fasta"))
+        )
+        self.assertTrue(
+            os.path.exists(os.path.join(str(obs), "sample2", "bin1_proteins.fasta"))
+        )
 
 
 class TestCARDReadsAnnotationTypesAndFormats(AMRTypesTestPluginBase):

@@ -7,13 +7,17 @@
 # ----------------------------------------------------------------------------
 import json
 import os
+import shutil
 
 import pandas as pd
 import qiime2
 import skbio
 from q2_types.feature_data import DNAFASTAFormat, DNAIterator, ProteinFASTAFormat
 from q2_types.feature_data._transformer import ProteinIterator
+from q2_types_genomics.genome_data import GenesDirectoryFormat, ProteinsDirectoryFormat
 from skbio import DNA, Protein
+
+from q2_amr.types import CARDAnnotationDirectoryFormat
 
 from ..plugin_setup import plugin
 from ._format import (
@@ -158,7 +162,60 @@ def _17(data: dict) -> CARDAnnotationJSONFormat:
 
 
 @plugin.register_transformer
-def _18(data: CARDAlleleAnnotationDirectoryFormat) -> qiime2.Metadata:
+def _18(data: CARDAnnotationDirectoryFormat) -> GenesDirectoryFormat:
+    genes_directory = GenesDirectoryFormat()
+    create_dir_structure(data, "DNA", genes_directory)
+    return genes_directory
+
+
+@plugin.register_transformer
+def _19(data: CARDAnnotationDirectoryFormat) -> ProteinsDirectoryFormat:
+    proteins_directory = ProteinsDirectoryFormat()
+    create_dir_structure(data, "Protein", proteins_directory)
+    return proteins_directory
+
+
+def create_dir_structure(data, seq_type, genes_protein_directory):
+    annotation_dir = str(data)
+    for sample in os.listdir(annotation_dir):
+        for bin in os.listdir(os.path.join(annotation_dir, sample)):
+            for file in os.listdir(os.path.join(annotation_dir, sample, bin)):
+                if file.endswith(".txt"):
+                    txt_file_path = os.path.join(annotation_dir, sample, bin, file)
+                    os.makedirs(
+                        os.path.join(str(genes_protein_directory), sample),
+                        exist_ok=True,
+                    )
+                    fasta = card_annotation_df_to_fasta(txt_file_path, seq_type)
+                    filename = (
+                        f"{bin}_genes.fasta"
+                        if seq_type == "DNA"
+                        else f"{bin}_proteins.fasta"
+                    )
+                    shutil.move(
+                        str(fasta),
+                        os.path.join(str(genes_protein_directory), sample, filename),
+                    )
+
+
+def card_annotation_df_to_fasta(txt_file_path: str, seq_type: str):
+    annotation_df = pd.read_csv(txt_file_path, sep="\t")
+    fasta_format, sequence_class = (
+        (DNAFASTAFormat(), DNA)
+        if seq_type == "DNA"
+        else (ProteinFASTAFormat(), Protein)
+    )
+    with open(str(fasta_format), "a") as fasta_file:
+        for index, row in annotation_df.iterrows():
+            sequence_object = sequence_class(row[f"Predicted_{seq_type}"])
+            sequence_object.metadata["id"] = row["ORF_ID"]
+            sequence_object.metadata["description"] = row["ARO"]
+            skbio.io.write(sequence_object, format="fasta", into=fasta_file)
+    return fasta_format
+
+
+@plugin.register_transformer
+def _20(data: CARDAlleleAnnotationDirectoryFormat) -> qiime2.Metadata:
     df_list = []
     for samp in os.listdir(str(data)):
         df = pd.read_csv(
@@ -175,7 +232,7 @@ def _18(data: CARDAlleleAnnotationDirectoryFormat) -> qiime2.Metadata:
 
 
 @plugin.register_transformer
-def _19(data: CARDGeneAnnotationDirectoryFormat) -> qiime2.Metadata:
+def _21(data: CARDGeneAnnotationDirectoryFormat) -> qiime2.Metadata:
     df_list = []
     for samp in os.listdir(str(data)):
         df = pd.read_csv(

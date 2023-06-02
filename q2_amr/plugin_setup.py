@@ -7,19 +7,19 @@
 # ----------------------------------------------------------------------------
 import importlib
 
-from q2_types.feature_data import FeatureData, ProteinSequence, Sequence
 from q2_types.feature_table import FeatureTable, Frequency
 from q2_types.per_sample_sequences import (
     PairedEndSequencesWithQuality,
     SequencesWithQuality,
 )
 from q2_types.sample_data import SampleData
+from q2_types_genomics.per_sample_data import MAGs
 from qiime2.core.type import Bool, Choices, Float, Int, Range, Str
 from qiime2.plugin import Citations, Plugin
 
 from q2_amr import __version__
-from q2_amr.card import (  # heatmap
-    annotate_card,
+from q2_amr.card import (
+    annotate_mags_card,
     annotate_reads_card,
     fetch_card_db,
     heatmap,
@@ -50,11 +50,9 @@ plugin = Plugin(
     website="https://github.com/bokulich-lab/q2-amr",
     package="q2_amr",
     description="This is a QIIME 2 plugin that annotates microbiome sequence data with "
-    "antimicrobial resistance gene "
-    "information from CARD.",
-    short_description="This is a QIIME 2 plugin that annotates microbiome sequence data"
-    " with antimicrobial resistance "
-    "gene information from CARD.",
+    "antimicrobial resistance gene information from CARD.",
+    short_description="This is a QIIME 2 plugin that annotates microbiome sequence "
+    "data with antimicrobial resistance gene information from CARD.",
 )
 plugin.methods.register_function(
     function=fetch_card_db,
@@ -73,46 +71,36 @@ plugin.methods.register_function(
 )
 
 plugin.methods.register_function(
-    function=annotate_card,
-    inputs={"input_sequence": FeatureData[Sequence]},
+    function=annotate_mags_card,
+    inputs={"mag": SampleData[MAGs], "card_db": CARDDatabase},
     parameters={
         "alignment_tool": Str % Choices(["BLAST", "DIAMOND"]),
         "input_type": Str % Choices(["contig", "protein"]),
         "split_prodigal_jobs": Bool,
         "include_loose": Bool,
-        "exclude_nudge": Bool,
+        "include_nudge": Bool,
         "low_quality": Bool,
-        "num_threads": Int % Range(1, None),
+        "num_threads": Int % Range(1, 9),
     },
-    outputs=[
-        ("amr_annotations", CARDAnnotation),
-        ("protein_annotation", FeatureData[ProteinSequence]),
-        ("dna_annotation", FeatureData[Sequence]),
-    ],
-    input_descriptions={"input_sequence": "Sequences to be annotated with rgi."},
+    outputs=[("amr_annotations", SampleData[CARDAnnotation])],
+    input_descriptions={
+        "mag": "MAG to be annotated with CARD.",
+        "card_db": "CARD Database.",
+    },
     parameter_descriptions={
         "alignment_tool": "Specify alignment tool BLAST or DIAMOND.",
         "input_type": "Specify data input type contig or protein.",
         "split_prodigal_jobs": "Run multiple prodigal jobs simultaneously for contigs "
         "in a fasta file.",
         "include_loose": "Include loose hits in addition to strict and perfect hits .",
-        "exclude_nudge": "Include hits nudged from loose to strict hits.",
+        "include_nudge": "Include hits nudged from loose to strict hits.",
         "low_quality": "Use for short contigs to predict partial genes.",
         "num_threads": "Number of threads (CPUs) to use in the BLAST search.",
     },
-    output_descriptions={
-        "amr_annotations": "AMR Annotation as .txt and .json file.",
-        "protein_annotation": "FASTA file with predicted protein sequences, ORF_ID and"
-        " ARO accession in the Header.",
-        "dna_annotation": "FASTA file with predicted dna sequences, ORF_ID and ARO "
-        "accession in the Header.",
-    },
-    name="Annotation of sequence data with antimicrobial resistance gene information "
-    "from CARD.",
-    description=(
-        "Annotation of sequence data with antimicrobial resistance gene information "
-        "from CARD."
-    ),
+    output_descriptions={"amr_annotations": "AMR Annotation as .txt and .json file."},
+    name="Annotate MAGs with antimicrobial resistance gene information from CARD.",
+    description="Annotate MAGs with antimicrobial resistance gene information from "
+    "CARD.",
     citations=[citations["alcock_card_2023"]],
 )
 
