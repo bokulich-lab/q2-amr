@@ -1,6 +1,6 @@
 
 **********************************************
-Stats for BAM file(s): 
+Stats for BAM file(s):
 **********************************************
 
 Total reads:       5000
@@ -15,4 +15,3 @@ Both pairs mapped: 49	(0.98%)
 Read 1:            2500
 Read 2:            2500
 Singletons:        10	(0.2%)
-
