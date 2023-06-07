@@ -62,46 +62,16 @@ class TestAnnotateReadsCARD(TestPluginBase):
             self.assertIsInstance(result[1], CARDGeneAnnotationDirectoryFormat)
             self.assertIsInstance(result[2], pd.DataFrame)
             self.assertIsInstance(result[3], pd.DataFrame)
-            self.assertTrue(
-                os.path.exists(
-                    os.path.join(str(result[0]), "sample1", "allele_mapping_data.txt")
-                )
-            )
-            self.assertTrue(
-                os.path.exists(
-                    os.path.join(str(result[1]), "sample1", "gene_mapping_data.txt")
-                )
-            )
-            self.assertTrue(
-                os.path.exists(
-                    os.path.join(str(result[0]), "sample1", "overall_mapping_stats.txt")
-                )
-            )
-            self.assertTrue(
-                os.path.exists(
-                    os.path.join(str(result[1]), "sample1", "overall_mapping_stats.txt")
-                )
-            )
-            self.assertTrue(
-                os.path.exists(
-                    os.path.join(str(result[0]), "sample2", "allele_mapping_data.txt")
-                )
-            )
-            self.assertTrue(
-                os.path.exists(
-                    os.path.join(str(result[1]), "sample2", "gene_mapping_data.txt")
-                )
-            )
-            self.assertTrue(
-                os.path.exists(
-                    os.path.join(str(result[0]), "sample2", "overall_mapping_stats.txt")
-                )
-            )
-            self.assertTrue(
-                os.path.exists(
-                    os.path.join(str(result[1]), "sample1", "overall_mapping_stats.txt")
-                )
-            )
+            for num in [0, 1]:
+                map_type = "allele" if num == 0 else "gene"
+                for samp in ["sample1", "sample2"]:
+                    for file in [
+                        f"{map_type}_mapping_data.txt",
+                        "overall_mapping_stats.txt",
+                    ]:
+                        self.assertTrue(
+                            os.path.exists(os.path.join(str(result[num]), samp, file))
+                        )
 
     def test_run_rgi_bwt(self):
         with patch("q2_amr.card.run_command") as mock_run_command:
@@ -148,32 +118,22 @@ class TestAnnotateReadsCARD(TestPluginBase):
     @patch("q2_amr.card.run_command")
     def test_exception_raised(self, mock_run_command):
         mock_run_command.side_effect = subprocess.CalledProcessError(1, "cmd")
-        cwd = "path/cwd"
-        samp = "sample1"
-        fwd = "path/fwd"
-        rev = "path/rev"
-        aligner = "bwa"
-        threads = 1
-        include_baits = True
-        mapq = 0.3
-        mapped = 0.3
-        coverage = 0.3
         expected_message = (
             "An error was encountered while running rgi, "
             "(return code 1), please inspect stdout and stderr to learn more."
         )
         with self.assertRaises(Exception) as cm:
             run_rgi_bwt(
-                cwd,
-                samp,
-                fwd,
-                rev,
-                aligner,
-                threads,
-                include_baits,
-                mapq,
-                mapped,
-                coverage,
+                cwd="path/cwd",
+                samp="sample1",
+                fwd="path/fwd",
+                rev="path/rev",
+                aligner="bwa",
+                threads=1,
+                include_baits=True,
+                mapq=0.3,
+                mapped=0.3,
+                coverage=0.3,
             )
         self.assertEqual(str(cm.exception), expected_message)
 
@@ -222,17 +182,13 @@ class TestAnnotateReadsCARD(TestPluginBase):
 
     def test_extract_sample_stats(self):
         with tempfile.TemporaryDirectory() as tmp:
-            samp = "sample1"
-            sample_stats = {}
             mapping_stats_path = self.get_data_path("overall_mapping_stats.txt")
             shutil.copy(mapping_stats_path, tmp)
-            extract_sample_stats(tmp, samp, sample_stats)
+            sample_stats = extract_sample_stats(tmp)
             expected_result = {
-                "sample1": {
-                    "total_reads": 5000,
-                    "mapped_reads": 59,
-                    "percentage": 1.18,
-                }
+                "total_reads": 5000,
+                "mapped_reads": 59,
+                "percentage": 1.18,
             }
             self.assertEqual(sample_stats, expected_result)
 
@@ -254,13 +210,6 @@ class TestAnnotateReadsCARD(TestPluginBase):
             self.assertTrue(os.path.exists(os.path.join(tmp, "sample_stats_plot.html")))
 
     def test_visualize_annotation_stats(self):
-        def mock_extract_sample_stats(samp_dir, samp, sample_stats):
-            sample_stats[samp] = {
-                "total_reads": 5000,
-                "mapped_reads": 106,
-                "percentage": 2.12,
-            }
-
         def mock_plot_sample_stats(sample_stats, output_dir):
             with open(os.path.join(tmp, "sample_stats_plot.html"), "w") as file:
                 file.write("file")
@@ -270,9 +219,7 @@ class TestAnnotateReadsCARD(TestPluginBase):
         sample2_dir = os.path.join(str(amr_reads_annotation), "sample2")
         os.makedirs(sample1_dir)
         os.makedirs(sample2_dir)
-        with patch(
-            "q2_amr.card.extract_sample_stats", side_effect=mock_extract_sample_stats
-        ), patch(
+        with patch("q2_amr.card.extract_sample_stats"), patch(
             "q2_amr.card.plot_sample_stats", side_effect=mock_plot_sample_stats
         ), tempfile.TemporaryDirectory() as tmp:
             visualize_annotation_stats(tmp, amr_reads_annotation)

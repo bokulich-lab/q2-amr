@@ -392,7 +392,7 @@ def plot_sample_stats(sample_stats: dict, output_dir: str):
     combined_chart.save(os.path.join(output_dir, "sample_stats_plot.html"))
 
 
-def extract_sample_stats(samp_dir: str, samp: str, sample_stats: dict):
+def extract_sample_stats(samp_dir: str):
     with open(os.path.join(samp_dir, "overall_mapping_stats.txt"), "r") as f:
         for line in f:
             if "Total reads:" in line:
@@ -400,11 +400,12 @@ def extract_sample_stats(samp_dir: str, samp: str, sample_stats: dict):
             elif "Mapped reads:" in line:
                 mapped_reads = int(line.split()[2])
                 percentage = float(line.split()[3].strip("()").strip("%"))
-        sample_stats[samp] = {
+        sample_stats_dict = {
             "total_reads": total_reads,
             "mapped_reads": mapped_reads,
             "percentage": percentage,
         }
+    return sample_stats_dict
 
 
 def visualize_annotation_stats(
@@ -417,10 +418,9 @@ def visualize_annotation_stats(
     sample_stats = {}
     for samp in os.listdir(directory):
         samp_dir = os.path.join(directory, samp)
-        extract_sample_stats(samp_dir, samp, sample_stats)
+        sample_stats[samp] = extract_sample_stats(samp_dir)
     plot_sample_stats(sample_stats, output_dir)
     TEMPLATES = pkg_resources.resource_filename("q2_amr", "assets")
-
     copy_tree(os.path.join(TEMPLATES, "rgi", "annotation_stats"), output_dir)
     context = {"tabs": [{"title": "Mapped Reads", "url": "index.html"}]}
     index = os.path.join(TEMPLATES, "rgi", "annotation_stats", "index.html")
