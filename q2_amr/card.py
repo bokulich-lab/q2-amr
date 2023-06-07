@@ -60,7 +60,7 @@ def annotate_mags_card(
     include_loose: bool = False,
     include_nudge: bool = False,
     low_quality: bool = False,
-    num_threads: int = 8,
+    num_threads: int = 1,
 ) -> CARDAnnotationDirectoryFormat:
     manifest = mag.manifest.view(pd.DataFrame)
     amr_annotations = CARDAnnotationDirectoryFormat()

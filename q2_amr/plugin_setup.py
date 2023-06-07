@@ -127,7 +127,7 @@ plugin.methods.register_function(
         "mapq": Float % Range(0, None, inclusive_start=True),
         "mapped": Float % Range(0, None, inclusive_start=True),
         "coverage": Float % Range(0, None, inclusive_start=True),
-        "threads": Int,
+        "threads": Int % Range(0, None, inclusive_start=False),
     },
     outputs=[
         ("amr_allele_annotation", CARDAlleleAnnotation),
