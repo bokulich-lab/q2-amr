@@ -1,5 +1,6 @@
 import os
 import shutil
+import subprocess
 from unittest.mock import patch
 
 from q2_types_genomics.per_sample_data import MultiMAGSequencesDirFmt
@@ -78,3 +79,16 @@ class TestAnnotateMagsCard(TestPluginBase):
                 "path_tmp",
                 verbose=True,
             )
+
+    @patch("q2_amr.card.run_command")
+    def test_exception_raised(self, mock_run_command):
+        mock_run_command.side_effect = subprocess.CalledProcessError(1, "cmd")
+        tmp = "path/to/tmp"
+        input_sequence = "path/to/input_sequence.fasta"
+        expected_message = (
+            "An error was encountered while running rgi, "
+            "(return code 1), please inspect stdout and stderr to learn more."
+        )
+        with self.assertRaises(Exception) as cm:
+            run_rgi_main(tmp, input_sequence)
+        self.assertEqual(str(cm.exception), expected_message)

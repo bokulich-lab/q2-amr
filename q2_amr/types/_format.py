@@ -292,33 +292,33 @@ class CARDAlleleAnnotationDirectoryFormat(
     MultiDirValidationMixin, model.DirectoryFormat
 ):
     allele = model.FileCollection(
-        r".+\.(allele_mapping_data.txt)$", format=CARDAlleleAnnotationFormat
+        r".+(allele_mapping_data.txt)$", format=CARDAlleleAnnotationFormat
     )
     stats = model.FileCollection(
-        r".+\.(overall_mapping_stats.txt)$", format=CARDAnnotationStatsFormat
+        r".+(overall_mapping_stats.txt)$", format=CARDAnnotationStatsFormat
     )
 
     @allele.set_path_maker
     def allele_path_maker(self, sample_id):
-        return "%s/%s.allele_mapping_data.txt" % sample_id
+        return "%s/allele_mapping_data.txt" % sample_id
 
     @stats.set_path_maker
     def stats_path_maker(self, sample_id):
-        return "%s/%s.overall_mapping_stats.txt" % sample_id
+        return "%s/overall_mapping_stats.txt" % sample_id
 
 
 class CARDGeneAnnotationDirectoryFormat(MultiDirValidationMixin, model.DirectoryFormat):
     gene = model.FileCollection(
-        r".+\.(gene_mapping_data.txt)$", format=CARDGeneAnnotationFormat
+        r".+(gene_mapping_data.txt)$", format=CARDGeneAnnotationFormat
     )
     stats = model.FileCollection(
-        r".+\.(overall_mapping_stats.txt)$", format=CARDAnnotationStatsFormat
+        r".+(overall_mapping_stats.txt)$", format=CARDAnnotationStatsFormat
     )
 
     @gene.set_path_maker
     def gene_path_maker(self, sample_id):
-        return "%s/%s.gene_mapping_data.txt" % sample_id
+        return "%s/gene_mapping_data.txt" % sample_id
 
     @stats.set_path_maker
     def stats_path_maker(self, sample_id):
-        return "%s/%s.overall_mapping_stats.txt" % sample_id
+        return "%s/overall_mapping_stats.txt" % sample_id

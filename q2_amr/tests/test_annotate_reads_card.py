@@ -1,5 +1,6 @@
 import os
 import shutil
+import subprocess
 import tempfile
 from unittest.mock import patch
 
@@ -43,17 +44,15 @@ class TestAnnotateReadsCARD(TestPluginBase):
         else:
             reads = SingleLanePerSamplePairedEndFastqDirFmt()
         shutil.copy(manifest, os.path.join(str(reads), "MANIFEST"))
-        output_allele = self.get_data_path("sample1.allele_mapping_data.txt")
-        output_gene = self.get_data_path("sample1.gene_mapping_data.txt")
-        output_stats = self.get_data_path("sample1.overall_mapping_stats.txt")
+        output_allele = self.get_data_path("allele_mapping_data.txt")
+        output_gene = self.get_data_path("gene_mapping_data.txt")
+        output_stats = self.get_data_path("overall_mapping_stats.txt")
         card_db = CARDDatabaseFormat()
 
-        def mock_run_rgi_bwt(
-            cwd, samp, fwd, rev, aligner, threads, include_baits, mapq, mapped, coverage
-        ):
-            shutil.copy(output_allele, f"{cwd}/{samp}/{samp}.allele_mapping_data.txt")
-            shutil.copy(output_gene, f"{cwd}/{samp}/{samp}.gene_mapping_data.txt")
-            shutil.copy(output_stats, f"{cwd}/{samp}/{samp}.overall_mapping_stats.txt")
+        def mock_run_rgi_bwt(cwd, samp, **kwargs):
+            shutil.copy(output_allele, f"{cwd}/{samp}/allele_mapping_data.txt")
+            shutil.copy(output_gene, f"{cwd}/{samp}/gene_mapping_data.txt")
+            shutil.copy(output_stats, f"{cwd}/{samp}/overall_mapping_stats.txt")
 
         with patch("q2_amr.card.run_rgi_bwt", side_effect=mock_run_rgi_bwt), patch(
             "q2_amr.card.load_preprocess_card_db"
@@ -65,58 +64,42 @@ class TestAnnotateReadsCARD(TestPluginBase):
             self.assertIsInstance(result[3], pd.DataFrame)
             self.assertTrue(
                 os.path.exists(
-                    os.path.join(
-                        str(result[0]), "sample1", "sample1.allele_mapping_data.txt"
-                    )
+                    os.path.join(str(result[0]), "sample1", "allele_mapping_data.txt")
                 )
             )
             self.assertTrue(
                 os.path.exists(
-                    os.path.join(
-                        str(result[1]), "sample1", "sample1.gene_mapping_data.txt"
-                    )
+                    os.path.join(str(result[1]), "sample1", "gene_mapping_data.txt")
                 )
             )
             self.assertTrue(
                 os.path.exists(
-                    os.path.join(
-                        str(result[0]), "sample1", "sample1.overall_mapping_stats.txt"
-                    )
+                    os.path.join(str(result[0]), "sample1", "overall_mapping_stats.txt")
                 )
             )
             self.assertTrue(
                 os.path.exists(
-                    os.path.join(
-                        str(result[1]), "sample1", "sample1.overall_mapping_stats.txt"
-                    )
+                    os.path.join(str(result[1]), "sample1", "overall_mapping_stats.txt")
                 )
             )
             self.assertTrue(
                 os.path.exists(
-                    os.path.join(
-                        str(result[0]), "sample2", "sample2.allele_mapping_data.txt"
-                    )
+                    os.path.join(str(result[0]), "sample2", "allele_mapping_data.txt")
                 )
             )
             self.assertTrue(
                 os.path.exists(
-                    os.path.join(
-                        str(result[1]), "sample2", "sample2.gene_mapping_data.txt"
-                    )
+                    os.path.join(str(result[1]), "sample2", "gene_mapping_data.txt")
                 )
             )
             self.assertTrue(
                 os.path.exists(
-                    os.path.join(
-                        str(result[0]), "sample2", "sample2.overall_mapping_stats.txt"
-                    )
+                    os.path.join(str(result[0]), "sample2", "overall_mapping_stats.txt")
                 )
             )
             self.assertTrue(
                 os.path.exists(
-                    os.path.join(
-                        str(result[1]), "sample1", "sample1.overall_mapping_stats.txt"
-                    )
+                    os.path.join(str(result[1]), "sample1", "overall_mapping_stats.txt")
                 )
             )
 
@@ -162,6 +145,38 @@ class TestAnnotateReadsCARD(TestPluginBase):
                 verbose=True,
             )
 
+    @patch("q2_amr.card.run_command")
+    def test_exception_raised(self, mock_run_command):
+        mock_run_command.side_effect = subprocess.CalledProcessError(1, "cmd")
+        cwd = "path/cwd"
+        samp = "sample1"
+        fwd = "path/fwd"
+        rev = "path/rev"
+        aligner = "bwa"
+        threads = 1
+        include_baits = True
+        mapq = 0.3
+        mapped = 0.3
+        coverage = 0.3
+        expected_message = (
+            "An error was encountered while running rgi, "
+            "(return code 1), please inspect stdout and stderr to learn more."
+        )
+        with self.assertRaises(Exception) as cm:
+            run_rgi_bwt(
+                cwd,
+                samp,
+                fwd,
+                rev,
+                aligner,
+                threads,
+                include_baits,
+                mapq,
+                mapped,
+                coverage,
+            )
+        self.assertEqual(str(cm.exception), expected_message)
+
     def test_move_files_allele(self):
         self.move_files_test_body("allele")
 
@@ -175,25 +190,23 @@ class TestAnnotateReadsCARD(TestPluginBase):
             os.makedirs(os.path.join(tmp, samp))
             os.makedirs(os.path.join(des_dir, samp))
             with open(
-                os.path.join(tmp, samp, f"{samp}.{map_type}_mapping_data.txt"), "w"
+                os.path.join(tmp, samp, f"{map_type}_mapping_data.txt"), "w"
             ) as file:
                 file.write("Sample mapping data")
             with open(
-                os.path.join(tmp, samp, f"{samp}.overall_mapping_stats.txt"), "w"
+                os.path.join(tmp, samp, "overall_mapping_stats.txt"), "w"
             ) as file:
                 file.write("Overall mapping stats")
             move_files(tmp, des_dir, samp, map_type)
             self.assertFalse(
-                os.path.exists(
-                    os.path.join(tmp, samp, f"{samp}.{map_type}_mapping_data.txt")
-                )
+                os.path.exists(os.path.join(tmp, samp, f"{map_type}_mapping_data.txt"))
             )
             self.assertTrue(
                 os.path.exists(
                     os.path.join(
                         des_dir,
                         samp,
-                        f"{samp}.{map_type}_mapping_data.txt",
+                        f"{map_type}_mapping_data.txt",
                     )
                 )
             )
@@ -202,7 +215,7 @@ class TestAnnotateReadsCARD(TestPluginBase):
                     os.path.join(
                         des_dir,
                         samp,
-                        f"{samp}.overall_mapping_stats.txt",
+                        "overall_mapping_stats.txt",
                     )
                 )
             )
@@ -211,34 +224,14 @@ class TestAnnotateReadsCARD(TestPluginBase):
         with tempfile.TemporaryDirectory() as tmp:
             samp = "sample1"
             sample_stats = {}
-            stats_content = """
-            **********************************************
-            Stats for BAM file(s):
-            **********************************************
-
-            Total reads:       5000
-            Mapped reads:      106	(2.12%)
-            Forward strand:    4947	(98.94%)
-            Reverse strand:    53	(1.06%)
-            Failed QC:         0	(0%)
-            Duplicates:        0	(0%)
-            Paired-end reads:  5000	(100%)
-            'Proper-pairs':    22	(0.44%)
-            Both pairs mapped: 76	(1.52%)
-            Read 1:            2500
-            Read 2:            2500
-            Singletons:        30	(0.6%)
-            """
-            with open(
-                os.path.join(tmp, f"{samp}.overall_mapping_stats.txt"), "w"
-            ) as file:
-                file.write(stats_content)
+            mapping_stats_path = self.get_data_path("overall_mapping_stats.txt")
+            shutil.copy(mapping_stats_path, tmp)
             extract_sample_stats(tmp, samp, sample_stats)
             expected_result = {
                 "sample1": {
                     "total_reads": 5000,
-                    "mapped_reads": 106,
-                    "percentage": 2.12,
+                    "mapped_reads": 59,
+                    "percentage": 1.18,
                 }
             }
             self.assertEqual(sample_stats, expected_result)
@@ -320,7 +313,7 @@ class TestAnnotateReadsCARD(TestPluginBase):
 
     def read_in_txt_test_body(self, map_type, mapping_data):
         samp = "sample1"
-        mapping_file = self.get_data_path(f"sample1.{map_type}_mapping_data.txt")
+        mapping_file = self.get_data_path(f"{map_type}_mapping_data.txt")
         exp = mapping_data
         with tempfile.TemporaryDirectory() as tmp:
             samp_dir = os.path.join(tmp, samp)

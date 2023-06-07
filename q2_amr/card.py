@@ -260,11 +260,11 @@ def annotate_reads_card(
 
 def move_files(source_dir: str, des_dir: str, samp: str, map_type: str):
     shutil.move(
-        os.path.join(source_dir, samp, f"{samp}.{map_type}_mapping_data.txt"),
+        os.path.join(source_dir, samp, f"{map_type}_mapping_data.txt"),
         os.path.join(des_dir, samp),
     )
     shutil.copy(
-        os.path.join(source_dir, samp, f"{samp}.overall_mapping_stats.txt"),
+        os.path.join(source_dir, samp, "overall_mapping_stats.txt"),
         os.path.join(des_dir, samp),
     )
 
@@ -284,9 +284,7 @@ def create_count_table(df_list: list) -> pd.DataFrame:
 
 
 def read_in_txt(cwd: str, samp: str, map_type: str):
-    df = pd.read_csv(
-        os.path.join(cwd, samp, f"{samp}.{map_type}_mapping_data.txt"), sep="\t"
-    )
+    df = pd.read_csv(os.path.join(cwd, samp, f"{map_type}_mapping_data.txt"), sep="\t")
     df = df[["ARO Accession"]]
     df = df.astype(str)
     df[samp] = df.groupby("ARO Accession")["ARO Accession"].transform("count")
@@ -334,7 +332,7 @@ def run_rgi_bwt(
         run_command(cmd, cwd, verbose=True)
     except subprocess.CalledProcessError as e:
         raise Exception(
-            "An error was encountered while running rgi bwt, "
+            "An error was encountered while running rgi, "
             f"(return code {e.returncode}), please inspect "
             "stdout and stderr to learn more."
         )
@@ -395,7 +393,7 @@ def plot_sample_stats(sample_stats: dict, output_dir: str):
 
 
 def extract_sample_stats(samp_dir: str, samp: str, sample_stats: dict):
-    with open(os.path.join(samp_dir, f"{samp}.overall_mapping_stats.txt"), "r") as f:
+    with open(os.path.join(samp_dir, "overall_mapping_stats.txt"), "r") as f:
         for line in f:
             if "Total reads:" in line:
                 total_reads = int(line.split()[2])

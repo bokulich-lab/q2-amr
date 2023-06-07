@@ -1,3 +1,4 @@
+import subprocess
 from unittest.mock import patch
 
 from qiime2.plugin.testing import TestPluginBase
@@ -44,3 +45,17 @@ class TestAnnotateReadsCARD(TestPluginBase):
                 "path_tmp",
                 verbose=True,
             )
+
+    @patch("q2_amr.utils.run_command")
+    def test_exception_raised(self, mock_run_command):
+        mock_run_command.side_effect = subprocess.CalledProcessError(1, "cmd")
+        tmp = "path/to/tmp"
+        card_db = "path/to/card_db.json"
+        expected_message = (
+            "An error was encountered while running rgi, "
+            "(return code 1), please inspect stdout and stderr to learn more."
+        )
+        operation = "load"
+        with self.assertRaises(Exception) as cm:
+            load_preprocess_card_db(tmp, card_db, operation)
+        self.assertEqual(str(cm.exception), expected_message)
