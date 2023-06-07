@@ -5,22 +5,12 @@ from unittest.mock import patch
 from q2_types_genomics.per_sample_data import MultiMAGSequencesDirFmt
 from qiime2.plugin.testing import TestPluginBase
 
-from q2_amr.card import annotate_mags_card, load_card_db, run_rgi_main
+from q2_amr.card import annotate_mags_card, run_rgi_main
 from q2_amr.types import CARDAnnotationDirectoryFormat, CARDDatabaseFormat
 
 
 class TestAnnotateMagsCard(TestPluginBase):
     package = "q2_amr.tests"
-
-    def test_load_card_db(self):
-        card_db = CARDDatabaseFormat()
-        with patch("q2_amr.card.run_command") as mock_run_command:
-            load_card_db("path_tmp", card_db)
-            mock_run_command.assert_called_once_with(
-                ["rgi", "load", "--card_json", str(card_db), "--local"],
-                "path_tmp",
-                verbose=True,
-            )
 
     def test_annotate_mags_card(self):
         output_txt = self.get_data_path("rgi_output.txt")
@@ -45,7 +35,7 @@ class TestAnnotateMagsCard(TestPluginBase):
             shutil.copy(output_json, f"{tmp}/output.json")
 
         with patch("q2_amr.card.run_rgi_main", side_effect=mock_run_rgi_main), patch(
-            "q2_amr.card.load_card_db"
+            "q2_amr.card.load_preprocess_card_db"
         ):
             result = annotate_mags_card(mag, card_db)
             self.assertIsInstance(result, CARDAnnotationDirectoryFormat)

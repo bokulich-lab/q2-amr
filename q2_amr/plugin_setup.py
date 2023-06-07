@@ -124,9 +124,9 @@ plugin.methods.register_function(
     parameters={
         "aligner": Str % Choices(["kma", "bowtie2", "bwa"]),
         "include_baits": Bool,
-        "mapq": Int % Range(1, None),
-        "mapped": Int % Range(1, None),
-        "coverage": Float % Range(0, None, inclusive_start=False),
+        "mapq": Float % Range(0, None, inclusive_start=True),
+        "mapped": Float % Range(0, None, inclusive_start=True),
+        "coverage": Float % Range(0, None, inclusive_start=True),
         "threads": Int,
     },
     outputs=[

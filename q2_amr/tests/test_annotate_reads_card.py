@@ -12,12 +12,11 @@ from qiime2.plugin.testing import TestPluginBase
 
 from q2_amr.card import (
     annotate_reads_card,
+    create_count_table,
     extract_sample_stats,
-    load_card_db,
-    load_card_db_fasta,
     move_files,
     plot_sample_stats,
-    preprocess_card_db,
+    read_in_txt,
     run_rgi_bwt,
     visualize_annotation_stats,
 )
@@ -31,71 +30,33 @@ from q2_amr.types import (
 class TestAnnotateReadsCARD(TestPluginBase):
     package = "q2_amr.tests"
 
-    def test_load_card_db(self):
-        card_db = CARDDatabaseFormat()
-        with patch("q2_amr.card.run_command") as mock_run_command:
-            load_card_db("path_tmp", card_db)
-            mock_run_command.assert_called_once_with(
-                ["rgi", "load", "--card_json", str(card_db), "--local"],
-                "path_tmp",
-                verbose=True,
-            )
-
-    def test_preprocess_card_db(self):
-        card_db = CARDDatabaseFormat()
-        with patch("q2_amr.card.run_command") as mock_run_command:
-            preprocess_card_db("path_tmp", card_db)
-            mock_run_command.assert_called_once_with(
-                ["rgi", "card_annotation", "-i", str(card_db)], "path_tmp", verbose=True
-            )
-
-    def test_load_card_db_fasta(self):
-        card_db = self.get_data_path("card_test.json")
-        with patch("q2_amr.card.run_command") as mock_run_command:
-            load_card_db_fasta("path_tmp", card_db)
-            mock_run_command.assert_called_once_with(
-                [
-                    "rgi",
-                    "load",
-                    "-i",
-                    str(card_db),
-                    "--card_annotation",
-                    "card_database_v3.2.5.fasta",
-                    "--local",
-                ],
-                "path_tmp",
-                verbose=True,
-            )
-
     def test_annotate_reads_card_single(self):
-        manifest = self.get_data_path("MANIFEST_reads_single")
-        reads = SingleLanePerSampleSingleEndFastqDirFmt()
-        shutil.copy(manifest, os.path.join(str(reads), "MANIFEST"))
-        self.annotate_reads_card_test_body(reads)
+        self.annotate_reads_card_test_body("single")
 
     def test_annotate_reads_card_paired(self):
-        manifest = self.get_data_path("MANIFEST_reads_paired")
-        reads = SingleLanePerSamplePairedEndFastqDirFmt()
-        shutil.copy(manifest, os.path.join(str(reads), "MANIFEST"))
-        self.annotate_reads_card_test_body(reads)
+        self.annotate_reads_card_test_body("paired")
 
-    def annotate_reads_card_test_body(self, reads):
+    def annotate_reads_card_test_body(self, read_type):
+        manifest = self.get_data_path(f"MANIFEST_reads_{read_type}")
+        if read_type == "single":
+            reads = SingleLanePerSampleSingleEndFastqDirFmt()
+        else:
+            reads = SingleLanePerSamplePairedEndFastqDirFmt()
+        shutil.copy(manifest, os.path.join(str(reads), "MANIFEST"))
         output_allele = self.get_data_path("sample1.allele_mapping_data.txt")
         output_gene = self.get_data_path("sample1.gene_mapping_data.txt")
         output_stats = self.get_data_path("sample1.overall_mapping_stats.txt")
         card_db = CARDDatabaseFormat()
 
         def mock_run_rgi_bwt(
-            tmp, samp, fwd, rev, aligner, threads, include_baits, mapq, mapped, coverage
+            cwd, samp, fwd, rev, aligner, threads, include_baits, mapq, mapped, coverage
         ):
-            shutil.copy(output_allele, f"{tmp}/{samp}/{samp}.allele_mapping_data.txt")
-            shutil.copy(output_gene, f"{tmp}/{samp}/{samp}.gene_mapping_data.txt")
-            shutil.copy(output_stats, f"{tmp}/{samp}/{samp}.overall_mapping_stats.txt")
+            shutil.copy(output_allele, f"{cwd}/{samp}/{samp}.allele_mapping_data.txt")
+            shutil.copy(output_gene, f"{cwd}/{samp}/{samp}.gene_mapping_data.txt")
+            shutil.copy(output_stats, f"{cwd}/{samp}/{samp}.overall_mapping_stats.txt")
 
         with patch("q2_amr.card.run_rgi_bwt", side_effect=mock_run_rgi_bwt), patch(
-            "q2_amr.card.load_card_db"
-        ), patch("q2_amr.card.preprocess_card_db"), patch(
-            "q2_amr.card.load_card_db_fasta"
+            "q2_amr.card.load_preprocess_card_db"
         ):
             result = annotate_reads_card(reads, card_db)
             self.assertIsInstance(result[0], CARDAlleleAnnotationDirectoryFormat)
@@ -185,6 +146,8 @@ class TestAnnotateReadsCARD(TestPluginBase):
                     "8",
                     "--local",
                     "--clean",
+                    "--aligner",
+                    "bowtie2",
                     "--read_two",
                     "path_rev",
                     "--include_baits",
@@ -194,28 +157,23 @@ class TestAnnotateReadsCARD(TestPluginBase):
                     "5",
                     "--coverage",
                     "3.2",
-                    "--aligner",
-                    "bowtie2",
                 ],
                 "path_tmp",
                 verbose=True,
             )
 
     def test_move_files_allele(self):
-        map_type = "allele"
-        des_dir = CARDAlleleAnnotationDirectoryFormat()
-        self.move_files_test_body(map_type, des_dir)
+        self.move_files_test_body("allele")
 
     def test_move_files_gene(self):
-        map_type = "gene"
-        des_dir = CARDGeneAnnotationDirectoryFormat()
-        self.move_files_test_body(map_type, des_dir)
+        self.move_files_test_body("gene")
 
-    def move_files_test_body(self, map_type, des_dir):
+    def move_files_test_body(self, map_type):
         with tempfile.TemporaryDirectory() as tmp:
             samp = "sample1"
+            des_dir = os.path.join(tmp, "des_dir")
             os.makedirs(os.path.join(tmp, samp))
-            os.makedirs(os.path.join(str(des_dir), samp))
+            os.makedirs(os.path.join(des_dir, samp))
             with open(
                 os.path.join(tmp, samp, f"{samp}.{map_type}_mapping_data.txt"), "w"
             ) as file:
@@ -224,7 +182,7 @@ class TestAnnotateReadsCARD(TestPluginBase):
                 os.path.join(tmp, samp, f"{samp}.overall_mapping_stats.txt"), "w"
             ) as file:
                 file.write("Overall mapping stats")
-            move_files(tmp, samp, map_type, des_dir)
+            move_files(tmp, des_dir, samp, map_type)
             self.assertFalse(
                 os.path.exists(
                     os.path.join(tmp, samp, f"{samp}.{map_type}_mapping_data.txt")
@@ -233,7 +191,8 @@ class TestAnnotateReadsCARD(TestPluginBase):
             self.assertTrue(
                 os.path.exists(
                     os.path.join(
-                        os.path.join(str(des_dir), samp),
+                        des_dir,
+                        samp,
                         f"{samp}.{map_type}_mapping_data.txt",
                     )
                 )
@@ -241,7 +200,8 @@ class TestAnnotateReadsCARD(TestPluginBase):
             self.assertTrue(
                 os.path.exists(
                     os.path.join(
-                        os.path.join(str(des_dir), samp),
+                        des_dir,
+                        samp,
                         f"{samp}.overall_mapping_stats.txt",
                     )
                 )
@@ -326,3 +286,56 @@ class TestAnnotateReadsCARD(TestPluginBase):
             self.assertTrue(os.path.exists(os.path.join(tmp, "sample_stats_plot.html")))
             self.assertTrue(os.path.exists(os.path.join(tmp, "index.html")))
             self.assertTrue(os.path.exists(os.path.join(tmp, "q2templateassets")))
+
+    mapping_data_sample1 = pd.DataFrame(
+        {
+            "ARO Accession": [3000796, 3000815, 3000805, 3000026],
+            "sample1": [1, 1, 1, 1],
+        }
+    )
+
+    mapping_data_sample2 = pd.DataFrame(
+        {
+            "ARO Accession": [3000797, 3000815, 3000805, 3000026],
+            "sample2": [1, 1, 1, 2],
+        }
+    )
+
+    count_table = pd.DataFrame(
+        {
+            "index": ["sample1", "sample2"],
+            3000796: [1, 0],
+            3000815: [1, 1],
+            3000805: [1, 1],
+            3000026: [1, 2],
+            3000797: [0, 1],
+        }
+    )
+
+    def test_read_in_txt_allele(self):
+        self.read_in_txt_test_body("allele", self.mapping_data_sample1)
+
+    def test_read_in_txt_gene(self):
+        self.read_in_txt_test_body("gene", self.mapping_data_sample1)
+
+    def read_in_txt_test_body(self, map_type, mapping_data):
+        samp = "sample1"
+        mapping_file = self.get_data_path(f"sample1.{map_type}_mapping_data.txt")
+        exp = mapping_data
+        with tempfile.TemporaryDirectory() as tmp:
+            samp_dir = os.path.join(tmp, samp)
+            os.mkdir(samp_dir)
+            shutil.copy(mapping_file, samp_dir)
+            obs = read_in_txt(tmp, samp, map_type)
+            obs["ARO Accession"] = obs["ARO Accession"].astype(int)
+            pd.testing.assert_frame_equal(exp, obs)
+
+    def test_create_count_table(self):
+        df_list = [self.mapping_data_sample1, self.mapping_data_sample2]
+        obs = create_count_table(df_list)
+        exp = self.count_table
+        exp.set_index("index", inplace=True)
+        exp.index.name = "sample_id"
+        exp = exp.astype(float)
+        exp.columns = exp.columns.astype(float)
+        pd.testing.assert_frame_equal(exp, obs)

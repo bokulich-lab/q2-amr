@@ -25,7 +25,7 @@ setup(
     package_data={
         "q2_amr": [
             "citations.bib",
-            "assets/rgi/visualize_annotation_stats/*",
+            "assets/rgi/annotation_stats/*",
             "assets/rgi/heatmap/*",
         ],
     },

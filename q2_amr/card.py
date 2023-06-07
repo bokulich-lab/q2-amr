@@ -1,10 +1,10 @@
-import json
 import os
 import shutil
 import subprocess
 import tarfile
 import tempfile
 from distutils.dir_util import copy_tree
+from functools import reduce
 from typing import Union
 
 import altair as alt
@@ -28,7 +28,7 @@ from q2_amr.types._format import (
     CARDAlleleAnnotationDirectoryFormat,
     CARDGeneAnnotationDirectoryFormat,
 )
-from q2_amr.utils import run_command
+from q2_amr.utils import load_preprocess_card_db, run_command
 
 CARD_URL = "https://card.mcmaster.ca/latest/data"
 
@@ -65,7 +65,7 @@ def annotate_mags_card(
     manifest = mag.manifest.view(pd.DataFrame)
     amr_annotations = CARDAnnotationDirectoryFormat()
     with tempfile.TemporaryDirectory() as tmp:
-        load_card_db(tmp, card_db)
+        load_preprocess_card_db(tmp, card_db, "load")
         for samp_bin in list(manifest.index):
             bin_dir = os.path.join(str(amr_annotations), samp_bin[0], samp_bin[1])
             os.makedirs(bin_dir, exist_ok=True)
@@ -96,7 +96,7 @@ def run_rgi_main(
     include_loose: bool = False,
     include_nudge: bool = False,
     low_quality: bool = False,
-    num_threads: int = 8,
+    num_threads: int = 1,
 ):
     cmd = [
         "rgi",
@@ -126,18 +126,6 @@ def run_rgi_main(
     except subprocess.CalledProcessError as e:
         raise Exception(
             "An error was encountered while running rgi, "
-            f"(return code {e.returncode}), please inspect "
-            "stdout and stderr to learn more."
-        )
-
-
-def load_card_db(tmp, card_db):
-    cmd = ["rgi", "load", "--card_json", str(card_db), "--local"]
-    try:
-        run_command(cmd, tmp, verbose=True)
-    except subprocess.CalledProcessError as e:
-        raise Exception(
-            "An error was encountered while running rgi load, "
             f"(return code {e.returncode}), please inspect "
             "stdout and stderr to learn more."
         )
@@ -216,10 +204,10 @@ def annotate_reads_card(
     ],
     card_db: CARDDatabaseFormat,
     aligner: str = "kma",
-    threads: int = 16,
+    threads: int = 1,
     include_baits: bool = False,
-    mapq: int = None,
-    mapped: int = None,
+    mapq: float = None,
+    mapped: float = None,
     coverage: float = None,
 ) -> (
     CARDAlleleAnnotationDirectoryFormat,
@@ -233,9 +221,9 @@ def annotate_reads_card(
     amr_allele_annotation = CARDAlleleAnnotationDirectoryFormat()
     amr_gene_annotation = CARDGeneAnnotationDirectoryFormat()
     with tempfile.TemporaryDirectory() as tmp:
-        load_card_db(tmp, card_db)
-        preprocess_card_db(tmp, card_db)
-        load_card_db_fasta(tmp, card_db)
+        load_preprocess_card_db(tmp, card_db, "load")
+        load_preprocess_card_db(tmp, card_db, "preprocess")
+        load_preprocess_card_db(tmp, card_db, "load_fasta")
         for samp in list(manifest.index):
             fwd = manifest.loc[samp, "forward"]
             rev = manifest.loc[samp, "reverse"] if paired else None
@@ -243,21 +231,23 @@ def annotate_reads_card(
             os.makedirs(os.path.join(str(amr_gene_annotation), samp))
             os.makedirs(os.path.join(tmp, samp))
             run_rgi_bwt(
-                tmp,
-                samp,
-                fwd,
-                rev,
-                aligner,
-                threads,
-                include_baits,
-                mapq,
-                mapped,
-                coverage,
+                cwd=tmp,
+                samp=samp,
+                fwd=fwd,
+                rev=rev,
+                aligner=aligner,
+                threads=threads,
+                include_baits=include_baits,
+                mapq=mapq,
+                mapped=mapped,
+                coverage=coverage,
             )
-            read_in_txt(tmp, samp, "allele", allele_frequency_list)
-            read_in_txt(tmp, samp, "gene", gene_frequency_list)
-            move_files(tmp, samp, "allele", amr_allele_annotation)
-            move_files(tmp, samp, "gene", amr_gene_annotation)
+            allele_frequency = read_in_txt(tmp, samp, "allele")
+            allele_frequency_list.append(allele_frequency)
+            gene_frequency = read_in_txt(tmp, samp, "gene")
+            gene_frequency_list.append(gene_frequency)
+            move_files(tmp, str(amr_allele_annotation), samp, "allele")
+            move_files(tmp, str(amr_gene_annotation), samp, "gene")
     allele_feature_table = create_count_table(allele_frequency_list)
     gene_feature_table = create_count_table(gene_frequency_list)
     return (
@@ -268,59 +258,70 @@ def annotate_reads_card(
     )
 
 
-def move_files(cwd, samp, map_type, des_dir):
+def move_files(source_dir: str, des_dir: str, samp: str, map_type: str):
     shutil.move(
-        os.path.join(cwd, samp, f"{samp}.{map_type}_mapping_data.txt"),
-        os.path.join(str(des_dir), samp),
+        os.path.join(source_dir, samp, f"{samp}.{map_type}_mapping_data.txt"),
+        os.path.join(des_dir, samp),
     )
     shutil.copy(
-        os.path.join(cwd, samp, f"{samp}.overall_mapping_stats.txt"),
-        os.path.join(str(des_dir), samp),
+        os.path.join(source_dir, samp, f"{samp}.overall_mapping_stats.txt"),
+        os.path.join(des_dir, samp),
     )
 
 
-def create_count_table(df_list) -> pd.DataFrame:
-    df_merged = df_list[0]
-    for df in df_list[1:]:
-        df_merged = pd.merge(
-            df_merged, df["ARO Accession"], on="ARO Accession", how="outer"
-        )
+def create_count_table(df_list: list) -> pd.DataFrame:
+    df_merged = reduce(
+        lambda left, right: pd.merge(left, right, on="ARO Accession", how="outer"),
+        df_list,
+    )
     df_transposed = df_merged.transpose()
     df_transposed = df_transposed.fillna(0)
     df_transposed.columns = df_transposed.iloc[0]
-    df_transposed = df_transposed[1:]
+    df_transposed = df_transposed.drop("ARO Accession")
     df_transposed.columns.name = None
+    df_transposed.index.name = "sample_id"
     return df_transposed
 
 
-def read_in_txt(tmp, samp, map_type, frequency_list):
+def read_in_txt(cwd: str, samp: str, map_type: str):
     df = pd.read_csv(
-        os.path.join(tmp, samp, f"{samp}.{map_type}_mapping_data.txt"), sep="\t"
+        os.path.join(cwd, samp, f"{samp}.{map_type}_mapping_data.txt"), sep="\t"
     )
     df = df[["ARO Accession"]]
     df = df.astype(str)
     df[samp] = df.groupby("ARO Accession")["ARO Accession"].transform("count")
     df = df.drop_duplicates(subset=["ARO Accession"])
-    frequency_list.append(df)
+    return df
 
 
 def run_rgi_bwt(
-    cwd, samp, fwd, rev, aligner, threads, include_baits, mapq, mapped, coverage
+    cwd: str,
+    samp: str,
+    fwd: str,
+    rev: str,
+    aligner: str,
+    threads: int,
+    include_baits: bool,
+    mapq: float,
+    mapped: float,
+    coverage: float,
 ):
     cmd = [
         "rgi",
         "bwt",
         "--read_one",
-        str(fwd),
+        fwd,
         "--output_file",
         f"{cwd}/{samp}/{samp}",
         "-n",
         str(threads),
         "--local",
         "--clean",
+        "--aligner",
+        aligner,
     ]
     if rev:
-        cmd.extend(["--read_two", str(rev)])
+        cmd.extend(["--read_two", rev])
     if include_baits:
         cmd.append("--include_baits")
     if mapq:
@@ -329,7 +330,6 @@ def run_rgi_bwt(
         cmd.extend(["--mapped", str(mapped)])
     if coverage:
         cmd.extend(["--coverage", str(coverage)])
-    cmd.extend(["--aligner", aligner])
     try:
         run_command(cmd, cwd, verbose=True)
     except subprocess.CalledProcessError as e:
@@ -340,42 +340,7 @@ def run_rgi_bwt(
         )
 
 
-def preprocess_card_db(tmp, card_db):
-    cmd = ["rgi", "card_annotation", "-i", str(card_db)]
-    try:
-        run_command(cmd, tmp, verbose=True)
-    except subprocess.CalledProcessError as e:
-        raise Exception(
-            "An error was encountered while running rgi card_annotation, "
-            f"(return code {e.returncode}), please inspect "
-            "stdout and stderr to learn more."
-        )
-
-
-def load_card_db_fasta(tmp, card_db):
-    with open(str(card_db)) as f:
-        card_data = json.load(f)
-        version = card_data["_version"]
-    cmd = [
-        "rgi",
-        "load",
-        "-i",
-        str(card_db),
-        "--card_annotation",
-        f"card_database_v{version}.fasta",
-        "--local",
-    ]
-    try:
-        run_command(cmd, tmp, verbose=True)
-    except subprocess.CalledProcessError as e:
-        raise Exception(
-            "An error was encountered while running rgi load, "
-            f"(return code {e.returncode}), please inspect "
-            "stdout and stderr to learn more."
-        )
-
-
-def plot_sample_stats(sample_stats, output_dir):
+def plot_sample_stats(sample_stats: dict, output_dir: str):
     sample_stats_df = pd.DataFrame.from_dict(sample_stats, orient="index")
     sample_stats_df.reset_index(inplace=True)
 
@@ -402,7 +367,7 @@ def plot_sample_stats(sample_stats, output_dir):
                 alt.Tooltip("total_reads", title="Total Reads"),
             ],
         )
-        .properties(title="Mapping Statistics", width=alt.Step(80), height=200)
+        .properties(width=alt.Step(80), height=200)
     )
 
     percentage_plot = (
@@ -429,7 +394,7 @@ def plot_sample_stats(sample_stats, output_dir):
     combined_chart.save(os.path.join(output_dir, "sample_stats_plot.html"))
 
 
-def extract_sample_stats(samp_dir, samp, sample_stats):
+def extract_sample_stats(samp_dir: str, samp: str, sample_stats: dict):
     with open(os.path.join(samp_dir, f"{samp}.overall_mapping_stats.txt"), "r") as f:
         for line in f:
             if "Total reads:" in line:
@@ -458,8 +423,8 @@ def visualize_annotation_stats(
     plot_sample_stats(sample_stats, output_dir)
     TEMPLATES = pkg_resources.resource_filename("q2_amr", "assets")
 
-    copy_tree(os.path.join(TEMPLATES, "rgi", "visualize_annotation_stats"), output_dir)
+    copy_tree(os.path.join(TEMPLATES, "rgi", "annotation_stats"), output_dir)
     context = {"tabs": [{"title": "Mapped Reads", "url": "index.html"}]}
-    index = os.path.join(TEMPLATES, "rgi", "visualize_annotation_stats", "index.html")
+    index = os.path.join(TEMPLATES, "rgi", "annotation_stats", "index.html")
     templates = [index]
     q2templates.render(templates, output_dir, context=context)
