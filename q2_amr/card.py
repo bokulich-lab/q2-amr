@@ -227,9 +227,12 @@ def annotate_reads_card(
         for samp in list(manifest.index):
             fwd = manifest.loc[samp, "forward"]
             rev = manifest.loc[samp, "reverse"] if paired else None
-            os.makedirs(os.path.join(str(amr_allele_annotation), samp))
-            os.makedirs(os.path.join(str(amr_gene_annotation), samp))
-            os.makedirs(os.path.join(tmp, samp))
+            samp_allele_dir = os.path.join(str(amr_allele_annotation), samp)
+            samp_gene_dir = os.path.join(str(amr_gene_annotation), samp)
+            os.makedirs(samp_allele_dir)
+            os.makedirs(samp_gene_dir)
+            samp_input_dir = os.path.join(tmp, samp)
+            os.makedirs(samp_input_dir)
             run_rgi_bwt(
                 cwd=tmp,
                 samp=samp,
@@ -242,12 +245,13 @@ def annotate_reads_card(
                 mapped=mapped,
                 coverage=coverage,
             )
-            allele_frequency = read_in_txt(tmp, samp, "allele")
+            allele_frequency = read_in_txt(samp_input_dir, "allele")
             allele_frequency_list.append(allele_frequency)
-            gene_frequency = read_in_txt(tmp, samp, "gene")
+            gene_frequency = read_in_txt(samp_input_dir, "gene")
             gene_frequency_list.append(gene_frequency)
-            move_files(tmp, str(amr_allele_annotation), samp, "allele")
-            move_files(tmp, str(amr_gene_annotation), samp, "gene")
+            move_files(samp_input_dir, samp_allele_dir, "allele")
+            move_files(samp_input_dir, samp_gene_dir, "gene")
+
     allele_feature_table = create_count_table(allele_frequency_list)
     gene_feature_table = create_count_table(gene_frequency_list)
     return (
@@ -258,14 +262,14 @@ def annotate_reads_card(
     )
 
 
-def move_files(source_dir: str, des_dir: str, samp: str, map_type: str):
+def move_files(source_dir: str, des_dir: str, map_type: str):
     shutil.move(
-        os.path.join(source_dir, samp, f"{map_type}_mapping_data.txt"),
-        os.path.join(des_dir, samp),
+        os.path.join(source_dir, f"output.{map_type}_mapping_data.txt"),
+        os.path.join(des_dir, f"{map_type}_mapping_data.txt"),
     )
     shutil.copy(
-        os.path.join(source_dir, samp, "overall_mapping_stats.txt"),
-        os.path.join(des_dir, samp),
+        os.path.join(source_dir, "output.overall_mapping_stats.txt"),
+        os.path.join(des_dir, "overall_mapping_stats.txt"),
     )
 
 
@@ -283,10 +287,13 @@ def create_count_table(df_list: list) -> pd.DataFrame:
     return df_transposed
 
 
-def read_in_txt(cwd: str, samp: str, map_type: str):
-    df = pd.read_csv(os.path.join(cwd, samp, f"{map_type}_mapping_data.txt"), sep="\t")
+def read_in_txt(samp_dir: str, map_type: str):
+    df = pd.read_csv(
+        os.path.join(samp_dir, f"output.{map_type}_mapping_data.txt"), sep="\t"
+    )
     df = df[["ARO Accession"]]
     df = df.astype(str)
+    samp = os.path.basename(samp_dir)
     df[samp] = df.groupby("ARO Accession")["ARO Accession"].transform("count")
     df = df.drop_duplicates(subset=["ARO Accession"])
     return df
@@ -310,7 +317,7 @@ def run_rgi_bwt(
         "--read_one",
         fwd,
         "--output_file",
-        f"{cwd}/{samp}/{samp}",
+        f"{cwd}/{samp}/output",
         "-n",
         str(threads),
         "--local",
