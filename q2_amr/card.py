@@ -20,7 +20,6 @@ from q2_types_genomics.per_sample_data import MultiMAGSequencesDirFmt
 
 from q2_amr.types import (
     CARDAnnotationDirectoryFormat,
-    CARDAnnotationJSONFormat,
     CARDDatabaseDirectoryFormat,
     CARDDatabaseFormat,
 )
@@ -129,73 +128,6 @@ def run_rgi_main(
             f"(return code {e.returncode}), please inspect "
             "stdout and stderr to learn more."
         )
-
-
-def heatmap(
-    output_dir: str,
-    amr_annotation_json: CARDAnnotationJSONFormat,
-    # clus: str = 'no',
-    # cat: str = 'no',
-    # frequency=False
-) -> None:
-    TEMPLATES = pkg_resources.resource_filename("q2_amr", "assets")
-    with tempfile.TemporaryDirectory() as tmp:
-        results_dir = os.path.join(tmp, "results")
-        os.makedirs(results_dir)
-        cmd = [
-            f"rgi heatmap --input {os.path.dirname(str(amr_annotation_json))} --output "
-            f"{tmp}/results/heatmap"
-        ]
-        # if frequency:
-        #     cmd.extend(["--frequency"])
-        # if clus == 'both':
-        #     cmd.extend(["-clus both"])
-        # elif clus == 'samples':
-        #     cmd.extend(["-clus samples"])
-        # elif clus == 'genes':
-        #     cmd.extend(["-clus genes"])
-        # elif clus == 'no':
-        #     pass
-        # if cat == 'drug_class':
-        #     cmd.extend(["-cat drug_class"])
-        # elif cat == 'resistance_mechanism':
-        #     cmd.extend(["-cat resistance_mechanism"])
-        # elif cat == 'gene_family':
-        #     cmd.extend(["-cat gene_family"])
-        # elif cat == 'no':
-        #     pass
-        try:
-            run_command(cmd, verbose=True)
-        except subprocess.CalledProcessError as e:
-            raise Exception(
-                "An error was encountered while running rgi, "
-                f"(return code {e.returncode}), please inspect "
-                "stdout and stderr to learn more."
-            )
-        extensions = [
-            ".eps",
-            ".csv",
-            ".png",
-        ]  # Replace with the file extensions you want to rename
-        # Get all the files in the directory
-        files = os.listdir(results_dir)
-        # Loop through all the files in the directory
-        for filename in files:
-            if os.path.splitext(filename)[1] in extensions:
-                # Construct the new file name with the correct extension
-                file_ext = os.path.splitext(filename)[1]
-                new_filename = "heatmap" + file_ext
-
-                # Rename the file
-                old_path = os.path.join(results_dir, filename)
-                new_path = os.path.join(results_dir, new_filename)
-                os.rename(old_path, new_path)
-        copy_tree(os.path.join(TEMPLATES, "rgi"), output_dir)
-        copy_tree(results_dir, os.path.join(output_dir, "rgi_data"))
-    context = {"tabs": [{"title": "QC report", "url": "index.html"}]}
-    index = os.path.join(TEMPLATES, "rgi", "index.html")
-    templates = [index]
-    q2templates.render(templates, output_dir, context=context)
 
 
 def annotate_reads_card(

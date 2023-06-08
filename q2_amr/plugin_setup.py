@@ -22,7 +22,6 @@ from q2_amr.card import (
     annotate_mags_card,
     annotate_reads_card,
     fetch_card_db,
-    heatmap,
     visualize_annotation_stats,
 )
 from q2_amr.types import (
@@ -104,16 +103,6 @@ plugin.methods.register_function(
     citations=[citations["alcock_card_2023"]],
 )
 
-plugin.visualizers.register_function(
-    function=heatmap,
-    inputs={"amr_annotation_json": CARDAnnotation},
-    parameters={},
-    input_descriptions={"amr_annotation_json": "Sequences to be annotated with rgi."},
-    parameter_descriptions={},
-    name="Download CARD data.",
-    description=("Downloads the CARD database from the CARD website."),
-    citations=[citations["alcock_card_2023"]],
-)
 
 plugin.methods.register_function(
     function=annotate_reads_card,
