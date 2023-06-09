@@ -130,3 +130,6 @@ dmypy.json
 
 # PyCharm configuration
 .idea/
+/q2_amr/charts_testing.py
+/index.html
+/bwt_test_file.py

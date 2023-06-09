@@ -18,12 +18,16 @@ setup(
     packages=find_packages(),
     author="Vinzent Risch",
     author_email="risch.vinzent@gmail.com",
-    description="This is a QIIME 2 plugin that annotates microbiome sequence data with"
-    " antimicrobial resistance gene information from CARD.",
+    description="This is a QIIME 2 plugin that annotates microbiome sequence data with "
+    "antimicrobial resistance gene information from CARD.",
     url="https://github.com/bokulich-lab/q2-amr",
     entry_points={"qiime2.plugins": ["q2-amr=q2_amr.plugin_setup:plugin"]},
     package_data={
-        "q2_amr": ["citations.bib", "assets/rgi/heatmap/*"],
+        "q2_amr": [
+            "citations.bib",
+            "assets/rgi/annotation_stats/*",
+            "assets/rgi/heatmap/*",
+        ],
     },
     zip_safe=False,
 )

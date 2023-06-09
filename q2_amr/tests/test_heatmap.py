@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 from qiime2.plugin.testing import TestPluginBase
 
-from q2_amr.heatmap import change_names, run_rgi_heatmap
+from q2_amr.card.heatmap import change_names, run_rgi_heatmap
 
 
 class TestHeatmap(TestPluginBase):
