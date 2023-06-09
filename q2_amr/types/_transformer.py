@@ -30,13 +30,13 @@ from ._format import (
 
 
 @plugin.register_transformer
-def _9(data: CARDDatabaseFormat) -> pd.DataFrame:
+def _1(data: CARDDatabaseFormat) -> pd.DataFrame:
     ff = pd.read_json(str(data)).transpose()
     return ff
 
 
 @plugin.register_transformer
-def _10(data: pd.DataFrame) -> CARDDatabaseFormat:
+def _2(data: pd.DataFrame) -> CARDDatabaseFormat:
     ff = CARDDatabaseFormat()
     with ff.open() as fh:
         data.transpose().to_json(fh)
@@ -44,28 +44,28 @@ def _10(data: pd.DataFrame) -> CARDDatabaseFormat:
 
 
 @plugin.register_transformer
-def _11(data: CARDDatabaseFormat) -> DNAFASTAFormat:
+def _3(data: CARDDatabaseFormat) -> DNAFASTAFormat:
     path = str(data)
     file = _read_from_card_file(path, "dna")
     return file
 
 
 @plugin.register_transformer
-def _12(data: CARDDatabaseFormat) -> ProteinFASTAFormat:
+def _4(data: CARDDatabaseFormat) -> ProteinFASTAFormat:
     path = str(data)
     file = _read_from_card_file(path, "protein")
     return file
 
 
 @plugin.register_transformer
-def _13(data: CARDDatabaseFormat) -> DNAIterator:
+def _5(data: CARDDatabaseFormat) -> DNAIterator:
     path = str(data)
     generator = _read_from_card_generator(path, "dna")
     return DNAIterator(generator)
 
 
 @plugin.register_transformer
-def _14(data: CARDDatabaseFormat) -> ProteinIterator:
+def _6(data: CARDDatabaseFormat) -> ProteinIterator:
     path = str(data)
     generator = _read_from_card_generator(path, "protein")
     return ProteinIterator(generator)
@@ -140,7 +140,7 @@ def extract_sequence(seq_type, key1, key2, db):
 
 
 @plugin.register_transformer
-def _15(data: pd.DataFrame) -> CARDAnnotationTXTFormat:
+def _7(data: pd.DataFrame) -> CARDAnnotationTXTFormat:
     ff = CARDAnnotationTXTFormat()
     with ff.open() as fh:
         data.to_csv(fh, index=False, sep="\t")
@@ -148,13 +148,13 @@ def _15(data: pd.DataFrame) -> CARDAnnotationTXTFormat:
 
 
 @plugin.register_transformer
-def _16(data: CARDAnnotationTXTFormat) -> pd.DataFrame:
+def _8(data: CARDAnnotationTXTFormat) -> pd.DataFrame:
     file = pd.read_csv(str(data), sep="\t")
     return file
 
 
 @plugin.register_transformer
-def _17(data: dict) -> CARDAnnotationJSONFormat:
+def _9(data: dict) -> CARDAnnotationJSONFormat:
     ff = CARDAnnotationJSONFormat()
     with ff.open() as fh:
         json.dump(data, fh)
@@ -162,14 +162,14 @@ def _17(data: dict) -> CARDAnnotationJSONFormat:
 
 
 @plugin.register_transformer
-def _18(data: CARDAnnotationDirectoryFormat) -> GenesDirectoryFormat:
+def _10(data: CARDAnnotationDirectoryFormat) -> GenesDirectoryFormat:
     genes_directory = GenesDirectoryFormat()
     create_dir_structure(data, "DNA", genes_directory)
     return genes_directory
 
 
 @plugin.register_transformer
-def _19(data: CARDAnnotationDirectoryFormat) -> ProteinsDirectoryFormat:
+def _11(data: CARDAnnotationDirectoryFormat) -> ProteinsDirectoryFormat:
     proteins_directory = ProteinsDirectoryFormat()
     create_dir_structure(data, "Protein", proteins_directory)
     return proteins_directory
@@ -232,10 +232,10 @@ def read_mapping_data(data_path, variant):
 
 
 @plugin.register_transformer
-def _20(data: CARDAlleleAnnotationDirectoryFormat) -> qiime2.Metadata:
+def _12(data: CARDAlleleAnnotationDirectoryFormat) -> qiime2.Metadata:
     return read_mapping_data(data, "allele")
 
 
 @plugin.register_transformer
-def _21(data: CARDGeneAnnotationDirectoryFormat) -> qiime2.Metadata:
+def _13(data: CARDGeneAnnotationDirectoryFormat) -> qiime2.Metadata:
     return read_mapping_data(data, "gene")

@@ -7,14 +7,11 @@
 # ----------------------------------------------------------------------------
 import json
 import os
-import tarfile
 import tempfile
-from unittest.mock import MagicMock, patch
 
 import pandas as pd
 import pkg_resources
 import qiime2
-import requests
 from Bio import SeqIO
 from q2_types.feature_data import (
     DNAFASTAFormat,
@@ -26,10 +23,8 @@ from q2_types_genomics.genome_data import GenesDirectoryFormat, ProteinsDirector
 from qiime2.plugin.testing import TestPluginBase
 from skbio import DNA, Protein
 
-from q2_amr.card import fetch_card_db
 from q2_amr.types import (
     CARDAlleleAnnotationDirectoryFormat,
-    CARDDatabaseDirectoryFormat,
     CARDGeneAnnotationDirectoryFormat,
 )
 from q2_amr.types._format import (
@@ -62,7 +57,6 @@ class TestCARDDatabaseTypesAndFormats(AMRTypesTestPluginBase):
     def test_card_database_format_validate_positive(self):
         filepath = self.get_data_path("card_test.json")
         format = CARDDatabaseFormat(filepath, mode="r")
-        # These should both just succeed
         format.validate()
 
     def test_dataframe_to_card_format_transformer(self):
@@ -119,30 +113,6 @@ class TestCARDDatabaseTypesAndFormats(AMRTypesTestPluginBase):
         self.assertDictEqual(obs_dict, exp_dict)
         self.assertIsInstance(obs, DNAFASTAFormat)
 
-    @patch("requests.get")
-    def test_fetch_card_db(self, mock_requests):
-        f = open(self.get_data_path("card.tar.bz2"), "rb")
-        mock_response = MagicMock(raw=f)
-        mock_requests.return_value = mock_response
-        obs = fetch_card_db()
-        self.assertTrue(os.path.exists(os.path.join(str(obs), "card.json")))
-        self.assertIsInstance(obs, CARDDatabaseDirectoryFormat)
-        mock_requests.assert_called_once_with(
-            "https://card.mcmaster.ca/latest/data", stream=True
-        )
-
-    @patch("requests.get", side_effect=requests.ConnectionError)
-    def test_fetch_card_data_connection_error(self, mock_requests):
-        with self.assertRaisesRegex(
-            requests.ConnectionError, "Network connectivity problems."
-        ):
-            fetch_card_db()
-
-    @patch("tarfile.open", side_effect=tarfile.ReadError)
-    def test_fetch_card_data_tarfile_read_error(self, mock_requests):
-        with self.assertRaisesRegex(tarfile.ReadError, "Tarfile is invalid."):
-            fetch_card_db()
-
     def test_extract_sequence_dna(self):
         with open(self.get_data_path("card_test.json"), "rb") as f:
             db = json.load(f)
@@ -194,7 +164,7 @@ class TestCARDDatabaseTypesAndFormats(AMRTypesTestPluginBase):
         self.assertIsInstance(generator, ProteinIterator)
 
 
-class TestCARDAnnotationTypesAndFormats(AMRTypesTestPluginBase):
+class TestCARDMagsAnnotationTypesAndFormats(AMRTypesTestPluginBase):
     def test_df_to_card_annotation_format_transformer(self):
         filepath = self.get_data_path("rgi_output.txt")
         transformer = self.get_transformer(pd.DataFrame, CARDAnnotationTXTFormat)
