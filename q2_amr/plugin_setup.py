@@ -18,12 +18,9 @@ from qiime2.core.type import Bool, Choices, Float, Int, Range, Str
 from qiime2.plugin import Citations, Plugin
 
 from q2_amr import __version__
-from q2_amr.card import (
-    annotate_mags_card,
-    annotate_reads_card,
-    fetch_card_db,
-    visualize_annotation_stats,
-)
+from q2_amr.card.database import fetch_card_db
+from q2_amr.card.mags import annotate_mags_card
+from q2_amr.card.reads import annotate_reads_card, visualize_annotation_stats
 from q2_amr.types import (
     CARDAnnotationJSONFormat,
     CARDAnnotationTXTFormat,

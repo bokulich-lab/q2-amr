@@ -6,7 +6,7 @@ from unittest.mock import patch
 from q2_types_genomics.per_sample_data import MultiMAGSequencesDirFmt
 from qiime2.plugin.testing import TestPluginBase
 
-from q2_amr.card import annotate_mags_card, run_rgi_main
+from q2_amr.card.mags import annotate_mags_card, run_rgi_main
 from q2_amr.types import CARDAnnotationDirectoryFormat, CARDDatabaseFormat
 
 
@@ -35,9 +35,9 @@ class TestAnnotateMagsCard(TestPluginBase):
             shutil.copy(output_txt, f"{tmp}/output.txt")
             shutil.copy(output_json, f"{tmp}/output.json")
 
-        with patch("q2_amr.card.run_rgi_main", side_effect=mock_run_rgi_main), patch(
-            "q2_amr.card.load_preprocess_card_db"
-        ):
+        with patch(
+            "q2_amr.card.mags.run_rgi_main", side_effect=mock_run_rgi_main
+        ), patch("q2_amr.card.mags.load_preprocess_card_db"):
             result = annotate_mags_card(mag, card_db)
             self.assertIsInstance(result, CARDAnnotationDirectoryFormat)
             self.assertTrue(
@@ -52,7 +52,7 @@ class TestAnnotateMagsCard(TestPluginBase):
             )
 
     def test_run_rgi_main(self):
-        with patch("q2_amr.card.run_command") as mock_run_command:
+        with patch("q2_amr.card.mags.run_command") as mock_run_command:
             run_rgi_main(
                 "path_tmp", "path_input", "DIAMOND", "contig", True, True, True, True, 8
             )
@@ -80,7 +80,7 @@ class TestAnnotateMagsCard(TestPluginBase):
                 verbose=True,
             )
 
-    @patch("q2_amr.card.run_command")
+    @patch("q2_amr.card.mags.run_command")
     def test_exception_raised(self, mock_run_command):
         mock_run_command.side_effect = subprocess.CalledProcessError(1, "cmd")
         tmp = "path/to/tmp"
