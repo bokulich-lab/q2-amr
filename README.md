@@ -10,11 +10,16 @@ To install _q2-amr_, follow the installation steps described below.
 
 ```shell
 mamba create -yn q2-amr \
-   -c conda-forge -c bioconda -c qiime2 -c defaults -c https://packages.qiime2.org/qiime2/2023.5/tested --strict-channel-priority qiime2 q2cli q2templates q2-types q2-types-genomics q2-amr rgi altair click==7.1.2
+-c conda-forge -c bioconda -c qiime2 -c defaults \
+-c https://packages.qiime2.org/qiime2/2023.5/tested \
+--no-channel-priority \
+qiime2 q2cli q2templates q2-types q2-types-genomics rgi altair
 
-mamba activate q2-amr
+conda activate q2-amr
 
-pip install git+https://github.com/misialq/rgi.git@py38-fix
+pip install --no-deps --force-reinstall \
+git+https://github.com/misialq/rgi.git@py38-fix \
+git+https://github.com/bokulich-lab/q2-amr.git
 ```
 
 Refresh cache and check that everything worked:
