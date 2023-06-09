@@ -15,12 +15,12 @@ from q2_types.per_sample_sequences import (
     SingleLanePerSampleSingleEndFastqDirFmt,
 )
 
+from q2_amr.card.utils import load_preprocess_card_db, run_command
 from q2_amr.types import (
     CARDAlleleAnnotationDirectoryFormat,
     CARDDatabaseFormat,
     CARDGeneAnnotationDirectoryFormat,
 )
-from q2_amr.utils import load_preprocess_card_db, run_command
 
 
 def annotate_reads_card(

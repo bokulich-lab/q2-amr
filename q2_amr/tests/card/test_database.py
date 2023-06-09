@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, patch
 import requests
 from qiime2.plugin.testing import TestPluginBase
 
-from q2_amr.fetch_card_db import fetch_card_db
+from q2_amr.card.database import fetch_card_db
 from q2_amr.types import CARDDatabaseDirectoryFormat
 
 

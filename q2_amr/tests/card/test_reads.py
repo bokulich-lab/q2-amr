@@ -12,7 +12,7 @@ from q2_types.per_sample_sequences import (
 )
 from qiime2.plugin.testing import TestPluginBase
 
-from q2_amr.annotate_reads_card import (
+from q2_amr.card.reads import (
     annotate_reads_card,
     create_count_table,
     extract_sample_stats,
@@ -70,10 +70,10 @@ class TestAnnotateReadsCARD(TestPluginBase):
         mock_run_rgi_load = MagicMock()
         mock_read_in_txt = MagicMock()
         mock_create_count_table = MagicMock(side_effect=return_count_table)
-        with patch("q2_amr.annotate_reads_card.run_rgi_bwt", mock_run_rgi_bwt), patch(
-            "q2_amr.annotate_reads_card.load_preprocess_card_db", mock_run_rgi_load
-        ), patch("q2_amr.annotate_reads_card.read_in_txt", mock_read_in_txt), patch(
-            "q2_amr.annotate_reads_card.create_count_table", mock_create_count_table
+        with patch("q2_amr.card.reads.run_rgi_bwt", mock_run_rgi_bwt), patch(
+            "q2_amr.card.reads.load_preprocess_card_db", mock_run_rgi_load
+        ), patch("q2_amr.card.reads.read_in_txt", mock_read_in_txt), patch(
+            "q2_amr.card.reads.create_count_table", mock_create_count_table
         ):
             result = annotate_reads_card(reads, card_db)
             first_call_args = mock_run_rgi_bwt.call_args_list[0]
@@ -164,7 +164,7 @@ class TestAnnotateReadsCARD(TestPluginBase):
                         )
 
     def test_run_rgi_bwt(self):
-        with patch("q2_amr.annotate_reads_card.run_command") as mock_run_command:
+        with patch("q2_amr.card.reads.run_command") as mock_run_command:
             run_rgi_bwt(
                 "path_tmp",
                 "sample1",
@@ -205,7 +205,7 @@ class TestAnnotateReadsCARD(TestPluginBase):
                 verbose=True,
             )
 
-    @patch("q2_amr.annotate_reads_card.run_command")
+    @patch("q2_amr.card.reads.run_command")
     def test_exception_raised(self, mock_run_command):
         mock_run_command.side_effect = subprocess.CalledProcessError(1, "cmd")
         expected_message = (
@@ -304,8 +304,8 @@ class TestAnnotateReadsCARD(TestPluginBase):
         sample2_dir = os.path.join(str(amr_reads_annotation), "sample2")
         os.makedirs(sample1_dir)
         os.makedirs(sample2_dir)
-        with patch("q2_amr.annotate_reads_card.extract_sample_stats"), patch(
-            "q2_amr.annotate_reads_card.plot_sample_stats",
+        with patch("q2_amr.card.reads.extract_sample_stats"), patch(
+            "q2_amr.card.reads.plot_sample_stats",
             side_effect=mock_plot_sample_stats,
         ), tempfile.TemporaryDirectory() as tmp:
             visualize_annotation_stats(tmp, amr_reads_annotation)

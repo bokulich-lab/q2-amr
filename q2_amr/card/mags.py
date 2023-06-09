@@ -6,8 +6,8 @@ import tempfile
 import pandas as pd
 from q2_types_genomics.per_sample_data import MultiMAGSequencesDirFmt
 
+from q2_amr.card.utils import load_preprocess_card_db, run_command
 from q2_amr.types import CARDAnnotationDirectoryFormat, CARDDatabaseFormat
-from q2_amr.utils import load_preprocess_card_db, run_command
 
 
 def annotate_mags_card(
