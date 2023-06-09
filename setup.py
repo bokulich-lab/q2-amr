@@ -23,7 +23,11 @@ setup(
     url="https://github.com/bokulich-lab/q2-amr",
     entry_points={"qiime2.plugins": ["q2-amr=q2_amr.plugin_setup:plugin"]},
     package_data={
-        "q2_amr": ["citations.bib", "assets/rgi/*"],
+        "q2_amr": [
+            "citations.bib",
+            "assets/rgi/annotation_stats/*",
+            "assets/rgi/heatmap/*",
+        ],
     },
     zip_safe=False,
 )

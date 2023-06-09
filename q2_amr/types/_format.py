@@ -33,7 +33,6 @@ class CARDDatabaseFormat(model.TextFileFormat):
             "description",
             "access",
         ]
-
         header_exp_2 = copy(header_exp)
         header_exp_2.pop(10)
         card_df = pd.read_json(str(self)).transpose()
@@ -167,3 +166,159 @@ class CARDAnnotationDirectoryFormat(MultiDirValidationMixin, model.DirectoryForm
     @txt.set_path_maker
     def txt_path_maker(self, sample_id, bin_id):
         return f"{sample_id}/{bin_id}/amr_annotation.txt"
+
+
+class CARDAlleleAnnotationFormat(model.TextFileFormat):
+    def _validate(self, n_records=None):
+        header_exp = [
+            "Reference Sequence",
+            "ARO Term",
+            "ARO Accession",
+            "Reference Model Type",
+            "Reference DB",
+            "Reference Allele Source",
+            "Resistomes & Variants: Observed in Genome(s)",
+            "Resistomes & Variants: Observed in Plasmid(s)",
+            "Resistomes & Variants: Observed Pathogen(s)",
+            "Completely Mapped Reads",
+            "Mapped Reads with Flanking Sequence",
+            "All Mapped Reads",
+            "Percent Coverage",
+            "Length Coverage (bp)",
+            "Average MAPQ (Completely Mapped Reads)",
+            "Mate Pair Linkage",
+            "Reference Length",
+            "AMR Gene Family",
+            "Drug Class",
+            "Resistance Mechanism",
+        ]
+
+        df = pd.read_csv(str(self), sep="\t")
+        header_obs = list(df.columns)
+        if not set(header_exp).issubset(set(header_obs)):
+            raise ValidationError(
+                "Header line does not match CARDAlleleAnnotationFormat. Must contain"
+                "the following values: "
+                + ", ".join(header_exp)
+                + ".\n\nFound instead: "
+                + ", ".join(header_obs)
+            )
+
+    def _validate_(self, level):
+        self._validate()
+
+
+class CARDGeneAnnotationFormat(model.TextFileFormat):
+    def _validate(self, n_records=None):
+        header_exp = [
+            "ARO Term",
+            "ARO Accession",
+            "Reference Model Type",
+            "Reference DB",
+            "Alleles with Mapped Reads",
+            "Reference Allele(s) Identity to CARD Reference Protein (%)",
+            "Resistomes & Variants: Observed in Genome(s)",
+            "Resistomes & Variants: Observed in Plasmid(s)",
+            "Resistomes & Variants: Observed Pathogen(s)",
+            "Completely Mapped Reads",
+            "Mapped Reads with Flanking Sequence",
+            "All Mapped Reads",
+            "Average Percent Coverage",
+            "Average Length Coverage (bp)",
+            "Average MAPQ (Completely Mapped Reads)",
+            "Number of Mapped Baits",
+            "Number of Mapped Baits with Reads",
+            "Average Number of reads per Bait",
+            "Number of reads per Bait Coefficient of Variation (%)",
+            "Number of reads mapping to baits and mapping to complete gene",
+            "Number of reads mapping to baits and mapping to complete gene (%)",
+            "Mate Pair Linkage (# reads)",
+            "Reference Length",
+            "AMR Gene Family",
+            "Drug Class",
+            "Resistance Mechanism",
+        ]
+
+        df = pd.read_csv(str(self), sep="\t")
+        header_obs = list(df.columns)
+        if not set(header_exp).issubset(set(header_obs)):
+            raise ValidationError(
+                "Header line does not match CARDGeneAnnotationFormat. Must contain"
+                "the following values: "
+                + ", ".join(header_exp)
+                + ".\n\nFound instead: "
+                + ", ".join(header_obs)
+            )
+
+    def _validate_(self, level):
+        self._validate()
+
+
+class CARDAnnotationStatsFormat(model.TextFileFormat):
+    def _validate(self, n_records=None):
+        header_exp = [
+            "Stats for BAM file(s)",
+            "Total reads",
+            "Mapped reads",
+            "Forward strand",
+            "Reverse strand",
+            "Failed QC",
+            "Duplicates",
+            "Paired-end reads",
+            "'Proper-pairs'",
+            "Both pairs mapped",
+            "Read 1",
+            "Read 2",
+            "Singletons",
+        ]
+
+        with open(str(self), "r") as file:
+            content = file.readlines()
+        header_obs = [line.split(":")[0] for line in content if ":" in line]
+        if not set(header_exp).issubset(set(header_obs)):
+            raise ValidationError(
+                "Values do not match CARDAnnotationStatsFormat. Must contain"
+                "the following values: "
+                + ", ".join(header_exp)
+                + ".\n\nFound instead: "
+                + ", ".join(header_obs)
+            )
+
+    def _validate_(self, level):
+        self._validate()
+
+
+class CARDAlleleAnnotationDirectoryFormat(
+    MultiDirValidationMixin, model.DirectoryFormat
+):
+    allele = model.FileCollection(
+        r".+(allele_mapping_data.txt)$", format=CARDAlleleAnnotationFormat
+    )
+    stats = model.FileCollection(
+        r".+(overall_mapping_stats.txt)$", format=CARDAnnotationStatsFormat
+    )
+
+    @allele.set_path_maker
+    def allele_path_maker(self, sample_id):
+        return "%s/allele_mapping_data.txt" % sample_id
+
+    @stats.set_path_maker
+    def stats_path_maker(self, sample_id):
+        return "%s/overall_mapping_stats.txt" % sample_id
+
+
+class CARDGeneAnnotationDirectoryFormat(MultiDirValidationMixin, model.DirectoryFormat):
+    gene = model.FileCollection(
+        r".+(gene_mapping_data.txt)$", format=CARDGeneAnnotationFormat
+    )
+    stats = model.FileCollection(
+        r".+(overall_mapping_stats.txt)$", format=CARDAnnotationStatsFormat
+    )
+
+    @gene.set_path_maker
+    def gene_path_maker(self, sample_id):
+        return "%s/gene_mapping_data.txt" % sample_id
+
+    @stats.set_path_maker
+    def stats_path_maker(self, sample_id):
+        return "%s/overall_mapping_stats.txt" % sample_id

@@ -13,6 +13,7 @@ from unittest.mock import MagicMock, patch
 
 import pandas as pd
 import pkg_resources
+import qiime2
 import requests
 from Bio import SeqIO
 from q2_types.feature_data import (
@@ -26,7 +27,11 @@ from qiime2.plugin.testing import TestPluginBase
 from skbio import DNA, Protein
 
 from q2_amr.card import fetch_card_db
-from q2_amr.types import CARDDatabaseDirectoryFormat
+from q2_amr.types import (
+    CARDAlleleAnnotationDirectoryFormat,
+    CARDDatabaseDirectoryFormat,
+    CARDGeneAnnotationDirectoryFormat,
+)
 from q2_amr.types._format import (
     CARDAnnotationDirectoryFormat,
     CARDAnnotationTXTFormat,
@@ -204,13 +209,6 @@ class TestCARDAnnotationTypesAndFormats(AMRTypesTestPluginBase):
         obs = transformer(card_anno)
         self.assertIsInstance(obs, pd.DataFrame)
 
-    @patch("requests.get")
-    def test_fetch_card_db(self, mock_requests):
-        f = open(self.get_data_path("card.tar.bz2"), "rb")
-        mock_response = MagicMock(raw=f)
-        mock_requests.return_value = mock_response
-        # obs = fetch_card_db()
-
     def test_card_annotation_df_to_fasta(self):
         filepath = self.get_data_path("rgi_output.txt")
         filepath2 = self.get_data_path("rgi_output_protein.fna")
@@ -229,7 +227,7 @@ class TestCARDAnnotationTypesAndFormats(AMRTypesTestPluginBase):
         self.assertEqual(dna_contents_obs, dna_contents_exp)
 
     def test_CARDAnnotationDirectoryFormat_to_GenesDirectoryFormat_transformer(self):
-        filepath = self.get_data_path("data")
+        filepath = self.get_data_path("annotate_mags_output")
         transformer = self.get_transformer(
             CARDAnnotationDirectoryFormat, GenesDirectoryFormat
         )
@@ -243,7 +241,7 @@ class TestCARDAnnotationTypesAndFormats(AMRTypesTestPluginBase):
         )
 
     def test_CARDAnnotationDirectoryFormat_to_ProteinsDirectoryFormat_transformer(self):
-        filepath = self.get_data_path("data")
+        filepath = self.get_data_path("annotate_mags_output")
         transformer = self.get_transformer(
             CARDAnnotationDirectoryFormat, ProteinsDirectoryFormat
         )
@@ -255,3 +253,25 @@ class TestCARDAnnotationTypesAndFormats(AMRTypesTestPluginBase):
         self.assertTrue(
             os.path.exists(os.path.join(str(obs), "sample2", "bin1_proteins.fasta"))
         )
+
+
+class TestCARDReadsAnnotationTypesAndFormats(AMRTypesTestPluginBase):
+    def test_CARDGeneAnnotationDirectoryFormat_to_qiime2_Metadata_transformer(self):
+        transformer = self.get_transformer(
+            CARDGeneAnnotationDirectoryFormat, qiime2.Metadata
+        )
+        annotation = CARDGeneAnnotationDirectoryFormat(
+            self.get_data_path("annotate_reads_output"), "r"
+        )
+        metadata_obt = transformer(annotation)
+        self.assertIsInstance(metadata_obt, qiime2.Metadata)
+
+    def test_CARDAlleleAnnotationDirectoryFormat_to_qiime2_Metadata_transformer(self):
+        transformer = self.get_transformer(
+            CARDGeneAnnotationDirectoryFormat, qiime2.Metadata
+        )
+        annotation = CARDAlleleAnnotationDirectoryFormat(
+            self.get_data_path("annotate_reads_output"), "r"
+        )
+        metadata_obt = transformer(annotation)
+        self.assertIsInstance(metadata_obt, qiime2.Metadata)
