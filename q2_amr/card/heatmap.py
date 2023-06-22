@@ -7,13 +7,13 @@ from distutils.dir_util import copy_tree
 import pkg_resources
 import q2templates
 
-from q2_amr.types import CARDAnnotationJSONFormat
-from q2_amr.utils import run_command
+from q2_amr.card.utils import run_command
+from q2_amr.types import CARDAnnotationDirectoryFormat
 
 
 def heatmap(
     output_dir: str,
-    amr_annotation: CARDAnnotationJSONFormat,
+    amr_annotation: CARDAnnotationDirectoryFormat,
     clus: str = None,
     cat: str = None,
     display: str = "plain",

@@ -163,8 +163,8 @@ plugin.visualizers.register_function(
         "display": "Specify display options for categories",
         "frequency": "Represent samples based on resistance profile.",
     },
-    name="Download CARD data.",
-    description=("Downloads the CARD database from the CARD website."),
+    name="Create heatmap from annotate_mags_card output.",
+    description=("Create heatmap from annotate_mags_card output."),
     citations=[citations["alcock_card_2023"]],
 )
 
