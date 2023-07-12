@@ -15,7 +15,12 @@ from q2_types.per_sample_sequences import (
     SingleLanePerSampleSingleEndFastqDirFmt,
 )
 
-from q2_amr.card.utils import load_preprocess_card_db, run_command
+from q2_amr.card.utils import (
+    create_count_table,
+    load_preprocess_card_db,
+    read_in_txt,
+    run_command,
+)
 from q2_amr.types import (
     CARDAlleleAnnotationDirectoryFormat,
     CARDDatabaseFormat,
@@ -70,9 +75,15 @@ def annotate_reads_card(
                 mapped=mapped,
                 coverage=coverage,
             )
-            allele_frequency = read_in_txt(samp_input_dir, "allele")
+            path_allele = os.path.join(samp_input_dir, "output.allele_mapping_data.txt")
+            allele_frequency = read_in_txt(
+                path=path_allele, col_name="ARO Accession", samp_bin_name=samp
+            )
             allele_frequency_list.append(allele_frequency)
-            gene_frequency = read_in_txt(samp_input_dir, "gene")
+            path_gene = os.path.join(samp_input_dir, "output.gene_mapping_data.txt")
+            gene_frequency = read_in_txt(
+                path=path_gene, col_name="ARO Accession", samp_bin_name=samp
+            )
             gene_frequency_list.append(gene_frequency)
             move_files(samp_input_dir, samp_allele_dir, "allele")
             move_files(samp_input_dir, samp_gene_dir, "gene")
@@ -98,7 +109,7 @@ def move_files(source_dir: str, des_dir: str, map_type: str):
     )
 
 
-def create_count_table(df_list: list) -> pd.DataFrame:
+def create_count_table33(df_list: list) -> pd.DataFrame:
     df_merged = reduce(
         lambda left, right: pd.merge(left, right, on="ARO Accession", how="outer"),
         df_list,
@@ -112,7 +123,7 @@ def create_count_table(df_list: list) -> pd.DataFrame:
     return df_transposed
 
 
-def read_in_txt(samp_dir: str, map_type: str):
+def read_in_txt33(samp_dir: str, map_type: str):
     df = pd.read_csv(
         os.path.join(samp_dir, f"output.{map_type}_mapping_data.txt"), sep="\t"
     )

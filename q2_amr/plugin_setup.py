@@ -77,9 +77,12 @@ plugin.methods.register_function(
         "include_loose": Bool,
         "include_nudge": Bool,
         "low_quality": Bool,
-        "num_threads": Int % Range(1, 9),
+        "threads": Int % Range(0, None, inclusive_start=False),
     },
-    outputs=[("amr_annotations", SampleData[CARDAnnotation])],
+    outputs=[
+        ("amr_annotations", SampleData[CARDAnnotation]),
+        ("feature_table", FeatureTable[Frequency]),
+    ],
     input_descriptions={
         "mag": "MAG to be annotated with CARD.",
         "card_db": "CARD Database.",
@@ -92,9 +95,12 @@ plugin.methods.register_function(
         "include_loose": "Include loose hits in addition to strict and perfect hits .",
         "include_nudge": "Include hits nudged from loose to strict hits.",
         "low_quality": "Use for short contigs to predict partial genes.",
-        "num_threads": "Number of threads (CPUs) to use in the BLAST search.",
+        "threads": "Number of threads (CPUs) to use in the BLAST search.",
     },
-    output_descriptions={"amr_annotations": "AMR Annotation as .txt and .json file."},
+    output_descriptions={
+        "amr_annotations": "AMR Annotation as .txt and .json file.",
+        "feature_table": "Samples combined into one frequency count " "table.",
+    },
     name="Annotate MAGs with antimicrobial resistance gene information from CARD.",
     description="Annotate MAGs with antimicrobial resistance gene information from "
     "CARD.",
@@ -190,7 +196,7 @@ plugin.register_semantic_type_to_format(
     CARDDatabase, artifact_format=CARDDatabaseDirectoryFormat
 )
 plugin.register_semantic_type_to_format(
-    CARDAnnotation, artifact_format=CARDAnnotationDirectoryFormat
+    SampleData[CARDAnnotation], artifact_format=CARDAnnotationDirectoryFormat
 )
 plugin.register_semantic_type_to_format(
     CARDAlleleAnnotation, artifact_format=CARDAlleleAnnotationDirectoryFormat

@@ -1,9 +1,10 @@
 import subprocess
 from unittest.mock import patch
 
+import pandas as pd
 from qiime2.plugin.testing import TestPluginBase
 
-from q2_amr.card.utils import load_preprocess_card_db
+from q2_amr.card.utils import create_count_table, load_preprocess_card_db, read_in_txt
 from q2_amr.types import CARDDatabaseFormat
 
 
@@ -59,3 +60,68 @@ class TestAnnotateReadsCARD(TestPluginBase):
         with self.assertRaises(Exception) as cm:
             load_preprocess_card_db(tmp, card_db, operation)
         self.assertEqual(str(cm.exception), expected_message)
+
+    def test_read_in_txt_mags(self):
+        path = self.get_data_path("output.mags.txt")
+        self.read_in_txt_test_body(
+            path, "ARO", "sample1", self.mags_mapping_data_sample1
+        )
+
+    def test_read_in_txt_allele(self):
+        path = self.get_data_path("output.allele_mapping_data.txt")
+        self.read_in_txt_test_body(
+            path, "ARO Accession", "sample1", self.mapping_data_sample1
+        )
+
+    def test_read_in_txt_gene(self):
+        path = self.get_data_path("output.gene_mapping_data.txt")
+        self.read_in_txt_test_body(
+            path, "ARO Accession", "sample1", self.mapping_data_sample1
+        )
+
+    def read_in_txt_test_body(self, path, col_name, samp_bin_name, mapping_data):
+        exp = mapping_data
+        obs = read_in_txt(path, col_name, samp_bin_name)
+        obs[col_name] = obs[col_name].astype(int)
+        pd.testing.assert_frame_equal(exp, obs)
+
+    mapping_data_sample1 = pd.DataFrame(
+        {
+            "ARO Accession": [3000796, 3000815, 3000805, 3000026],
+            "sample1": [1, 1, 1, 1],
+        }
+    )
+
+    mags_mapping_data_sample1 = pd.DataFrame(
+        {
+            "ARO": [3000796, 3000815, 3000805, 3000026],
+            "sample1": [1, 1, 1, 1],
+        }
+    )
+
+    mapping_data_sample2 = pd.DataFrame(
+        {
+            "ARO Accession": [3000797, 3000815, 3000805, 3000026],
+            "sample2": [1, 1, 1, 2],
+        }
+    )
+
+    table = pd.DataFrame(
+        {
+            "sample_id": ["sample1", "sample2"],
+            3000796: [1, 0],
+            3000815: [1, 1],
+            3000805: [1, 1],
+            3000026: [1, 2],
+            3000797: [0, 1],
+        }
+    )
+
+    def test_create_count_table(self):
+        df_list = [self.mapping_data_sample1, self.mapping_data_sample2]
+        obs = create_count_table(df_list)
+        exp = self.table
+        exp.set_index("sample_id", inplace=True)
+        exp = exp.astype(float)
+        exp.columns = exp.columns.astype(float)
+        pd.testing.assert_frame_equal(exp, obs)

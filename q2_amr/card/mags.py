@@ -6,7 +6,12 @@ import tempfile
 import pandas as pd
 from q2_types_genomics.per_sample_data import MultiMAGSequencesDirFmt
 
-from q2_amr.card.utils import load_preprocess_card_db, run_command
+from q2_amr.card.utils import (
+    create_count_table,
+    load_preprocess_card_db,
+    read_in_txt,
+    run_command,
+)
 from q2_amr.types import CARDAnnotationDirectoryFormat, CARDDatabaseFormat
 
 
@@ -19,10 +24,11 @@ def annotate_mags_card(
     include_loose: bool = False,
     include_nudge: bool = False,
     low_quality: bool = False,
-    num_threads: int = 1,
-) -> CARDAnnotationDirectoryFormat:
+    threads: int = 1,
+) -> (CARDAnnotationDirectoryFormat, pd.DataFrame):
     manifest = mag.manifest.view(pd.DataFrame)
     amr_annotations = CARDAnnotationDirectoryFormat()
+    frequency_list = []
     with tempfile.TemporaryDirectory() as tmp:
         load_preprocess_card_db(tmp, card_db, "load")
         for samp_bin in list(manifest.index):
@@ -38,12 +44,24 @@ def annotate_mags_card(
                 include_loose,
                 include_nudge,
                 low_quality,
-                num_threads,
+                threads,
             )
-            shutil.move(f"{tmp}/output.txt", f"{bin_dir}/amr_annotation.txt")
-            shutil.move(f"{tmp}/output.json", f"{bin_dir}/amr_annotation.json")
-    print("a")
-    return amr_annotations
+            txt_path = os.path.join(bin_dir, "amr_annotation.txt")
+            json_path = os.path.join(bin_dir, "amr_annotation.json")
+
+            shutil.move(f"{tmp}/output.txt", txt_path)
+            shutil.move(f"{tmp}/output.json", json_path)
+            samp_bin_name = os.path.join(samp_bin[0], samp_bin[1])
+            frequency_df = read_in_txt(
+                path=txt_path, col_name="ARO", samp_bin_name=samp_bin_name
+            )
+            if frequency_df is not None:
+                frequency_list.append(frequency_df)
+        feature_table = create_count_table(df_list=frequency_list)
+    return (
+        amr_annotations,
+        feature_table,
+    )
 
 
 def run_rgi_main(

@@ -1,5 +1,8 @@
 import json
 import subprocess
+from functools import reduce
+
+import pandas as pd
 
 EXTERNAL_CMD_WARNING = (
     "Running external command line application(s). "
@@ -44,3 +47,28 @@ def load_preprocess_card_db(tmp, card_db, operation):
             f"(return code {e.returncode}), please inspect "
             "stdout and stderr to learn more."
         )
+
+
+def read_in_txt(path: str, col_name: str, samp_bin_name: str):
+    df = pd.read_csv(path, sep="\t")
+    if df.empty:
+        return None
+    df = df[[col_name]]
+    df = df.astype(str)
+    df[samp_bin_name] = df.groupby(col_name)[col_name].transform("count")
+    df = df.drop_duplicates(subset=[col_name])
+    return df
+
+
+def create_count_table(df_list: list) -> pd.DataFrame:
+    df = reduce(
+        lambda left, right: pd.merge(left, right, on=left.columns[0], how="outer"),
+        df_list,
+    )
+    df = df.transpose()
+    df = df.fillna(0)
+    df.columns = df.iloc[0]
+    df = df.drop(df.index[0])
+    df.columns.name = None
+    df.index.name = "sample_id"
+    return df

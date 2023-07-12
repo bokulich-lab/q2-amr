@@ -1,8 +1,10 @@
 import os
 import shutil
 import subprocess
-from unittest.mock import patch
+from copy import deepcopy
+from unittest.mock import MagicMock, patch
 
+import pandas as pd
 from q2_types_genomics.per_sample_data import MultiMAGSequencesDirFmt
 from qiime2.plugin.testing import TestPluginBase
 
@@ -35,19 +37,37 @@ class TestAnnotateMagsCard(TestPluginBase):
             shutil.copy(output_txt, f"{tmp}/output.txt")
             shutil.copy(output_json, f"{tmp}/output.json")
 
+        def return_count_table(df_list):
+            count_table = deepcopy(self.table)
+            count_table.set_index("sample_id", inplace=True)
+            count_table = count_table.astype(float)
+            count_table.columns = count_table.columns.astype(float)
+            return count_table
+
+        mock_create_count_table = MagicMock(side_effect=return_count_table)
+        mock_read_in_txt = MagicMock()
         with patch(
             "q2_amr.card.mags.run_rgi_main", side_effect=mock_run_rgi_main
-        ), patch("q2_amr.card.mags.load_preprocess_card_db"):
+        ), patch("q2_amr.card.mags.load_preprocess_card_db"), patch(
+            "q2_amr.card.mags.read_in_txt", mock_read_in_txt
+        ), patch(
+            "q2_amr.card.mags.create_count_table", mock_create_count_table
+        ):
             result = annotate_mags_card(mag, card_db)
-            self.assertIsInstance(result, CARDAnnotationDirectoryFormat)
+            self.assertIsInstance(result[0], CARDAnnotationDirectoryFormat)
+            self.assertIsInstance(result[1], pd.DataFrame)
             self.assertTrue(
                 os.path.exists(
-                    os.path.join(str(result), "sample1", "bin1", "amr_annotation.txt")
+                    os.path.join(
+                        str(result[0]), "sample1", "bin1", "amr_annotation.txt"
+                    )
                 )
             )
             self.assertTrue(
                 os.path.exists(
-                    os.path.join(str(result), "sample1", "bin1", "amr_annotation.json")
+                    os.path.join(
+                        str(result[0]), "sample1", "bin1", "amr_annotation.json"
+                    )
                 )
             )
 
@@ -92,3 +112,14 @@ class TestAnnotateMagsCard(TestPluginBase):
         with self.assertRaises(Exception) as cm:
             run_rgi_main(tmp, input_sequence)
         self.assertEqual(str(cm.exception), expected_message)
+
+    table = pd.DataFrame(
+        {
+            "sample_id": ["sample1", "sample2"],
+            3000796: [1, 0],
+            3000815: [1, 1],
+            3000805: [1, 1],
+            3000026: [1, 2],
+            3000797: [0, 1],
+        }
+    )

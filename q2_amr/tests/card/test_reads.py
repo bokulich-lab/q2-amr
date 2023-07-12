@@ -14,11 +14,9 @@ from qiime2.plugin.testing import TestPluginBase
 
 from q2_amr.card.reads import (
     annotate_reads_card,
-    create_count_table,
     extract_sample_stats,
     move_files,
     plot_sample_stats,
-    read_in_txt,
     run_rgi_bwt,
     visualize_annotation_stats,
 )
@@ -138,10 +136,26 @@ class TestAnnotateReadsCARD(TestPluginBase):
                 call(tmp_dir, ANY, "load_fasta"),
             ]
             exp_calls_mock_read = [
-                call(f"{tmp_dir}/sample1", "allele"),
-                call(f"{tmp_dir}/sample1", "gene"),
-                call(f"{tmp_dir}/sample2", "allele"),
-                call(f"{tmp_dir}/sample2", "gene"),
+                call(
+                    path=f"{tmp_dir}/sample1/output.allele_mapping_data.txt",
+                    col_name="ARO Accession",
+                    samp_bin_name="sample1",
+                ),
+                call(
+                    path=f"{tmp_dir}/sample1/output.gene_mapping_data.txt",
+                    col_name="ARO Accession",
+                    samp_bin_name="sample1",
+                ),
+                call(
+                    path=f"{tmp_dir}/sample2/output.allele_mapping_data.txt",
+                    col_name="ARO Accession",
+                    samp_bin_name="sample2",
+                ),
+                call(
+                    path=f"{tmp_dir}/sample2/output.gene_mapping_data.txt",
+                    col_name="ARO Accession",
+                    samp_bin_name="sample2",
+                ),
             ]
             exp_calls_mock_count = [call([ANY, ANY]), call([ANY, ANY])]
             mock_run_rgi_bwt.assert_has_calls(exp_calls_mock_run)
@@ -313,20 +327,6 @@ class TestAnnotateReadsCARD(TestPluginBase):
             self.assertTrue(os.path.exists(os.path.join(tmp, "index.html")))
             self.assertTrue(os.path.exists(os.path.join(tmp, "q2templateassets")))
 
-    mapping_data_sample1 = pd.DataFrame(
-        {
-            "ARO Accession": [3000796, 3000815, 3000805, 3000026],
-            "sample1": [1, 1, 1, 1],
-        }
-    )
-
-    mapping_data_sample2 = pd.DataFrame(
-        {
-            "ARO Accession": [3000797, 3000815, 3000805, 3000026],
-            "sample2": [1, 1, 1, 2],
-        }
-    )
-
     table = pd.DataFrame(
         {
             "sample_id": ["sample1", "sample2"],
@@ -337,29 +337,3 @@ class TestAnnotateReadsCARD(TestPluginBase):
             3000797: [0, 1],
         }
     )
-
-    def test_read_in_txt_allele(self):
-        self.read_in_txt_test_body("allele", self.mapping_data_sample1)
-
-    def test_read_in_txt_gene(self):
-        self.read_in_txt_test_body("gene", self.mapping_data_sample1)
-
-    def read_in_txt_test_body(self, map_type, mapping_data):
-        mapping_file = self.get_data_path(f"output.{map_type}_mapping_data.txt")
-        exp = mapping_data
-        with tempfile.TemporaryDirectory() as tmp:
-            samp_dir = os.path.join(tmp, "sample1")
-            os.mkdir(samp_dir)
-            shutil.copy(mapping_file, samp_dir)
-            obs = read_in_txt(samp_dir, map_type)
-            obs["ARO Accession"] = obs["ARO Accession"].astype(int)
-            pd.testing.assert_frame_equal(exp, obs)
-
-    def test_create_count_table(self):
-        df_list = [self.mapping_data_sample1, self.mapping_data_sample2]
-        obs = create_count_table(df_list)
-        exp = self.table
-        exp.set_index("sample_id", inplace=True)
-        exp = exp.astype(float)
-        exp.columns = exp.columns.astype(float)
-        pd.testing.assert_frame_equal(exp, obs)
