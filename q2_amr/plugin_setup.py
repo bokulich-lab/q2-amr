@@ -14,7 +14,7 @@ from q2_types.per_sample_sequences import (
 )
 from q2_types.sample_data import SampleData
 from q2_types_genomics.per_sample_data import MAGs
-from qiime2.core.type import Bool, Choices, Float, Int, Range, Str
+from qiime2.core.type import Bool, Choices, Int, Range, Str
 from qiime2.plugin import Citations, Plugin
 
 from q2_amr import __version__
@@ -116,15 +116,11 @@ plugin.methods.register_function(
     },
     parameters={
         "aligner": Str % Choices(["kma", "bowtie2", "bwa"]),
-        "include_baits": Bool,
-        "mapq": Float % Range(0, None, inclusive_start=True),
-        "mapped": Float % Range(0, None, inclusive_start=True),
-        "coverage": Float % Range(0, None, inclusive_start=True),
         "threads": Int % Range(0, None, inclusive_start=False),
     },
     outputs=[
-        ("amr_allele_annotation", CARDAlleleAnnotation),
-        ("amr_gene_annotation", CARDGeneAnnotation),
+        ("amr_allele_annotation", SampleData[CARDAlleleAnnotation]),
+        ("amr_gene_annotation", SampleData[CARDGeneAnnotation]),
         ("allele_feature_table", FeatureTable[Frequency]),
         ("gene_feature_table", FeatureTable[Frequency]),
     ],
@@ -134,10 +130,6 @@ plugin.methods.register_function(
     },
     parameter_descriptions={
         "aligner": "Specify alignment tool.",
-        "include_baits": "Include baits.",
-        "mapq": "Filter reads based on MAPQ score.",
-        "mapped": "Filter reads based on mapped reads.",
-        "coverage": "Filter reads based on coverage of reference sequence.",
         "threads": "Number of threads (CPUs) to use.",
     },
     output_descriptions={
@@ -199,10 +191,11 @@ plugin.register_semantic_type_to_format(
     SampleData[CARDAnnotation], artifact_format=CARDAnnotationDirectoryFormat
 )
 plugin.register_semantic_type_to_format(
-    CARDAlleleAnnotation, artifact_format=CARDAlleleAnnotationDirectoryFormat
+    SampleData[CARDAlleleAnnotation],
+    artifact_format=CARDAlleleAnnotationDirectoryFormat,
 )
 plugin.register_semantic_type_to_format(
-    CARDGeneAnnotation, artifact_format=CARDGeneAnnotationDirectoryFormat
+    SampleData[CARDGeneAnnotation], artifact_format=CARDGeneAnnotationDirectoryFormat
 )
 
 plugin.register_formats(

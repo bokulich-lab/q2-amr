@@ -85,10 +85,6 @@ class TestAnnotateReadsCARD(TestPluginBase):
                         aligner="kma",
                         rev=None,
                         threads=1,
-                        include_baits=False,
-                        mapq=None,
-                        mapped=None,
-                        coverage=None,
                     ),
                     call(
                         cwd=tmp_dir,
@@ -97,10 +93,6 @@ class TestAnnotateReadsCARD(TestPluginBase):
                         aligner="kma",
                         rev=None,
                         threads=1,
-                        include_baits=False,
-                        mapq=None,
-                        mapped=None,
-                        coverage=None,
                     ),
                 ]
             else:
@@ -112,10 +104,6 @@ class TestAnnotateReadsCARD(TestPluginBase):
                         rev=f"{reads}/sample1_00_L001_R2_001.fastq.gz",
                         aligner="kma",
                         threads=1,
-                        include_baits=False,
-                        mapq=None,
-                        mapped=None,
-                        coverage=None,
                     ),
                     call(
                         cwd=tmp_dir,
@@ -124,10 +112,6 @@ class TestAnnotateReadsCARD(TestPluginBase):
                         rev=f"{reads}/sample2_00_L001_R2_001.fastq.gz",
                         aligner="kma",
                         threads=1,
-                        include_baits=False,
-                        mapq=None,
-                        mapped=None,
-                        coverage=None,
                     ),
                 ]
             exp_calls_mock_load = [
@@ -186,10 +170,6 @@ class TestAnnotateReadsCARD(TestPluginBase):
                 "path_rev",
                 "bowtie2",
                 8,
-                True,
-                3,
-                5,
-                3.2,
             )
             mock_run_command.assert_called_once_with(
                 [
@@ -207,13 +187,6 @@ class TestAnnotateReadsCARD(TestPluginBase):
                     "bowtie2",
                     "--read_two",
                     "path_rev",
-                    "--include_baits",
-                    "--mapq",
-                    "3",
-                    "--mapped",
-                    "5",
-                    "--coverage",
-                    "3.2",
                 ],
                 "path_tmp",
                 verbose=True,
@@ -234,10 +207,6 @@ class TestAnnotateReadsCARD(TestPluginBase):
                 rev="path/rev",
                 aligner="bwa",
                 threads=1,
-                include_baits=True,
-                mapq=0.3,
-                mapped=0.3,
-                coverage=0.3,
             )
         self.assertEqual(str(cm.exception), expected_message)
 

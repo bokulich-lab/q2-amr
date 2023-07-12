@@ -3,7 +3,6 @@ import shutil
 import subprocess
 import tempfile
 from distutils.dir_util import copy_tree
-from functools import reduce
 from typing import Union
 
 import altair as alt
@@ -35,10 +34,6 @@ def annotate_reads_card(
     card_db: CARDDatabaseFormat,
     aligner: str = "kma",
     threads: int = 1,
-    include_baits: bool = False,
-    mapq: float = None,
-    mapped: float = None,
-    coverage: float = None,
 ) -> (
     CARDAlleleAnnotationDirectoryFormat,
     CARDGeneAnnotationDirectoryFormat,
@@ -70,21 +65,19 @@ def annotate_reads_card(
                 rev=rev,
                 aligner=aligner,
                 threads=threads,
-                include_baits=include_baits,
-                mapq=mapq,
-                mapped=mapped,
-                coverage=coverage,
             )
             path_allele = os.path.join(samp_input_dir, "output.allele_mapping_data.txt")
             allele_frequency = read_in_txt(
                 path=path_allele, col_name="ARO Accession", samp_bin_name=samp
             )
-            allele_frequency_list.append(allele_frequency)
+            if allele_frequency_list is not None:
+                allele_frequency_list.append(allele_frequency)
             path_gene = os.path.join(samp_input_dir, "output.gene_mapping_data.txt")
             gene_frequency = read_in_txt(
                 path=path_gene, col_name="ARO Accession", samp_bin_name=samp
             )
-            gene_frequency_list.append(gene_frequency)
+            if gene_frequency_list is not None:
+                gene_frequency_list.append(gene_frequency)
             move_files(samp_input_dir, samp_allele_dir, "allele")
             move_files(samp_input_dir, samp_gene_dir, "gene")
 
@@ -109,32 +102,6 @@ def move_files(source_dir: str, des_dir: str, map_type: str):
     )
 
 
-def create_count_table33(df_list: list) -> pd.DataFrame:
-    df_merged = reduce(
-        lambda left, right: pd.merge(left, right, on="ARO Accession", how="outer"),
-        df_list,
-    )
-    df_transposed = df_merged.transpose()
-    df_transposed = df_transposed.fillna(0)
-    df_transposed.columns = df_transposed.iloc[0]
-    df_transposed = df_transposed.drop("ARO Accession")
-    df_transposed.columns.name = None
-    df_transposed.index.name = "sample_id"
-    return df_transposed
-
-
-def read_in_txt33(samp_dir: str, map_type: str):
-    df = pd.read_csv(
-        os.path.join(samp_dir, f"output.{map_type}_mapping_data.txt"), sep="\t"
-    )
-    df = df[["ARO Accession"]]
-    df = df.astype(str)
-    samp = os.path.basename(samp_dir)
-    df[samp] = df.groupby("ARO Accession")["ARO Accession"].transform("count")
-    df = df.drop_duplicates(subset=["ARO Accession"])
-    return df
-
-
 def run_rgi_bwt(
     cwd: str,
     samp: str,
@@ -142,10 +109,6 @@ def run_rgi_bwt(
     rev: str,
     aligner: str,
     threads: int,
-    include_baits: bool,
-    mapq: float,
-    mapped: float,
-    coverage: float,
 ):
     cmd = [
         "rgi",
@@ -163,14 +126,6 @@ def run_rgi_bwt(
     ]
     if rev:
         cmd.extend(["--read_two", rev])
-    if include_baits:
-        cmd.append("--include_baits")
-    if mapq:
-        cmd.extend(["--mapq", str(mapq)])
-    if mapped:
-        cmd.extend(["--mapped", str(mapped)])
-    if coverage:
-        cmd.extend(["--coverage", str(coverage)])
     try:
         run_command(cmd, cwd, verbose=True)
     except subprocess.CalledProcessError as e:

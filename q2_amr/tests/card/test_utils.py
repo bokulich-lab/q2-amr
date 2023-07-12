@@ -125,3 +125,8 @@ class TestAnnotateReadsCARD(TestPluginBase):
         exp = exp.astype(float)
         exp.columns = exp.columns.astype(float)
         pd.testing.assert_frame_equal(exp, obs)
+        df_list_empty = []
+        obs_empty = create_count_table(df_list_empty)
+        exp_empty = pd.DataFrame({"sample_id": [""]})
+        exp_empty.set_index("sample_id", inplace=True)
+        pd.testing.assert_frame_equal(exp_empty, obs_empty)

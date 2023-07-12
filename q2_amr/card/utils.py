@@ -61,6 +61,14 @@ def read_in_txt(path: str, col_name: str, samp_bin_name: str):
 
 
 def create_count_table(df_list: list) -> pd.DataFrame:
+    if not df_list:
+        df = pd.DataFrame({"sample_id": [""]})
+        df.set_index("sample_id", inplace=True)
+        print(
+            "**************************** WARNING: There were no AMR genes identified, "
+            "the output is empty. ****************************"
+        )
+        return df
     df = reduce(
         lambda left, right: pd.merge(left, right, on=left.columns[0], how="outer"),
         df_list,
