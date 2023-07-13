@@ -32,7 +32,7 @@ def heatmap(
                     if file.endswith(".json"):
                         shutil.copy(
                             os.path.join(annotation_dir, sample, bin, file),
-                            json_files_dir,
+                            os.path.join(json_files_dir, f"{sample}_{bin}.json"),
                         )
 
         run_rgi_heatmap(tmp, json_files_dir, clus, cat, display, frequency)
