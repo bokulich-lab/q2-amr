@@ -147,7 +147,7 @@ plugin.methods.register_function(
 
 plugin.visualizers.register_function(
     function=heatmap,
-    inputs={"amr_annotation": CARDAnnotation},
+    inputs={"amr_annotation": SampleData[CARDAnnotation]},
     parameters={
         "cat": Str % Choices(["drug_class", "resistance_mechanism", "gene_family"]),
         "clus": Str % Choices(["samples", "genes", "both"]),
