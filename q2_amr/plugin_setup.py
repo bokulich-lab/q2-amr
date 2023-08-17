@@ -7,7 +7,7 @@
 # ----------------------------------------------------------------------------
 import importlib
 
-from q2_types.feature_table import FeatureTable, Frequency
+from q2_types.feature_table import FeatureTable, PresenceAbsence
 from q2_types.per_sample_sequences import (
     PairedEndSequencesWithQuality,
     SequencesWithQuality,
@@ -72,7 +72,6 @@ plugin.methods.register_function(
     inputs={"mag": SampleData[MAGs], "card_db": CARDDatabase},
     parameters={
         "alignment_tool": Str % Choices(["BLAST", "DIAMOND"]),
-        "input_type": Str % Choices(["contig", "protein"]),
         "split_prodigal_jobs": Bool,
         "include_loose": Bool,
         "include_nudge": Bool,
@@ -81,7 +80,7 @@ plugin.methods.register_function(
     },
     outputs=[
         ("amr_annotations", SampleData[CARDAnnotation]),
-        ("feature_table", FeatureTable[Frequency]),
+        ("feature_table", FeatureTable[PresenceAbsence]),
     ],
     input_descriptions={
         "mag": "MAG to be annotated with CARD.",
@@ -89,7 +88,6 @@ plugin.methods.register_function(
     },
     parameter_descriptions={
         "alignment_tool": "Specify alignment tool BLAST or DIAMOND.",
-        "input_type": "Specify data input type contig or protein.",
         "split_prodigal_jobs": "Run multiple prodigal jobs simultaneously for contigs "
         "in a fasta file.",
         "include_loose": "Include loose hits in addition to strict and perfect hits .",
@@ -121,8 +119,8 @@ plugin.methods.register_function(
     outputs=[
         ("amr_allele_annotation", SampleData[CARDAlleleAnnotation]),
         ("amr_gene_annotation", SampleData[CARDGeneAnnotation]),
-        ("allele_feature_table", FeatureTable[Frequency]),
-        ("gene_feature_table", FeatureTable[Frequency]),
+        ("allele_feature_table", FeatureTable[PresenceAbsence]),
+        ("gene_feature_table", FeatureTable[PresenceAbsence]),
     ],
     input_descriptions={
         "reads": "Paired or single end metagenomic reads.",
@@ -154,10 +152,11 @@ plugin.visualizers.register_function(
         "display": Str % Choices(["plain", "fill", "text"]),
         "frequency": Bool,
     },
-    input_descriptions={"amr_annotation": "Sequences to be annotated with rgi."},
+    input_descriptions={"amr_annotation": "AMR Annotations from MAGs"},
     parameter_descriptions={
         "cat": "The option to organize resistance genes based on a category.",
-        "clus": "Specify data input type contig or protein.",
+        "clus": "Option to use SciPy's hierarchical clustering algorithm to cluster "
+        "rows (AMR genes) or columns (samples).",
         "display": "Specify display options for categories",
         "frequency": "Represent samples based on resistance profile.",
     },

@@ -27,7 +27,6 @@ class TestAnnotateMagsCard(TestPluginBase):
             tmp,
             input_sequence,
             alignment_tool,
-            input_type,
             split_prodigal_jobs,
             include_loose,
             include_nudge,
@@ -73,9 +72,7 @@ class TestAnnotateMagsCard(TestPluginBase):
 
     def test_run_rgi_main(self):
         with patch("q2_amr.card.mags.run_command") as mock_run_command:
-            run_rgi_main(
-                "path_tmp", "path_input", "DIAMOND", "contig", True, True, True, True, 8
-            )
+            run_rgi_main("path_tmp", "path_input", "DIAMOND", True, True, True, True, 8)
             mock_run_command.assert_called_once_with(
                 [
                     "rgi",

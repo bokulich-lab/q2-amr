@@ -19,7 +19,6 @@ def annotate_mags_card(
     mag: MultiMAGSequencesDirFmt,
     card_db: CARDDatabaseFormat,
     alignment_tool: str = "BLAST",
-    input_type: str = "contig",
     split_prodigal_jobs: bool = False,
     include_loose: bool = False,
     include_nudge: bool = False,
@@ -39,7 +38,6 @@ def annotate_mags_card(
                 tmp,
                 input_sequence,
                 alignment_tool,
-                input_type,
                 split_prodigal_jobs,
                 include_loose,
                 include_nudge,
@@ -68,7 +66,6 @@ def run_rgi_main(
     tmp,
     input_sequence: str,
     alignment_tool: str = "BLAST",
-    input_type: str = "contig",
     split_prodigal_jobs: bool = False,
     include_loose: bool = False,
     include_nudge: bool = False,
@@ -87,7 +84,7 @@ def run_rgi_main(
         "--alignment_tool",
         alignment_tool,
         "--input_type",
-        input_type,
+        "contig",
         "--local",
     ]
     if include_loose:

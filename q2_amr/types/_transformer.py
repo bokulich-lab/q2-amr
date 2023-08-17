@@ -176,7 +176,7 @@ def _11(data: CARDAnnotationDirectoryFormat) -> ProteinsDirectoryFormat:
 
 
 def create_dir_structure(data, seq_type, genes_protein_directory):
-    annotation_dir = str(data)
+    annotation_dir = data
     for sample in os.listdir(annotation_dir):
         for bin in os.listdir(os.path.join(annotation_dir, sample)):
             for file in os.listdir(os.path.join(annotation_dir, sample, bin)):
@@ -233,9 +233,40 @@ def read_mapping_data(data_path, variant):
 
 @plugin.register_transformer
 def _12(data: CARDAlleleAnnotationDirectoryFormat) -> qiime2.Metadata:
-    return read_mapping_data(data, "allele")
+    return tabulate_data(data, "allele")
 
 
 @plugin.register_transformer
 def _13(data: CARDGeneAnnotationDirectoryFormat) -> qiime2.Metadata:
-    return read_mapping_data(data, "gene")
+    return tabulate_data(data, "gene")
+
+
+@plugin.register_transformer
+def _14(data: CARDAnnotationDirectoryFormat) -> qiime2.Metadata:
+    return tabulate_data(data, "mags")
+
+
+def tabulate_data(data_path, data):
+    df_list = []
+    for samp in os.listdir(str(data_path)):
+        if data == "mags":
+            for bin in os.listdir(os.path.join(str(data_path), samp)):
+                file_path = os.path.join(
+                    str(data_path), samp, bin, "amr_annotation.txt"
+                )
+                df = pd.read_csv(file_path, sep="\t")
+                df.insert(0, "Sample Name", f"{samp}/{bin}")
+                df_list.append(df)
+        elif data == "gene" or "allele":
+            file_path = os.path.join(str(data_path), samp, f"{data}_mapping_data.txt")
+        df = pd.read_csv(file_path, sep="\t")
+        df.insert(0, "Sample Name", samp)
+        df_list.append(df)
+    df_combined = pd.concat(df_list, axis=0)
+    df_combined.reset_index(inplace=True, drop=True)
+    df_combined.index.name = "id"
+    df_combined.index = df_combined.index.astype(str)
+    if data == "mags":
+        df_combined.rename(columns={"ID": "HSP_Identifier"}, inplace=True)
+    metadata = qiime2.Metadata(df_combined)
+    return metadata
