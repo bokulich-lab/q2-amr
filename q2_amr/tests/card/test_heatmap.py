@@ -4,7 +4,12 @@ from unittest.mock import patch
 
 from qiime2.plugin.testing import TestPluginBase
 
-from q2_amr.card.heatmap import change_names, heatmap, run_rgi_heatmap
+from q2_amr.card.heatmap import (
+    InvalidParameterCombinationError,
+    change_names,
+    heatmap,
+    run_rgi_heatmap,
+)
 from q2_amr.types import CARDAnnotationDirectoryFormat
 
 
@@ -42,7 +47,7 @@ class TestHeatmap(TestPluginBase):
     def test_run_rgi_heatmap(self):
         with patch("q2_amr.card.heatmap.run_command") as mock_run_command:
             run_rgi_heatmap(
-                "path_tmp", "json_files_dir_path", "both", "drug_class", "fill", True
+                "path_tmp", "json_files_dir_path", "samples", "drug_class", "fill", True
             )
             mock_run_command.assert_called_once_with(
                 [
@@ -55,7 +60,7 @@ class TestHeatmap(TestPluginBase):
                     "--display",
                     "fill",
                     "--clus",
-                    "both",
+                    "samples",
                     "--cat",
                     "drug_class",
                     "--frequency",
@@ -77,3 +82,21 @@ class TestHeatmap(TestPluginBase):
                 self.assertTrue(
                     os.path.exists(os.path.join(results_dir, f"heatmap{ext}"))
                 )
+
+    def test_invalid_combination_raises_error(self):
+        tmp = "path"
+        json_files_dir = "path"
+        clus = "both"
+        cat = "drug_class"
+        display = "text"
+        frequency = False
+
+        with self.assertRaises(InvalidParameterCombinationError) as context:
+            run_rgi_heatmap(tmp, json_files_dir, clus, cat, display, frequency)
+
+        self.assertEqual(
+            str(context.exception),
+            "If the parameter clus is set to genes"
+            " or both it is not possible to use "
+            "the cat parameter",
+        )

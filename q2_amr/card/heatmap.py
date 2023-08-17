@@ -45,6 +45,12 @@ def heatmap(
     q2templates.render(templates, output_dir, context=context)
 
 
+class InvalidParameterCombinationError(Exception):
+    def __init__(self, message="Invalid parameter combination"):
+        self.message = message
+        super().__init__(self.message)
+
+
 def run_rgi_heatmap(tmp, json_files_dir, clus, cat, display, frequency):
     cmd = [
         "rgi",
@@ -62,6 +68,12 @@ def run_rgi_heatmap(tmp, json_files_dir, clus, cat, display, frequency):
         cmd.extend(["--cat", cat])
     if frequency:
         cmd.append("--frequency")
+    if (clus == "both" or clus == "genes") and cat:
+        raise InvalidParameterCombinationError(
+            "If the parameter clus is set to genes "
+            "or both it is not possible to use the "
+            "cat parameter"
+        )
     try:
         run_command(cmd, tmp, verbose=True)
     except subprocess.CalledProcessError as e:
