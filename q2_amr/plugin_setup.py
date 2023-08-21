@@ -46,9 +46,9 @@ plugin = Plugin(
     version=__version__,
     website="https://github.com/bokulich-lab/q2-amr",
     package="q2_amr",
-    description="This is a QIIME 2 plugin that annotates microbiome sequence data with "
+    description="This is a QIIME 2 plugin that annotates sequence data with "
     "antimicrobial resistance gene information from CARD.",
-    short_description="This is a QIIME 2 plugin that annotates microbiome sequence "
+    short_description="This is a QIIME 2 plugin that annotates sequence "
     "data with antimicrobial resistance gene information from CARD.",
 )
 plugin.methods.register_function(
@@ -63,7 +63,7 @@ plugin.methods.register_function(
         "phenotypes."
     },
     name="Download CARD data.",
-    description=("Downloads the CARD database from the CARD website."),
+    description=("Download the latest version of the CARD database."),
     citations=[citations["alcock_card_2023"]],
 )
 
@@ -83,25 +83,24 @@ plugin.methods.register_function(
         ("feature_table", FeatureTable[PresenceAbsence]),
     ],
     input_descriptions={
-        "mag": "MAG to be annotated with CARD.",
+        "mag": "MAGs to be annotated with CARD.",
         "card_db": "CARD Database.",
     },
     parameter_descriptions={
         "alignment_tool": "Specify alignment tool BLAST or DIAMOND.",
-        "split_prodigal_jobs": "Run multiple prodigal jobs simultaneously for contigs "
-        "in a fasta file.",
+        "split_prodigal_jobs": "Run multiple prodigal jobs simultaneously for contigs"
+        " in one sample",
         "include_loose": "Include loose hits in addition to strict and perfect hits .",
         "include_nudge": "Include hits nudged from loose to strict hits.",
         "low_quality": "Use for short contigs to predict partial genes.",
         "threads": "Number of threads (CPUs) to use in the BLAST search.",
     },
     output_descriptions={
-        "amr_annotations": "AMR Annotation as .txt and .json file.",
-        "feature_table": "Samples combined into one frequency count " "table.",
+        "amr_annotations": "AMR annotation as .txt and .json file.",
+        "feature_table": "Presence and absence table of ARGs in all samples.",
     },
-    name="Annotate MAGs with antimicrobial resistance gene information from CARD.",
-    description="Annotate MAGs with antimicrobial resistance gene information from "
-    "CARD.",
+    name="Annotate MAGs with antimicrobial resistance genes from CARD.",
+    description="Annotate MAGs with antimicrobial resistance genes from CARD.",
     citations=[citations["alcock_card_2023"]],
 )
 
@@ -123,7 +122,7 @@ plugin.methods.register_function(
         ("gene_feature_table", FeatureTable[PresenceAbsence]),
     ],
     input_descriptions={
-        "reads": "Paired or single end metagenomic reads.",
+        "reads": "Paired or single end reads.",
         "card_db": "CARD Database",
     },
     parameter_descriptions={
@@ -133,13 +132,13 @@ plugin.methods.register_function(
     output_descriptions={
         "amr_allele_annotation": "AMR annotation mapped on alleles.",
         "amr_gene_annotation": "AMR annotation mapped on genes.",
-        "allele_feature_table": "Samples combined into one frequency count table.",
-        "gene_feature_table": "Samples combined into one frequency count table.",
+        "allele_feature_table": "Presence and absence table of ARGs in all samples for"
+        " allele mapping.",
+        "gene_feature_table": "Presence and absence table of ARGs in all samples for "
+        "gene mapping.",
     },
-    name="Annotate metagenomic reads with antimicrobial resistance gene information "
-    "from CARD.",
-    description="Annotate metagenomic reads with antimicrobial resistance gene "
-    "information from CARD.",
+    name="Annotate reads with antimicrobial resistance genes from CARD.",
+    description="Annotate reads with antimicrobial resistance genes from CARD.",
     citations=[citations["alcock_card_2023"]],
 )
 
@@ -160,8 +159,8 @@ plugin.visualizers.register_function(
         "display": "Specify display options for categories",
         "frequency": "Represent samples based on resistance profile.",
     },
-    name="Create heatmap from annotate_mags_card output.",
-    description=("Create heatmap from annotate_mags_card output."),
+    name="Create heatmap from annotate-mags-card output.",
+    description=("Create heatmap from annotate-mags-card output."),
     citations=[citations["alcock_card_2023"]],
 )
 
@@ -174,7 +173,7 @@ plugin.visualizers.register_function(
     },
     parameter_descriptions={},
     name="Visualize mapping statistics.",
-    description="Visualize mapping statistics.",
+    description="Visualize mapping statistics of an annotate-reads-card output.",
     citations=[citations["alcock_card_2023"]],
 )
 
