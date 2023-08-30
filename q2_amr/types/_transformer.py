@@ -256,6 +256,7 @@ def tabulate_data(data_path, data):
                 )
                 df = pd.read_csv(file_path, sep="\t")
                 df.insert(0, "Sample Name", f"{samp}/{bin}")
+                df["Nudged"] = df["Nudged"].astype(str)
                 df_list.append(df)
         elif data == "gene" or "allele":
             file_path = os.path.join(str(data_path), samp, f"{data}_mapping_data.txt")

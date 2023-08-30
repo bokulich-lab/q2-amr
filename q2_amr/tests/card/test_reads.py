@@ -2,7 +2,6 @@ import os
 import shutil
 import subprocess
 import tempfile
-from copy import deepcopy
 from unittest.mock import ANY, MagicMock, call, patch
 
 import pandas as pd
@@ -11,6 +10,7 @@ from q2_types.per_sample_sequences import (
     SingleLanePerSampleSingleEndFastqDirFmt,
 )
 from qiime2.plugin.testing import TestPluginBase
+from test_mags import TestAnnotateMagsCard
 
 from q2_amr.card.reads import (
     annotate_reads_card,
@@ -36,38 +36,31 @@ class TestAnnotateReadsCARD(TestPluginBase):
     def test_annotate_reads_card_paired(self):
         self.annotate_reads_card_test_body("paired")
 
+    def copy_needed_files(self, cwd, samp, **kwargs):
+        output_allele = self.get_data_path("output.allele_mapping_data.txt")
+        output_gene = self.get_data_path("output.gene_mapping_data.txt")
+        output_stats = self.get_data_path("output.overall_mapping_stats.txt")
+        samp_dir = os.path.join(cwd, samp)
+        shutil.copy(output_allele, samp_dir)
+        shutil.copy(output_gene, samp_dir)
+        shutil.copy(output_stats, samp_dir)
+
     def annotate_reads_card_test_body(self, read_type):
         manifest = self.get_data_path(f"MANIFEST_reads_{read_type}")
         if read_type == "single":
             reads = SingleLanePerSampleSingleEndFastqDirFmt()
             shutil.copy(manifest, os.path.join(str(reads), "MANIFEST"))
-
         else:
             reads = SingleLanePerSamplePairedEndFastqDirFmt()
             shutil.copy(manifest, os.path.join(str(reads), "MANIFEST"))
-
-        output_allele = self.get_data_path("output.allele_mapping_data.txt")
-        output_gene = self.get_data_path("output.gene_mapping_data.txt")
-        output_stats = self.get_data_path("output.overall_mapping_stats.txt")
         card_db = CARDDatabaseFormat()
-
-        def copy_needed_files(cwd, samp, **kwargs):
-            samp_dir = os.path.join(cwd, samp)
-            shutil.copy(output_allele, samp_dir)
-            shutil.copy(output_gene, samp_dir)
-            shutil.copy(output_stats, samp_dir)
-
-        def return_count_table(df_list):
-            count_table = deepcopy(self.table)
-            count_table.set_index("sample_id", inplace=True)
-            count_table = count_table.astype(float)
-            count_table.columns = count_table.columns.astype(float)
-            return count_table
-
-        mock_run_rgi_bwt = MagicMock(side_effect=copy_needed_files)
+        mock_run_rgi_bwt = MagicMock(side_effect=self.copy_needed_files)
         mock_run_rgi_load = MagicMock()
         mock_read_in_txt = MagicMock()
-        mock_create_count_table = MagicMock(side_effect=return_count_table)
+        mag_test_class = TestAnnotateMagsCard()
+        mock_create_count_table = MagicMock(
+            side_effect=mag_test_class.return_count_table
+        )
         with patch("q2_amr.card.reads.run_rgi_bwt", mock_run_rgi_bwt), patch(
             "q2_amr.card.reads.load_preprocess_card_db", mock_run_rgi_load
         ), patch("q2_amr.card.reads.read_in_txt", mock_read_in_txt), patch(
@@ -192,14 +185,16 @@ class TestAnnotateReadsCARD(TestPluginBase):
                 verbose=True,
             )
 
-    @patch("q2_amr.card.reads.run_command")
-    def test_exception_raised(self, mock_run_command):
-        mock_run_command.side_effect = subprocess.CalledProcessError(1, "cmd")
+    def test_exception_raised(self):
         expected_message = (
             "An error was encountered while running rgi, "
             "(return code 1), please inspect stdout and stderr to learn more."
         )
-        with self.assertRaises(Exception) as cm:
+
+        with patch(
+            "q2_amr.card.reads.run_command"
+        ) as mock_run_command, self.assertRaises(Exception) as cm:
+            mock_run_command.side_effect = subprocess.CalledProcessError(1, "cmd")
             run_rgi_bwt(
                 cwd="path/cwd",
                 samp="sample1",
@@ -208,7 +203,7 @@ class TestAnnotateReadsCARD(TestPluginBase):
                 aligner="bwa",
                 threads=1,
             )
-        self.assertEqual(str(cm.exception), expected_message)
+            self.assertEqual(str(cm.exception), expected_message)
 
     def test_move_files_allele(self):
         self.move_files_test_body("allele")
@@ -295,14 +290,3 @@ class TestAnnotateReadsCARD(TestPluginBase):
             self.assertTrue(os.path.exists(os.path.join(tmp, "sample_stats_plot.html")))
             self.assertTrue(os.path.exists(os.path.join(tmp, "index.html")))
             self.assertTrue(os.path.exists(os.path.join(tmp, "q2templateassets")))
-
-    table = pd.DataFrame(
-        {
-            "sample_id": ["sample1", "sample2"],
-            3000796: [1, 0],
-            3000815: [1, 1],
-            3000805: [1, 1],
-            3000026: [1, 2],
-            3000797: [0, 1],
-        }
-    )

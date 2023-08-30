@@ -70,18 +70,29 @@ class TestHeatmap(TestPluginBase):
             )
 
     def test_change_names(self):
-        extensions = [".eps", ".csv", ".png"]
-        with tempfile.TemporaryDirectory() as tmp:
-            results_dir = os.path.join(tmp, "results")
-            os.makedirs(results_dir)
-            for ext in extensions:
-                with open(os.path.join(results_dir, f"heatmap22{ext}"), "w") as file:
-                    file.write(f"{ext} file")
+        with patch(
+            "q2_amr.card.heatmap.os.listdir",
+            return_value=["heatmap-7.eps", "heatmap-7.png", "heatmap-7.csv"],
+        ), patch("q2_amr.card.heatmap.os.rename") as mock_rename:
+            results_dir = "/path/to/results"
             change_names(results_dir)
-            for ext in extensions:
-                self.assertTrue(
-                    os.path.exists(os.path.join(results_dir, f"heatmap{ext}"))
-                )
+            expected_calls = [
+                ("/path/to/results/heatmap-7.eps", "/path/to/results/heatmap.eps"),
+                ("/path/to/results/heatmap-7.png", "/path/to/results/heatmap.png"),
+                ("/path/to/results/heatmap-7.csv", "/path/to/results/heatmap.csv"),
+            ]
+            actual_calls = [call[0] for call in mock_rename.call_args_list]
+            self.assertEqual(expected_calls, actual_calls)
+
+    def test_change_names_empty(self):
+        with patch("q2_amr.card.heatmap.os.listdir", return_value=[]), patch(
+            "q2_amr.card.heatmap.os.rename"
+        ) as mock_rename:
+            results_dir = "/path/to/results"
+            change_names(results_dir)
+            expected_calls = []
+            actual_calls = [call[0] for call in mock_rename.call_args_list]
+            self.assertEqual(expected_calls, actual_calls)
 
     def test_invalid_combination_raises_error(self):
         tmp = "path"
@@ -91,11 +102,11 @@ class TestHeatmap(TestPluginBase):
         display = "text"
         frequency = False
 
-        with self.assertRaises(InvalidParameterCombinationError) as context:
+        with self.assertRaises(InvalidParameterCombinationError) as cm:
             run_rgi_heatmap(tmp, json_files_dir, clus, cat, display, frequency)
 
         self.assertEqual(
-            str(context.exception),
+            str(cm.exception),
             "If the parameter clus is set to genes"
             " or both it is not possible to use "
             "the cat parameter",

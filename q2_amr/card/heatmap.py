@@ -1,3 +1,4 @@
+import glob
 import os
 import shutil
 import subprocess
@@ -26,14 +27,10 @@ def heatmap(
         json_files_dir = os.path.join(tmp, "json_files")
         os.makedirs(results_dir)
         os.makedirs(json_files_dir)
-        for sample in os.listdir(annotation_dir):
-            for bin in os.listdir(os.path.join(annotation_dir, sample)):
-                for file in os.listdir(os.path.join(annotation_dir, sample, bin)):
-                    if file.endswith(".json"):
-                        shutil.copy(
-                            os.path.join(annotation_dir, sample, bin, file),
-                            os.path.join(json_files_dir, f"{sample}_{bin}.json"),
-                        )
+        for json_file in glob.glob(os.path.join(annotation_dir, "*", "*", "*.json")):
+            sample, bin_name, _ = json_file.split(os.path.sep)[-3:]
+            destination_path = os.path.join(json_files_dir, f"{sample}_{bin_name}")
+            shutil.copy(json_file, destination_path)
 
         run_rgi_heatmap(tmp, json_files_dir, clus, cat, display, frequency)
         change_names(results_dir)
@@ -62,18 +59,18 @@ def run_rgi_heatmap(tmp, json_files_dir, clus, cat, display, frequency):
         "--display",
         display,
     ]
-    if clus:
-        cmd.extend(["--clus", clus])
-    if cat:
-        cmd.extend(["--cat", cat])
-    if frequency:
-        cmd.append("--frequency")
     if (clus == "both" or clus == "genes") and cat:
         raise InvalidParameterCombinationError(
             "If the parameter clus is set to genes "
             "or both it is not possible to use the "
             "cat parameter"
         )
+    if clus:
+        cmd.extend(["--clus", clus])
+    if cat:
+        cmd.extend(["--cat", cat])
+    if frequency:
+        cmd.append("--frequency")
     try:
         run_command(cmd, tmp, verbose=True)
     except subprocess.CalledProcessError as e:
@@ -85,6 +82,15 @@ def run_rgi_heatmap(tmp, json_files_dir, clus, cat, display, frequency):
 
 
 def change_names(results_dir):
+    """
+    This function changes the names of the output files of the "rgi heatmap" function.
+    The output files are called heatmap-*.extension with * being the number of samples
+    included in the heatmap. The files are changed to heatmap.extension so that they
+    can be accessed in the index.html file more easily.
+
+    Parameters:
+    - results_dir (str): The directory where the files are stored.
+    """
     extensions = [".eps", ".csv", ".png"]
     files = os.listdir(results_dir)
     for filename in files:
