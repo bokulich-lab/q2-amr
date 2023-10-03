@@ -175,8 +175,7 @@ def _11(data: CARDAnnotationDirectoryFormat) -> ProteinsDirectoryFormat:
     return proteins_directory
 
 
-def create_dir_structure(data, seq_type, genes_protein_directory):
-    annotation_dir = data
+def create_dir_structure(annotation_dir, seq_type, genes_protein_directory):
     for sample in os.listdir(annotation_dir):
         for bin in os.listdir(os.path.join(annotation_dir, sample)):
             for file in os.listdir(os.path.join(annotation_dir, sample, bin)):
@@ -246,10 +245,10 @@ def _14(data: CARDAnnotationDirectoryFormat) -> qiime2.Metadata:
     return tabulate_data(data, "mags")
 
 
-def tabulate_data(data_path, data):
+def tabulate_data(data_path, data_type):
     df_list = []
     for samp in os.listdir(str(data_path)):
-        if data == "mags":
+        if data_type == "mags":
             for bin in os.listdir(os.path.join(str(data_path), samp)):
                 file_path = os.path.join(
                     str(data_path), samp, bin, "amr_annotation.txt"
@@ -257,17 +256,17 @@ def tabulate_data(data_path, data):
                 df = pd.read_csv(file_path, sep="\t")
                 df.insert(0, "Sample Name", f"{samp}/{bin}")
                 df["Nudged"] = df["Nudged"].astype(str)
-                df_list.append(df)
-        elif data == "gene" or "allele":
-            file_path = os.path.join(str(data_path), samp, f"{data}_mapping_data.txt")
-        df = pd.read_csv(file_path, sep="\t")
-        df.insert(0, "Sample Name", samp)
+        elif data_type == "gene" or "allele":
+            file_path = os.path.join(
+                str(data_path), samp, f"{data_type}_mapping_data.txt"
+            )
+            df = pd.read_csv(file_path, sep="\t")
+            df.insert(0, "Sample Name", samp)
         df_list.append(df)
     df_combined = pd.concat(df_list, axis=0)
     df_combined.reset_index(inplace=True, drop=True)
     df_combined.index.name = "id"
     df_combined.index = df_combined.index.astype(str)
-    if data == "mags":
+    if data_type == "mags":
         df_combined.rename(columns={"ID": "HSP_Identifier"}, inplace=True)
-    metadata = qiime2.Metadata(df_combined)
-    return metadata
+    return qiime2.Metadata(df_combined)

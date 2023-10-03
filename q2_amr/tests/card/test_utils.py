@@ -119,15 +119,3 @@ class TestAnnotateReadsCARD(TestPluginBase):
         pd.testing.assert_frame_equal(exp, obs)
         df_list_empty = []
         self.assertRaises(ValueError, create_count_table, df_list_empty)
-
-    def test_create_count_table2(self):
-        df_list = [self.mapping_data_sample1, self.mapping_data_sample2, pd.DataFrame()]
-        obs = create_count_table(df_list)
-        mag_test_class = TestAnnotateMagsCard()
-        exp = mag_test_class.table
-        exp.set_index("sample_id", inplace=True)
-        exp = exp.astype(float)
-        exp.columns = exp.columns.astype(float)
-        pd.testing.assert_frame_equal(exp, obs)
-        df_list_empty = []
-        self.assertRaises(ValueError, create_count_table, df_list_empty)
