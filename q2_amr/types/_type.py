@@ -9,6 +9,7 @@ from q2_types.sample_data import SampleData
 from qiime2.plugin import SemanticType
 
 CARDDatabase = SemanticType("CARDDatabase")
+CARDKmerDatabase = SemanticType("CARDKmerDatabase")
 CARDAnnotation = SemanticType("CARDAnnotation", variant_of=SampleData.field["type"])
 CARDAlleleAnnotation = SemanticType(
     "CARDAlleleAnnotation", variant_of=SampleData.field["type"]

@@ -36,8 +36,18 @@ from q2_amr.types._format import (
     CARDAnnotationStatsFormat,
     CARDGeneAnnotationDirectoryFormat,
     CARDGeneAnnotationFormat,
+    CARDKmerDatabaseDirectoryFormat,
+    CARDKmerJSONFormat,
+    CARDKmerTXTFormat,
+    CARDWildcardIndexFormat,
+    ExtendedDNAFASTAFormat,
 )
-from q2_amr.types._type import CARDAlleleAnnotation, CARDAnnotation, CARDGeneAnnotation
+from q2_amr.types._type import (
+    CARDAlleleAnnotation,
+    CARDAnnotation,
+    CARDGeneAnnotation,
+    CARDKmerDatabase,
+)
 
 citations = Citations.load("citations.bib", package="q2_amr")
 
@@ -55,15 +65,19 @@ plugin.methods.register_function(
     function=fetch_card_db,
     inputs={},
     parameters={},
-    outputs=[("card_db", CARDDatabase)],
+    outputs=[("card_db", CARDDatabase), ("kmer_db", CARDKmerDatabase)],
     input_descriptions={},
     parameter_descriptions={},
     output_descriptions={
-        "card_db": "CARD database of resistance genes, their products and associated "
-        "phenotypes."
+        "card_db": "CARD and WildCARD database of resistance genes, their products and "
+        "associated phenotypes.",
+        "kmer_db": "Database of k-mers that are uniquely found within AMR alleles of "
+        "individual pathogen species, pathogen genera, pathogen-restricted "
+        "plasmids, or promiscuous plasmids. The default k-mer length is 61 "
+        "bp, but users can create k-mers of any length.",
     },
-    name="Download CARD data.",
-    description=("Download the latest version of the CARD database."),
+    name="Download CARD and WildCARD data.",
+    description="Download the latest version of the CARD and WildCARD databases.",
     citations=[citations["alcock_card_2023"]],
 )
 
@@ -179,9 +193,16 @@ plugin.visualizers.register_function(
 
 # Registrations
 plugin.register_semantic_types(
-    CARDDatabase, CARDAnnotation, CARDAlleleAnnotation, CARDGeneAnnotation
+    CARDDatabase,
+    CARDKmerDatabase,
+    CARDAnnotation,
+    CARDAlleleAnnotation,
+    CARDGeneAnnotation,
 )
 
+plugin.register_semantic_type_to_format(
+    CARDKmerDatabase, artifact_format=CARDKmerDatabaseDirectoryFormat
+)
 plugin.register_semantic_type_to_format(
     CARDDatabase, artifact_format=CARDDatabaseDirectoryFormat
 )
@@ -197,6 +218,11 @@ plugin.register_semantic_type_to_format(
 )
 
 plugin.register_formats(
+    CARDKmerDatabaseDirectoryFormat,
+    CARDKmerJSONFormat,
+    CARDKmerTXTFormat,
+    ExtendedDNAFASTAFormat,
+    CARDWildcardIndexFormat,
     CARDAnnotationTXTFormat,
     CARDAnnotationJSONFormat,
     CARDAnnotationDirectoryFormat,

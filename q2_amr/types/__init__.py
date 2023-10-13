@@ -17,12 +17,18 @@ from ._format import (
     CARDDatabaseFormat,
     CARDGeneAnnotationDirectoryFormat,
     CARDGeneAnnotationFormat,
+    CARDKmerDatabaseDirectoryFormat,
+    CARDKmerJSONFormat,
+    CARDKmerTXTFormat,
+    CARDWildcardIndexFormat,
+    ExtendedDNAFASTAFormat,
 )
 from ._type import (
     CARDAlleleAnnotation,
     CARDAnnotation,
     CARDDatabase,
     CARDGeneAnnotation,
+    CARDKmerDatabase,
 )
 
 __all__ = [
@@ -40,4 +46,10 @@ __all__ = [
     "CARDAnnotation",
     "CARDAlleleAnnotation",
     "CARDGeneAnnotation",
+    "CARDKmerDatabaseDirectoryFormat",
+    "CARDKmerJSONFormat",
+    "CARDKmerTXTFormat",
+    "ExtendedDNAFASTAFormat",
+    "CARDWildcardIndexFormat",
+    "CARDKmerDatabase",
 ]

@@ -31,6 +31,10 @@ from q2_amr.types._format import (
     CARDAnnotationDirectoryFormat,
     CARDAnnotationTXTFormat,
     CARDDatabaseFormat,
+    CARDKmerJSONFormat,
+    CARDKmerTXTFormat,
+    CARDWildcardIndexFormat,
+    ExtendedDNAFASTAFormat,
 )
 from q2_amr.types._transformer import (
     _read_from_card_file,
@@ -57,6 +61,16 @@ class TestCARDDatabaseTypesAndFormats(AMRTypesTestPluginBase):
     def test_card_database_format_validate_positive(self):
         filepath = self.get_data_path("card_test.json")
         format = CARDDatabaseFormat(filepath, mode="r")
+        format.validate()
+
+    def test_wildcard_index_format_validate_positive(self):
+        filepath = self.get_data_path("index-for-model-sequences-test.txt")
+        format = CARDWildcardIndexFormat(filepath, mode="r")
+        format.validate()
+
+    def test_extended_dna_fasta_format_validate_positive(self):
+        filepath = self.get_data_path("DNA_fasta_-.fasta")
+        format = ExtendedDNAFASTAFormat(filepath, mode="r")
         format.validate()
 
     def test_dataframe_to_card_format_transformer(self):
@@ -162,6 +176,18 @@ class TestCARDDatabaseTypesAndFormats(AMRTypesTestPluginBase):
         genomes = _read_from_card_file(path, "protein")
         generator = ProteinIterator(genomes)
         self.assertIsInstance(generator, ProteinIterator)
+
+
+class TestCARDCARDKmerDirectoryTypesAndFormats(AMRTypesTestPluginBase):
+    def test_kmer_txt_format_validate_positive(self):
+        filepath = self.get_data_path("kmer_txt_test.txt")
+        format = CARDKmerTXTFormat(filepath, mode="r")
+        format.validate()
+
+    def test_kmer_json_format_validate_positive(self):
+        filepath = self.get_data_path("kmer_json_test.json")
+        format = CARDKmerJSONFormat(filepath, mode="r")
+        format.validate()
 
 
 class TestCARDMagsAnnotationTypesAndFormats(AMRTypesTestPluginBase):
