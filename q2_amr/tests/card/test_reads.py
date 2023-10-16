@@ -2,7 +2,6 @@ import os
 import shutil
 import subprocess
 import tempfile
-from copy import deepcopy
 from unittest.mock import ANY, MagicMock, call, patch
 
 import pandas as pd
@@ -11,14 +10,13 @@ from q2_types.per_sample_sequences import (
     SingleLanePerSampleSingleEndFastqDirFmt,
 )
 from qiime2.plugin.testing import TestPluginBase
+from test_mags import TestAnnotateMagsCard
 
 from q2_amr.card.reads import (
     annotate_reads_card,
-    create_count_table,
     extract_sample_stats,
     move_files,
     plot_sample_stats,
-    read_in_txt,
     run_rgi_bwt,
     visualize_annotation_stats,
 )
@@ -38,38 +36,31 @@ class TestAnnotateReadsCARD(TestPluginBase):
     def test_annotate_reads_card_paired(self):
         self.annotate_reads_card_test_body("paired")
 
+    def copy_needed_files(self, cwd, samp, **kwargs):
+        output_allele = self.get_data_path("output.allele_mapping_data.txt")
+        output_gene = self.get_data_path("output.gene_mapping_data.txt")
+        output_stats = self.get_data_path("output.overall_mapping_stats.txt")
+        samp_dir = os.path.join(cwd, samp)
+        shutil.copy(output_allele, samp_dir)
+        shutil.copy(output_gene, samp_dir)
+        shutil.copy(output_stats, samp_dir)
+
     def annotate_reads_card_test_body(self, read_type):
         manifest = self.get_data_path(f"MANIFEST_reads_{read_type}")
         if read_type == "single":
             reads = SingleLanePerSampleSingleEndFastqDirFmt()
             shutil.copy(manifest, os.path.join(str(reads), "MANIFEST"))
-
         else:
             reads = SingleLanePerSamplePairedEndFastqDirFmt()
             shutil.copy(manifest, os.path.join(str(reads), "MANIFEST"))
-
-        output_allele = self.get_data_path("output.allele_mapping_data.txt")
-        output_gene = self.get_data_path("output.gene_mapping_data.txt")
-        output_stats = self.get_data_path("output.overall_mapping_stats.txt")
         card_db = CARDDatabaseFormat()
-
-        def copy_needed_files(cwd, samp, **kwargs):
-            samp_dir = os.path.join(cwd, samp)
-            shutil.copy(output_allele, samp_dir)
-            shutil.copy(output_gene, samp_dir)
-            shutil.copy(output_stats, samp_dir)
-
-        def return_count_table(df_list):
-            count_table = deepcopy(self.table)
-            count_table.set_index("sample_id", inplace=True)
-            count_table = count_table.astype(float)
-            count_table.columns = count_table.columns.astype(float)
-            return count_table
-
-        mock_run_rgi_bwt = MagicMock(side_effect=copy_needed_files)
+        mock_run_rgi_bwt = MagicMock(side_effect=self.copy_needed_files)
         mock_run_rgi_load = MagicMock()
         mock_read_in_txt = MagicMock()
-        mock_create_count_table = MagicMock(side_effect=return_count_table)
+        mag_test_class = TestAnnotateMagsCard()
+        mock_create_count_table = MagicMock(
+            side_effect=mag_test_class.return_count_table
+        )
         with patch("q2_amr.card.reads.run_rgi_bwt", mock_run_rgi_bwt), patch(
             "q2_amr.card.reads.load_preprocess_card_db", mock_run_rgi_load
         ), patch("q2_amr.card.reads.read_in_txt", mock_read_in_txt), patch(
@@ -87,10 +78,6 @@ class TestAnnotateReadsCARD(TestPluginBase):
                         aligner="kma",
                         rev=None,
                         threads=1,
-                        include_baits=False,
-                        mapq=None,
-                        mapped=None,
-                        coverage=None,
                     ),
                     call(
                         cwd=tmp_dir,
@@ -99,10 +86,6 @@ class TestAnnotateReadsCARD(TestPluginBase):
                         aligner="kma",
                         rev=None,
                         threads=1,
-                        include_baits=False,
-                        mapq=None,
-                        mapped=None,
-                        coverage=None,
                     ),
                 ]
             else:
@@ -114,10 +97,6 @@ class TestAnnotateReadsCARD(TestPluginBase):
                         rev=f"{reads}/sample1_00_L001_R2_001.fastq.gz",
                         aligner="kma",
                         threads=1,
-                        include_baits=False,
-                        mapq=None,
-                        mapped=None,
-                        coverage=None,
                     ),
                     call(
                         cwd=tmp_dir,
@@ -126,10 +105,6 @@ class TestAnnotateReadsCARD(TestPluginBase):
                         rev=f"{reads}/sample2_00_L001_R2_001.fastq.gz",
                         aligner="kma",
                         threads=1,
-                        include_baits=False,
-                        mapq=None,
-                        mapped=None,
-                        coverage=None,
                     ),
                 ]
             exp_calls_mock_load = [
@@ -138,10 +113,26 @@ class TestAnnotateReadsCARD(TestPluginBase):
                 call(tmp_dir, ANY, "load_fasta"),
             ]
             exp_calls_mock_read = [
-                call(f"{tmp_dir}/sample1", "allele"),
-                call(f"{tmp_dir}/sample1", "gene"),
-                call(f"{tmp_dir}/sample2", "allele"),
-                call(f"{tmp_dir}/sample2", "gene"),
+                call(
+                    path=f"{tmp_dir}/sample1/output.allele_mapping_data.txt",
+                    col_name="ARO Accession",
+                    samp_bin_name="sample1",
+                ),
+                call(
+                    path=f"{tmp_dir}/sample1/output.gene_mapping_data.txt",
+                    col_name="ARO Accession",
+                    samp_bin_name="sample1",
+                ),
+                call(
+                    path=f"{tmp_dir}/sample2/output.allele_mapping_data.txt",
+                    col_name="ARO Accession",
+                    samp_bin_name="sample2",
+                ),
+                call(
+                    path=f"{tmp_dir}/sample2/output.gene_mapping_data.txt",
+                    col_name="ARO Accession",
+                    samp_bin_name="sample2",
+                ),
             ]
             exp_calls_mock_count = [call([ANY, ANY]), call([ANY, ANY])]
             mock_run_rgi_bwt.assert_has_calls(exp_calls_mock_run)
@@ -172,10 +163,6 @@ class TestAnnotateReadsCARD(TestPluginBase):
                 "path_rev",
                 "bowtie2",
                 8,
-                True,
-                3,
-                5,
-                3.2,
             )
             mock_run_command.assert_called_once_with(
                 [
@@ -193,26 +180,21 @@ class TestAnnotateReadsCARD(TestPluginBase):
                     "bowtie2",
                     "--read_two",
                     "path_rev",
-                    "--include_baits",
-                    "--mapq",
-                    "3",
-                    "--mapped",
-                    "5",
-                    "--coverage",
-                    "3.2",
                 ],
                 "path_tmp",
                 verbose=True,
             )
 
-    @patch("q2_amr.card.reads.run_command")
-    def test_exception_raised(self, mock_run_command):
-        mock_run_command.side_effect = subprocess.CalledProcessError(1, "cmd")
+    def test_exception_raised(self):
         expected_message = (
             "An error was encountered while running rgi, "
             "(return code 1), please inspect stdout and stderr to learn more."
         )
-        with self.assertRaises(Exception) as cm:
+
+        with patch(
+            "q2_amr.card.reads.run_command"
+        ) as mock_run_command, self.assertRaises(Exception) as cm:
+            mock_run_command.side_effect = subprocess.CalledProcessError(1, "cmd")
             run_rgi_bwt(
                 cwd="path/cwd",
                 samp="sample1",
@@ -220,12 +202,8 @@ class TestAnnotateReadsCARD(TestPluginBase):
                 rev="path/rev",
                 aligner="bwa",
                 threads=1,
-                include_baits=True,
-                mapq=0.3,
-                mapped=0.3,
-                coverage=0.3,
             )
-        self.assertEqual(str(cm.exception), expected_message)
+            self.assertEqual(str(cm.exception), expected_message)
 
     def test_move_files_allele(self):
         self.move_files_test_body("allele")
@@ -312,54 +290,3 @@ class TestAnnotateReadsCARD(TestPluginBase):
             self.assertTrue(os.path.exists(os.path.join(tmp, "sample_stats_plot.html")))
             self.assertTrue(os.path.exists(os.path.join(tmp, "index.html")))
             self.assertTrue(os.path.exists(os.path.join(tmp, "q2templateassets")))
-
-    mapping_data_sample1 = pd.DataFrame(
-        {
-            "ARO Accession": [3000796, 3000815, 3000805, 3000026],
-            "sample1": [1, 1, 1, 1],
-        }
-    )
-
-    mapping_data_sample2 = pd.DataFrame(
-        {
-            "ARO Accession": [3000797, 3000815, 3000805, 3000026],
-            "sample2": [1, 1, 1, 2],
-        }
-    )
-
-    table = pd.DataFrame(
-        {
-            "sample_id": ["sample1", "sample2"],
-            3000796: [1, 0],
-            3000815: [1, 1],
-            3000805: [1, 1],
-            3000026: [1, 2],
-            3000797: [0, 1],
-        }
-    )
-
-    def test_read_in_txt_allele(self):
-        self.read_in_txt_test_body("allele", self.mapping_data_sample1)
-
-    def test_read_in_txt_gene(self):
-        self.read_in_txt_test_body("gene", self.mapping_data_sample1)
-
-    def read_in_txt_test_body(self, map_type, mapping_data):
-        mapping_file = self.get_data_path(f"output.{map_type}_mapping_data.txt")
-        exp = mapping_data
-        with tempfile.TemporaryDirectory() as tmp:
-            samp_dir = os.path.join(tmp, "sample1")
-            os.mkdir(samp_dir)
-            shutil.copy(mapping_file, samp_dir)
-            obs = read_in_txt(samp_dir, map_type)
-            obs["ARO Accession"] = obs["ARO Accession"].astype(int)
-            pd.testing.assert_frame_equal(exp, obs)
-
-    def test_create_count_table(self):
-        df_list = [self.mapping_data_sample1, self.mapping_data_sample2]
-        obs = create_count_table(df_list)
-        exp = self.table
-        exp.set_index("sample_id", inplace=True)
-        exp = exp.astype(float)
-        exp.columns = exp.columns.astype(float)
-        pd.testing.assert_frame_equal(exp, obs)

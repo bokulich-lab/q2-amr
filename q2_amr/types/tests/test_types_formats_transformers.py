@@ -224,6 +224,16 @@ class TestCARDMagsAnnotationTypesAndFormats(AMRTypesTestPluginBase):
             os.path.exists(os.path.join(str(obs), "sample2", "bin1_proteins.fasta"))
         )
 
+    def test_CARDAnnotationDirectoryFormat_to_qiime2_Metadata_transformer(self):
+        transformer = self.get_transformer(
+            CARDAnnotationDirectoryFormat, qiime2.Metadata
+        )
+        annotation = CARDAnnotationDirectoryFormat(
+            self.get_data_path("annotate_mags_output"), "r"
+        )
+        metadata_obt = transformer(annotation)
+        self.assertIsInstance(metadata_obt, qiime2.Metadata)
+
 
 class TestCARDReadsAnnotationTypesAndFormats(AMRTypesTestPluginBase):
     def test_CARDGeneAnnotationDirectoryFormat_to_qiime2_Metadata_transformer(self):
