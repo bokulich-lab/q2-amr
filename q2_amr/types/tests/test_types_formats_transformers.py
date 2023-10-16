@@ -34,7 +34,7 @@ from q2_amr.types._format import (
     CARDKmerJSONFormat,
     CARDKmerTXTFormat,
     CARDWildcardIndexFormat,
-    ExtendedDNAFASTAFormat,
+    GapDNAFASTAFormat,
 )
 from q2_amr.types._transformer import (
     _read_from_card_file,
@@ -70,7 +70,7 @@ class TestCARDDatabaseTypesAndFormats(AMRTypesTestPluginBase):
 
     def test_extended_dna_fasta_format_validate_positive(self):
         filepath = self.get_data_path("DNA_fasta_-.fasta")
-        format = ExtendedDNAFASTAFormat(filepath, mode="r")
+        format = GapDNAFASTAFormat(filepath, mode="r")
         format.validate()
 
     def test_dataframe_to_card_format_transformer(self):

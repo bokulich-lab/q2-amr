@@ -40,7 +40,7 @@ from q2_amr.types._format import (
     CARDKmerJSONFormat,
     CARDKmerTXTFormat,
     CARDWildcardIndexFormat,
-    ExtendedDNAFASTAFormat,
+    GapDNAFASTAFormat,
 )
 from q2_amr.types._type import (
     CARDAlleleAnnotation,
@@ -221,7 +221,7 @@ plugin.register_formats(
     CARDKmerDatabaseDirectoryFormat,
     CARDKmerJSONFormat,
     CARDKmerTXTFormat,
-    ExtendedDNAFASTAFormat,
+    GapDNAFASTAFormat,
     CARDWildcardIndexFormat,
     CARDAnnotationTXTFormat,
     CARDAnnotationJSONFormat,

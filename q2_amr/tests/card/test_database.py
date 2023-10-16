@@ -105,7 +105,7 @@ class TestAnnotateMagsCard(TestPluginBase):
                     "rgi",
                     "wildcard_annotation",
                     "-i",
-                    "wildcard_unzip",
+                    "wildcard",
                     "--card_json",
                     "card/card.json",
                     "-v",

@@ -21,7 +21,7 @@ from ._format import (
     CARDKmerJSONFormat,
     CARDKmerTXTFormat,
     CARDWildcardIndexFormat,
-    ExtendedDNAFASTAFormat,
+    GapDNAFASTAFormat,
 )
 from ._type import (
     CARDAlleleAnnotation,
@@ -49,7 +49,7 @@ __all__ = [
     "CARDKmerDatabaseDirectoryFormat",
     "CARDKmerJSONFormat",
     "CARDKmerTXTFormat",
-    "ExtendedDNAFASTAFormat",
+    "GapDNAFASTAFormat",
     "CARDWildcardIndexFormat",
     "CARDKmerDatabase",
 ]

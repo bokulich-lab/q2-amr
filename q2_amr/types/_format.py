@@ -87,7 +87,7 @@ class CARDWildcardIndexFormat(model.TextFileFormat):
         self._validate()
 
 
-class ExtendedDNAFASTAFormat(DNAFASTAFormat):
+class GapDNAFASTAFormat(DNAFASTAFormat):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.alphabet += "-"
@@ -98,11 +98,11 @@ class CARDDatabaseDirectoryFormat(model.DirectoryFormat):
         r"card_database_v\d+\.\d+\.\d+.fasta", format=DNAFASTAFormat
     )
     card_fasta_all = model.File(
-        r"card_database_v\d+\.\d+\.\d+_all.fasta", format=ExtendedDNAFASTAFormat
+        r"card_database_v\d+\.\d+\.\d+_all.fasta", format=GapDNAFASTAFormat
     )
     wildcard = model.File(r"wildcard_database_v0.fasta", format=DNAFASTAFormat)
     wildcard_all = model.File(
-        r"wildcard_database_v0_all.fasta", format=ExtendedDNAFASTAFormat
+        r"wildcard_database_v0_all.fasta", format=GapDNAFASTAFormat
     )
     card_json = model.File("card.json", format=CARDDatabaseFormat)
     index = model.File("index-for-model-sequences.txt", format=CARDWildcardIndexFormat)
@@ -146,8 +146,8 @@ class CARDKmerJSONFormat(model.TextFileFormat):
 
 
 class CARDKmerDatabaseDirectoryFormat(model.DirectoryFormat):
-    kmer_json = model.File(r"\d+_kmer_db.json", format=DNAFASTAFormat)
-    kmer_fasta = model.File(r"all_amr_\d+mers.txt", format=ExtendedDNAFASTAFormat)
+    kmer_json = model.File(r"\d+_kmer_db.json", format=CARDKmerJSONFormat)
+    kmer_fasta = model.File(r"all_amr_\d+mers.txt", format=CARDKmerTXTFormat)
     homolog_model = model.File(
         r"nucleotide_fasta_protein_homolog_model_variants.fasta", format=DNAFASTAFormat
     )
@@ -156,12 +156,12 @@ class CARDKmerDatabaseDirectoryFormat(model.DirectoryFormat):
         format=DNAFASTAFormat,
     )
     protein_model = model.File(
-        r"nucleotide_fasta_protein_variant_model_variants.fasta.fasta",
+        r"nucleotide_fasta_protein_variant_model_variants.fasta",
         format=DNAFASTAFormat,
     )
     rRNA_model = model.File(
-        r"nucleotide_fasta_rRNA_gene_variant_model_variants.fasta.fasta",
-        format=DNAFASTAFormat,
+        r"nucleotide_fasta_rRNA_gene_variant_model_variants.fasta",
+        format=GapDNAFASTAFormat,
     )
 
     card = model.File("card.json", format=CARDDatabaseFormat)
