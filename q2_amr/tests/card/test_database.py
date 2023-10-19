@@ -1,17 +1,13 @@
 import os
 import shutil
+import subprocess
 import tarfile
-import tempfile
 from unittest.mock import MagicMock, call, patch
 
 import requests
 from qiime2.plugin.testing import TestPluginBase
 
-from q2_amr.card.database import (
-    fetch_card_db,
-    move_card_index_wildcard_files,
-    preprocess,
-)
+from q2_amr.card.database import fetch_card_db, preprocess
 from q2_amr.types import CARDDatabaseDirectoryFormat, CARDKmerDatabaseDirectoryFormat
 
 
@@ -83,10 +79,21 @@ class TestAnnotateMagsCard(TestPluginBase):
             fetch_card_db()
 
     def test_tarfile_read_error(self):
-        with patch(
-            "tarfile.open", side_effect=tarfile.ReadError
+        with patch("tarfile.open", side_effect=tarfile.ReadError), patch(
+            "requests.get"
         ), self.assertRaisesRegex(tarfile.ReadError, "Tarfile is invalid."):
             fetch_card_db()
+
+    def test_subprocess_error(self):
+        with patch(
+            "q2_amr.card.database.run_command",
+            side_effect=subprocess.CalledProcessError(1, "cmd"),
+        ), self.assertRaisesRegex(
+            Exception,
+            "An error was encountered while running rgi, "
+            r"\(return code 1\), please inspect stdout and stderr to learn more.",
+        ):
+            preprocess("path", "card")
 
     def test_preprocess_card(self):
         with patch("q2_amr.card.database.run_command") as mock_run_command:
@@ -114,20 +121,3 @@ class TestAnnotateMagsCard(TestPluginBase):
                 "path_tmp",
                 verbose=True,
             )
-
-    def test_move_files(self):
-        card_db = CARDDatabaseDirectoryFormat()
-        with tempfile.TemporaryDirectory() as tmp:
-            file_scr_des = [
-                ("card.json", os.path.join(tmp, "card"), str(card_db)),
-                ("index-for-model-sequences.txt", tmp, str(card_db)),
-            ]
-            os.mkdir(os.path.join(tmp, "card"))
-            for file, src_dir, _ in file_scr_des:
-                with open(os.path.join(src_dir, file), "w") as f:
-                    f.write("Sample content")
-
-            move_card_index_wildcard_files(file_scr_des)
-
-            for file, _, des_dir in file_scr_des:
-                self.assertTrue(os.path.exists(os.path.join(des_dir, file)))

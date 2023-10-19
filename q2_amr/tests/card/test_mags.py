@@ -60,7 +60,7 @@ class TestAnnotateMagsCard(TestPluginBase):
         mock_read_in_txt = MagicMock()
         with patch(
             "q2_amr.card.mags.run_rgi_main", side_effect=self.mock_run_rgi_main
-        ), patch("q2_amr.card.mags.load_preprocess_card_db"), patch(
+        ), patch("q2_amr.card.mags.load_card_db"), patch(
             "q2_amr.card.mags.read_in_txt", mock_read_in_txt
         ), patch(
             "q2_amr.card.mags.create_count_table", mock_create_count_table

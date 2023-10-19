@@ -27,13 +27,13 @@ def fetch_card_db() -> (CARDDatabaseDirectoryFormat, CARDKmerDatabaseDirectoryFo
     with tempfile.TemporaryDirectory() as tmp_dir:
         os.mkdir(os.path.join(tmp_dir, "wildcard"))
         try:
-            with tarfile.open(fileobj=response_card.raw, mode="r|bz2") as tar:
-                tar.extractall(path=os.path.join(tmp_dir, "card"))
-        except tarfile.ReadError as a:
-            raise tarfile.ReadError("Tarfile is invalid.") from a
-        try:
-            with tarfile.open(fileobj=response_wildcard.raw, mode="r|bz2") as tar:
-                tar.extractall(path=os.path.join(tmp_dir, "wildcard_zip"))
+            with tarfile.open(
+                fileobj=response_card.raw, mode="r|bz2"
+            ) as c_tar, tarfile.open(
+                fileobj=response_wildcard.raw, mode="r|bz2"
+            ) as wc_tar:
+                c_tar.extractall(path=os.path.join(tmp_dir, "card"))
+                wc_tar.extractall(path=os.path.join(tmp_dir, "wildcard_zip"))
         except tarfile.ReadError as a:
             raise tarfile.ReadError("Tarfile is invalid.") from a
         files = (
@@ -95,13 +95,10 @@ def fetch_card_db() -> (CARDDatabaseDirectoryFormat, CARDKmerDatabaseDirectoryFo
             (card_db_files[0], tmp_dir, str(card_db)),
             (card_db_files[1], tmp_dir, str(card_db)),
         ]
-        move_card_index_wildcard_files(files_paths=file_src_des)
+        for file, src_dir, des_dir in file_src_des:
+            shutil.move(os.path.join(src_dir, file), os.path.join(des_dir, file))
+        print("a")
         return card_db, kmer_db
-
-
-def move_card_index_wildcard_files(files_paths):
-    for file, src_dir, des_dir in files_paths:
-        shutil.move(os.path.join(src_dir, file), os.path.join(des_dir, file))
 
 
 def preprocess(dir, operation):

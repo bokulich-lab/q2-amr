@@ -104,8 +104,8 @@ class CARDDatabaseDirectoryFormat(model.DirectoryFormat):
     wildcard_all = model.File(
         r"wildcard_database_v0_all.fasta", format=GapDNAFASTAFormat
     )
-    card_json = model.File("card.json", format=CARDDatabaseFormat)
-    index = model.File("index-for-model-sequences.txt", format=CARDWildcardIndexFormat)
+    card_json = model.File(r"card.json", format=CARDDatabaseFormat)
+    index = model.File(r"index-for-model-sequences.txt", format=CARDWildcardIndexFormat)
 
 
 class CARDKmerTXTFormat(model.TextFileFormat):
@@ -163,9 +163,6 @@ class CARDKmerDatabaseDirectoryFormat(model.DirectoryFormat):
         r"nucleotide_fasta_rRNA_gene_variant_model_variants.fasta",
         format=GapDNAFASTAFormat,
     )
-
-    card = model.File("card.json", format=CARDDatabaseFormat)
-    index = model.File("index-for-model-sequences.txt", format=CARDWildcardIndexFormat)
 
 
 class CARDAnnotationTXTFormat(model.TextFileFormat):

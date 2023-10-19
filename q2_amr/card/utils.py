@@ -1,4 +1,5 @@
 import json
+import os
 import subprocess
 from functools import reduce
 
@@ -21,24 +22,43 @@ def run_command(cmd, cwd, verbose=True):
     subprocess.run(cmd, check=True, cwd=cwd)
 
 
-def load_preprocess_card_db(tmp, card_db, operation):
+def load_card_db(tmp, card_db, operation, all_models, wildcard):
+    path_card_json = os.path.join(str(card_db), "card.json")
     if operation == "load":
-        cmd = ["rgi", "load", "--card_json", str(card_db), "--local"]
-    elif operation == "preprocess":
-        cmd = ["rgi", "card_annotation", "-i", str(card_db)]
+        cmd = ["rgi", "load", "--card_json", path_card_json, "--local"]
     elif operation == "load_fasta":
-        with open(str(card_db)) as f:
+        with open(path_card_json) as f:
             card_data = json.load(f)
             version = card_data["_version"]
+        models = ("_all", "_all_models") if all_models is True else ("", "")
+        path_card_fasta = os.path.join(
+            str(card_db), f"card_database_v{version}{models[0]}.fasta"
+        )
         cmd = [
             "rgi",
             "load",
             "-i",
-            str(card_db),
-            "--card_annotation",
-            f"card_database_v{version}.fasta",
+            path_card_json,
+            f"--card_annotation{models[1]}",
+            path_card_fasta,
             "--local",
         ]
+        if wildcard:
+            path_wildcard_fasta = os.path.join(
+                str(card_db), f"wildcard_database_v0{models[0]}.fasta"
+            )
+            path_wildcard_index = os.path.join(
+                str(card_db), "index-for-model-sequences.txt"
+            )
+            cmd.extend(
+                [
+                    f"--wildcard_annotation{models[1]}",
+                    path_wildcard_fasta,
+                    "--wildcard_index",
+                    path_wildcard_index,
+                ]
+            )
+
     try:
         run_command(cmd, tmp, verbose=True)
     except subprocess.CalledProcessError as e:

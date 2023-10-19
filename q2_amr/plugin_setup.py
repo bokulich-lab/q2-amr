@@ -128,6 +128,8 @@ plugin.methods.register_function(
     parameters={
         "aligner": Str % Choices(["kma", "bowtie2", "bwa"]),
         "threads": Int % Range(0, None, inclusive_start=False),
+        "include_wildcard": Bool,
+        "include_other_models": Bool,
     },
     outputs=[
         ("amr_allele_annotation", SampleData[CARDAlleleAnnotation]),
@@ -142,6 +144,21 @@ plugin.methods.register_function(
     parameter_descriptions={
         "aligner": "Specify alignment tool.",
         "threads": "Number of threads (CPUs) to use.",
+        "include_wildcard": "Additionally align reads to the in silico predicted "
+        "allelic variants available in CARD's Resistomes & Variants"
+        " data set. This is highly recommended for non-clinical "
+        "samples .",
+        "include_other_models": "The default settings for will align reads against "
+        "CARD's protein homolog models. With include_other_"
+        "models set to True reads are additionally aligned to "
+        "protein variant models, rRNA mutation models, and "
+        "protein over-expression models. These three model "
+        "types require comparison to CARD's curated lists of "
+        "mutations known to confer phenotypic antibiotic "
+        "resistance to differentiate alleles conferring "
+        "resistance from antibiotic susceptible alleles, "
+        "but RGI as of yet does not perform this comparison. "
+        "Use these results with caution.",
     },
     output_descriptions={
         "amr_allele_annotation": "AMR annotation mapped on alleles.",

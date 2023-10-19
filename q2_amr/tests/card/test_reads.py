@@ -62,7 +62,7 @@ class TestAnnotateReadsCARD(TestPluginBase):
             side_effect=mag_test_class.return_count_table
         )
         with patch("q2_amr.card.reads.run_rgi_bwt", mock_run_rgi_bwt), patch(
-            "q2_amr.card.reads.load_preprocess_card_db", mock_run_rgi_load
+            "q2_amr.card.reads.load_card_db", mock_run_rgi_load
         ), patch("q2_amr.card.reads.read_in_txt", mock_read_in_txt), patch(
             "q2_amr.card.reads.create_count_table", mock_create_count_table
         ):
@@ -78,6 +78,8 @@ class TestAnnotateReadsCARD(TestPluginBase):
                         aligner="kma",
                         rev=None,
                         threads=1,
+                        include_wildcard=False,
+                        include_other_models=False,
                     ),
                     call(
                         cwd=tmp_dir,
@@ -86,6 +88,8 @@ class TestAnnotateReadsCARD(TestPluginBase):
                         aligner="kma",
                         rev=None,
                         threads=1,
+                        include_wildcard=False,
+                        include_other_models=False,
                     ),
                 ]
             else:
@@ -97,6 +101,8 @@ class TestAnnotateReadsCARD(TestPluginBase):
                         rev=f"{reads}/sample1_00_L001_R2_001.fastq.gz",
                         aligner="kma",
                         threads=1,
+                        include_wildcard=False,
+                        include_other_models=False,
                     ),
                     call(
                         cwd=tmp_dir,
@@ -105,12 +111,13 @@ class TestAnnotateReadsCARD(TestPluginBase):
                         rev=f"{reads}/sample2_00_L001_R2_001.fastq.gz",
                         aligner="kma",
                         threads=1,
+                        include_wildcard=False,
+                        include_other_models=False,
                     ),
                 ]
             exp_calls_mock_load = [
-                call(tmp_dir, ANY, "load"),
-                call(tmp_dir, ANY, "preprocess"),
-                call(tmp_dir, ANY, "load_fasta"),
+                call(tmp_dir, ANY, "load", False, False),
+                call(tmp_dir, ANY, "load_fasta", False, False),
             ]
             exp_calls_mock_read = [
                 call(
@@ -163,6 +170,8 @@ class TestAnnotateReadsCARD(TestPluginBase):
                 "path_rev",
                 "bowtie2",
                 8,
+                True,
+                True,
             )
             mock_run_command.assert_called_once_with(
                 [
@@ -180,6 +189,8 @@ class TestAnnotateReadsCARD(TestPluginBase):
                     "bowtie2",
                     "--read_two",
                     "path_rev",
+                    "--include_wildcard",
+                    "--include_other_models",
                 ],
                 "path_tmp",
                 verbose=True,
