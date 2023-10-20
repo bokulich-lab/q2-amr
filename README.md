@@ -1,6 +1,6 @@
 # q2-amr
-![CI](https://github.com/bokulich-lab/q2-assembly/actions/workflows/ci.yml/badge.svg)
-[![codecov](https://codecov.io/gh/bokulich-lab/q2-assembly/branch/main/graph/badge.svg?token=THMBOFUZR0)](https://codecov.io/gh/bokulich-lab/q2-assembly)
+![CI](https://github.com/bokulich-lab/q2-amr/actions/workflows/ci-dev.yaml/badge.svg)
+[![codecov](https://codecov.io/gh/bokulich-lab/q2-amr/branch/main/graph/badge.svg?token=THMBOFUZR0)](https://codecov.io/gh/bokulich-lab/q2-amr)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 QIIME 2 plugin for antimicrobial resistance gene annotation of MAGs and metagenomic reads.
