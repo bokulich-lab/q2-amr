@@ -104,8 +104,8 @@ class CARDDatabaseDirectoryFormat(model.DirectoryFormat):
     wildcard_all = model.File(
         r"wildcard_database_v0_all.fasta", format=GapDNAFASTAFormat
     )
-    card_json = model.File(r"card.json", format=CARDDatabaseFormat)
-    index = model.File(r"index-for-model-sequences.txt", format=CARDWildcardIndexFormat)
+    card_json = model.File("card.json", format=CARDDatabaseFormat)
+    index = model.File("index-for-model-sequences.txt", format=CARDWildcardIndexFormat)
 
 
 class CARDKmerTXTFormat(model.TextFileFormat):
@@ -149,18 +149,18 @@ class CARDKmerDatabaseDirectoryFormat(model.DirectoryFormat):
     kmer_json = model.File(r"\d+_kmer_db.json", format=CARDKmerJSONFormat)
     kmer_fasta = model.File(r"all_amr_\d+mers.txt", format=CARDKmerTXTFormat)
     homolog_model = model.File(
-        r"nucleotide_fasta_protein_homolog_model_variants.fasta", format=DNAFASTAFormat
+        "nucleotide_fasta_protein_homolog_model_variants.fasta", format=DNAFASTAFormat
     )
     overexpression_model = model.File(
-        r"nucleotide_fasta_protein_overexpression_model_variants.fasta",
+        "nucleotide_fasta_protein_overexpression_model_variants.fasta",
         format=DNAFASTAFormat,
     )
     protein_model = model.File(
-        r"nucleotide_fasta_protein_variant_model_variants.fasta",
+        "nucleotide_fasta_protein_variant_model_variants.fasta",
         format=DNAFASTAFormat,
     )
     rRNA_model = model.File(
-        r"nucleotide_fasta_rRNA_gene_variant_model_variants.fasta",
+        "nucleotide_fasta_rRNA_gene_variant_model_variants.fasta",
         format=GapDNAFASTAFormat,
     )
 
