@@ -97,7 +97,6 @@ def fetch_card_db() -> (CARDDatabaseDirectoryFormat, CARDKmerDatabaseDirectoryFo
         ]
         for file, src_dir, des_dir in file_src_des:
             shutil.move(os.path.join(src_dir, file), os.path.join(des_dir, file))
-        print("a")
         return card_db, kmer_db
 
 
