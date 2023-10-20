@@ -100,9 +100,9 @@ class CARDDatabaseDirectoryFormat(model.DirectoryFormat):
     card_fasta_all = model.File(
         r"card_database_v\d+\.\d+\.\d+_all.fasta", format=GapDNAFASTAFormat
     )
-    wildcard = model.File(r"wildcard_database_v0.fasta", format=DNAFASTAFormat)
+    wildcard = model.File("wildcard_database_v0.fasta", format=DNAFASTAFormat)
     wildcard_all = model.File(
-        r"wildcard_database_v0_all.fasta", format=GapDNAFASTAFormat
+        "wildcard_database_v0_all.fasta", format=GapDNAFASTAFormat
     )
     card_json = model.File("card.json", format=CARDDatabaseFormat)
     index = model.File("index-for-model-sequences.txt", format=CARDWildcardIndexFormat)
