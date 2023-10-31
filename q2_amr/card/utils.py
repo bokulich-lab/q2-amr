@@ -1,3 +1,4 @@
+import glob
 import json
 import os
 import subprocess
@@ -22,42 +23,55 @@ def run_command(cmd, cwd, verbose=True):
     subprocess.run(cmd, check=True, cwd=cwd)
 
 
-def load_card_db(tmp, card_db, operation, all_models, wildcard):
+def load_card_db(
+    tmp,
+    card_db,
+    kmer_db=None,
+    kmer: bool = False,
+    fasta: bool = False,
+    include_other_models: bool = False,
+    include_wildcard: bool = False,
+):
     path_card_json = os.path.join(str(card_db), "card.json")
-    if operation == "load":
-        cmd = ["rgi", "load", "--card_json", path_card_json, "--local"]
-    elif operation == "load_fasta":
+    cmd = ["rgi", "load", "--card_json", path_card_json, "--local"]
+    models = ("_all", "_all_models") if include_other_models is True else ("", "")
+    if fasta:
         with open(path_card_json) as f:
             card_data = json.load(f)
             version = card_data["_version"]
-        models = ("_all", "_all_models") if all_models is True else ("", "")
         path_card_fasta = os.path.join(
             str(card_db), f"card_database_v{version}{models[0]}.fasta"
         )
-        cmd = [
-            "rgi",
-            "load",
-            "-i",
-            path_card_json,
-            f"--card_annotation{models[1]}",
-            path_card_fasta,
-            "--local",
-        ]
-        if wildcard:
-            path_wildcard_fasta = os.path.join(
-                str(card_db), f"wildcard_database_v0{models[0]}.fasta"
-            )
-            path_wildcard_index = os.path.join(
-                str(card_db), "index-for-model-sequences.txt"
-            )
-            cmd.extend(
-                [
-                    f"--wildcard_annotation{models[1]}",
-                    path_wildcard_fasta,
-                    "--wildcard_index",
-                    path_wildcard_index,
-                ]
-            )
+        cmd.extend([f"--card_annotation{models[1]}", path_card_fasta])
+    if include_wildcard:
+        path_wildcard_fasta = os.path.join(
+            str(card_db), f"wildcard_database_v0{models[0]}.fasta"
+        )
+        path_wildcard_index = os.path.join(
+            str(card_db), "index-for-model-sequences.txt"
+        )
+        cmd.extend(
+            [
+                f"--wildcard_annotation{models[1]}",
+                path_wildcard_fasta,
+                "--wildcard_index",
+                path_wildcard_index,
+            ]
+        )
+    if kmer:
+        path_kmer_json = glob.glob(os.path.join(str(kmer_db), "*_kmer_db.json"))[0]
+        path_kmer_txt = glob.glob(os.path.join(str(kmer_db), "all_amr_*mers.txt"))[0]
+        kmer_size = os.path.basename(path_kmer_json).split("_")[0]
+        cmd.extend(
+            [
+                "--kmer_database",
+                path_kmer_json,
+                "--amr_kmers",
+                path_kmer_txt,
+                "--kmer_size",
+                kmer_size,
+            ]
+        )
 
     try:
         run_command(cmd, tmp, verbose=True)

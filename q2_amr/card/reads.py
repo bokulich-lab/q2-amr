@@ -43,8 +43,13 @@ def annotate_reads_card(
     amr_allele_annotation = CARDAlleleAnnotationDirectoryFormat()
     amr_gene_annotation = CARDGeneAnnotationDirectoryFormat()
     with tempfile.TemporaryDirectory() as tmp:
-        load_card_db(tmp, card_db, "load", False, False)
-        load_card_db(tmp, card_db, "load_fasta", include_other_models, include_wildcard)
+        load_card_db(
+            tmp=tmp,
+            card_db=card_db,
+            fasta=True,
+            include_other_models=include_other_models,
+            include_wildcard=include_wildcard,
+        )
         for samp in list(manifest.index):
             fwd = manifest.loc[samp, "forward"]
             rev = manifest.loc[samp, "reverse"] if paired else None
