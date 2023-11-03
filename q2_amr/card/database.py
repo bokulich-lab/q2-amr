@@ -75,22 +75,22 @@ def fetch_card_db() -> (CARDDatabaseDirectoryFormat, CARDKmerDatabaseDirectoryFo
             (
                 "nucleotide_fasta_protein_homolog_model_variants.fasta",
                 os.path.join(tmp_dir, "wildcard"),
-                str(kmer_db),
+                str(card_db),
             ),
             (
                 "nucleotide_fasta_protein_overexpression_model_variants.fasta",
                 os.path.join(tmp_dir, "wildcard"),
-                str(kmer_db),
+                str(card_db),
             ),
             (
                 "nucleotide_fasta_protein_variant_model_variants.fasta",
                 os.path.join(tmp_dir, "wildcard"),
-                str(kmer_db),
+                str(card_db),
             ),
             (
                 "nucleotide_fasta_rRNA_gene_variant_model_variants.fasta",
                 os.path.join(tmp_dir, "wildcard"),
-                str(kmer_db),
+                str(card_db),
             ),
             (card_db_files[0], tmp_dir, str(card_db)),
             (card_db_files[1], tmp_dir, str(card_db)),

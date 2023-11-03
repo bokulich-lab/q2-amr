@@ -51,13 +51,13 @@ class TestAnnotateMagsCard(TestPluginBase):
             (str(obs[0]), "index-for-model-sequences.txt"),
             (str(obs[1]), "61_kmer_db.json"),
             (str(obs[1]), "all_amr_61mers.txt"),
-            (str(obs[1]), "nucleotide_fasta_protein_homolog_model_variants.fasta"),
+            (str(obs[0]), "nucleotide_fasta_protein_homolog_model_variants.fasta"),
             (
-                str(obs[1]),
+                str(obs[0]),
                 "nucleotide_fasta_protein_overexpression_model_variants.fasta",
             ),
-            (str(obs[1]), "nucleotide_fasta_protein_variant_model_variants.fasta"),
-            (str(obs[1]), "nucleotide_fasta_rRNA_gene_variant_model_variants.fasta"),
+            (str(obs[0]), "nucleotide_fasta_protein_variant_model_variants.fasta"),
+            (str(obs[0]), "nucleotide_fasta_rRNA_gene_variant_model_variants.fasta"),
         ]
         for dir, file in dir_file_list:
             self.assertTrue(os.path.exists(os.path.join(dir, file)))

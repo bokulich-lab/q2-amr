@@ -84,6 +84,22 @@ class TestCARDDatabaseTypesAndFormats(AMRTypesTestPluginBase):
             ("DNA_fasta.fasta", "wildcard_database_v0.fasta"),
             ("DNA_fasta_-.fasta", "wildcard_database_v0_all.fasta"),
             ("index-for-model-sequences-test.txt", "index-for-model-sequences.txt"),
+            (
+                "DNA_fasta.fasta",
+                "nucleotide_fasta_protein_homolog_model_variants.fasta",
+            ),
+            (
+                "DNA_fasta.fasta",
+                "nucleotide_fasta_protein_overexpression_model_variants.fasta",
+            ),
+            (
+                "DNA_fasta.fasta",
+                "nucleotide_fasta_protein_variant_model_variants.fasta",
+            ),
+            (
+                "DNA_fasta_-.fasta",
+                "nucleotide_fasta_rRNA_gene_variant_model_variants.fasta",
+            ),
         ]
         for scr_file, des_file in src_des_list:
             shutil.copy(
@@ -208,26 +224,10 @@ class TestCARDCARDKmerDirectoryTypesAndFormats(AMRTypesTestPluginBase):
         format = CARDKmerJSONFormat(filepath, mode="r")
         format.validate()
 
-    def test_card_database_directory_format_validate_positive(self):
+    def test_card_kmer_database_directory_format_validate_positive(self):
         src_des_list = [
             ("kmer_json_test.json", "61_kmer_db.json"),
             ("kmer_txt_test.txt", "all_amr_61mers.txt"),
-            (
-                "DNA_fasta.fasta",
-                "nucleotide_fasta_protein_homolog_model_variants.fasta",
-            ),
-            (
-                "DNA_fasta.fasta",
-                "nucleotide_fasta_protein_overexpression_model_variants.fasta",
-            ),
-            (
-                "DNA_fasta.fasta",
-                "nucleotide_fasta_protein_variant_model_variants.fasta",
-            ),
-            (
-                "DNA_fasta_-.fasta",
-                "nucleotide_fasta_rRNA_gene_variant_model_variants.fasta",
-            ),
         ]
         for scr_file, des_file in src_des_list:
             shutil.copy(

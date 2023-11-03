@@ -116,8 +116,13 @@ class TestAnnotateReadsCARD(TestPluginBase):
                     ),
                 ]
             exp_calls_mock_load = [
-                call(tmp_dir, ANY, "load", False, False),
-                call(tmp_dir, ANY, "load_fasta", False, False),
+                call(
+                    tmp=tmp_dir,
+                    card_db=ANY,
+                    fasta=True,
+                    include_other_models=False,
+                    include_wildcard=False,
+                ),
             ]
             exp_calls_mock_read = [
                 call(
