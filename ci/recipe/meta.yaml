@@ -34,7 +34,7 @@ test:
     - q2_amr
     - qiime2.plugins.amr
   commands:
-    - pytest --cov q2_amr --pyargs q2_amr
+    - pytest --cov q2_amr --cov-report xml:coverage.xml --pyargs q2_amr
 
 about:
   home: https://github.com/bokulich-lab/q2-amr
