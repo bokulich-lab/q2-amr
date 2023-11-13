@@ -51,16 +51,13 @@ def load_preprocess_card_db(tmp, card_db, operation):
 
 def read_in_txt(path: str, col_name: str, samp_bin_name: str):
     df = pd.read_csv(path, sep="\t")
-    if df.empty:
-        return None
     df = df[[col_name]]
     df = df.astype(str)
-    df[samp_bin_name] = df.groupby(col_name)[col_name].transform("count")
-    df = df.drop_duplicates(subset=[col_name])
     return df
 
 
 def create_count_table(df_list: list) -> pd.DataFrame:
+    df_list = [df for df in df_list if not df.empty]
     if not df_list:
         raise ValueError(
             "RGI did not identify any AMR genes. No output can be created."

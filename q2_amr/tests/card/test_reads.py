@@ -22,7 +22,7 @@ from q2_amr.card.reads import (
 )
 from q2_amr.types import (
     CARDAlleleAnnotationDirectoryFormat,
-    CARDDatabaseFormat,
+    CARDDatabaseDirectoryFormat,
     CARDGeneAnnotationDirectoryFormat,
 )
 
@@ -36,14 +36,15 @@ class TestAnnotateReadsCARD(TestPluginBase):
     def test_annotate_reads_card_paired(self):
         self.annotate_reads_card_test_body("paired")
 
-    def copy_needed_files(self, cwd, samp, **kwargs):
-        output_allele = self.get_data_path("output.allele_mapping_data.txt")
-        output_gene = self.get_data_path("output.gene_mapping_data.txt")
-        output_stats = self.get_data_path("output.overall_mapping_stats.txt")
-        samp_dir = os.path.join(cwd, samp)
-        shutil.copy(output_allele, samp_dir)
-        shutil.copy(output_gene, samp_dir)
-        shutil.copy(output_stats, samp_dir)
+    def copy_files(self, cwd, samp, **kwargs):
+        file_list = [
+            "output.allele_mapping_data.txt",
+            "output.gene_mapping_data.txt",
+            "output.overall_mapping_stats.txt",
+            "output.sorted.length_100.bam",
+        ]
+        for file in file_list:
+            shutil.copy(self.get_data_path(file), os.path.join(cwd, samp))
 
     def annotate_reads_card_test_body(self, read_type):
         manifest = self.get_data_path(f"MANIFEST_reads_{read_type}")
@@ -53,8 +54,8 @@ class TestAnnotateReadsCARD(TestPluginBase):
         else:
             reads = SingleLanePerSamplePairedEndFastqDirFmt()
             shutil.copy(manifest, os.path.join(str(reads), "MANIFEST"))
-        card_db = CARDDatabaseFormat()
-        mock_run_rgi_bwt = MagicMock(side_effect=self.copy_needed_files)
+        card_db = CARDDatabaseDirectoryFormat()
+        mock_run_rgi_bwt = MagicMock(side_effect=self.copy_files)
         mock_run_rgi_load = MagicMock()
         mock_read_in_txt = MagicMock()
         mag_test_class = TestAnnotateMagsCard()

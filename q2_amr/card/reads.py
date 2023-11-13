@@ -22,7 +22,7 @@ from q2_amr.card.utils import (
 )
 from q2_amr.types import (
     CARDAlleleAnnotationDirectoryFormat,
-    CARDDatabaseFormat,
+    CARDDatabaseDirectoryFormat,
     CARDGeneAnnotationDirectoryFormat,
 )
 
@@ -31,7 +31,7 @@ def annotate_reads_card(
     reads: Union[
         SingleLanePerSamplePairedEndFastqDirFmt, SingleLanePerSampleSingleEndFastqDirFmt
     ],
-    card_db: CARDDatabaseFormat,
+    card_db: CARDDatabaseDirectoryFormat,
     aligner: str = "kma",
     threads: int = 1,
 ) -> (
@@ -67,17 +67,11 @@ def annotate_reads_card(
                 threads=threads,
             )
             path_allele = os.path.join(samp_input_dir, "output.allele_mapping_data.txt")
-            allele_frequency = read_in_txt(
-                path=path_allele, col_name="ARO Accession", samp_bin_name=samp
-            )
-            if allele_frequency is not None:
-                allele_frequency_list.append(allele_frequency)
+            allele_frequency = read_in_txt(path=path_allele, samp_bin_name=samp)
+            allele_frequency_list.append(allele_frequency)
             path_gene = os.path.join(samp_input_dir, "output.gene_mapping_data.txt")
-            gene_frequency = read_in_txt(
-                path=path_gene, col_name="ARO Accession", samp_bin_name=samp
-            )
-            if gene_frequency is not None:
-                gene_frequency_list.append(gene_frequency)
+            gene_frequency = read_in_txt(path=path_gene, samp_bin_name=samp)
+            gene_frequency_list.append(gene_frequency)
             move_files(samp_input_dir, samp_allele_dir, "allele")
             move_files(samp_input_dir, samp_gene_dir, "gene")
 
