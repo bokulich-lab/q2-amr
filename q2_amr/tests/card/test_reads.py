@@ -22,13 +22,28 @@ from q2_amr.card.reads import (
 )
 from q2_amr.types import (
     CARDAlleleAnnotationDirectoryFormat,
-    CARDDatabaseFormat,
+    CARDDatabaseDirectoryFormat,
     CARDGeneAnnotationDirectoryFormat,
 )
 
 
 class TestAnnotateReadsCARD(TestPluginBase):
     package = "q2_amr.tests"
+
+    @classmethod
+    def setUpClass(cls):
+        cls.sample_stats = {
+            "sample1": {
+                "total_reads": 5000,
+                "mapped_reads": 59,
+                "percentage": 1.18,
+            },
+            "sample2": {
+                "total_reads": 7000,
+                "mapped_reads": 212,
+                "percentage": 3.03,
+            },
+        }
 
     def test_annotate_reads_card_single(self):
         self.annotate_reads_card_test_body("single")
@@ -37,84 +52,68 @@ class TestAnnotateReadsCARD(TestPluginBase):
         self.annotate_reads_card_test_body("paired")
 
     def copy_needed_files(self, cwd, samp, **kwargs):
-        output_allele = self.get_data_path("output.allele_mapping_data.txt")
-        output_gene = self.get_data_path("output.gene_mapping_data.txt")
-        output_stats = self.get_data_path("output.overall_mapping_stats.txt")
+        # Create a sample directory
         samp_dir = os.path.join(cwd, samp)
-        shutil.copy(output_allele, samp_dir)
-        shutil.copy(output_gene, samp_dir)
-        shutil.copy(output_stats, samp_dir)
+
+        # Copy three dummy files to the directory
+        for a, b in zip(["allele", "gene", "overall"], ["data", "data", "stats"]):
+            shutil.copy(self.get_data_path(f"output.{a}_mapping_{b}.txt"), samp_dir)
 
     def annotate_reads_card_test_body(self, read_type):
+        # Create single end or paired end reads object and CARD database object
+        reads = (
+            SingleLanePerSampleSingleEndFastqDirFmt()
+            if read_type == "single"
+            else SingleLanePerSamplePairedEndFastqDirFmt()
+        )
+        card_db = CARDDatabaseDirectoryFormat()
+
+        # Copy manifest file to reads object
         manifest = self.get_data_path(f"MANIFEST_reads_{read_type}")
-        if read_type == "single":
-            reads = SingleLanePerSampleSingleEndFastqDirFmt()
-            shutil.copy(manifest, os.path.join(str(reads), "MANIFEST"))
-        else:
-            reads = SingleLanePerSamplePairedEndFastqDirFmt()
-            shutil.copy(manifest, os.path.join(str(reads), "MANIFEST"))
-        card_db = CARDDatabaseFormat()
+        shutil.copy(manifest, os.path.join(str(reads), "MANIFEST"))
+
+        # Create MagicMock objects for run_rgi_bwt, run_rgi_load, read_in_txt and
+        # create_count_table functions
         mock_run_rgi_bwt = MagicMock(side_effect=self.copy_needed_files)
         mock_run_rgi_load = MagicMock()
         mock_read_in_txt = MagicMock()
-        mag_test_class = TestAnnotateMagsCard()
         mock_create_count_table = MagicMock(
-            side_effect=mag_test_class.return_count_table
+            side_effect=TestAnnotateMagsCard().return_count_table
         )
+
+        # Patch run_rgi_bwt, run_rgi_load, read_in_txt and create_count_table functions
+        # and assign MagicMock objects
         with patch("q2_amr.card.reads.run_rgi_bwt", mock_run_rgi_bwt), patch(
             "q2_amr.card.reads.load_card_db", mock_run_rgi_load
         ), patch("q2_amr.card.reads.read_in_txt", mock_read_in_txt), patch(
             "q2_amr.card.reads.create_count_table", mock_create_count_table
         ):
+
+            # Run annotate_reads_card function
             result = annotate_reads_card(reads, card_db)
+
+            # Retrieve the path to cwd directory from mock_run_rgi_bwt arguments
             first_call_args = mock_run_rgi_bwt.call_args_list[0]
             tmp_dir = first_call_args.kwargs["cwd"]
-            if read_type == "single":
-                exp_calls_mock_run = [
-                    call(
-                        cwd=tmp_dir,
-                        samp="sample1",
-                        fwd=f"{reads}/sample1_00_L001_R1_001.fastq.gz",
-                        aligner="kma",
-                        rev=None,
-                        threads=1,
-                        include_wildcard=False,
-                        include_other_models=False,
-                    ),
-                    call(
-                        cwd=tmp_dir,
-                        samp="sample2",
-                        fwd=f"{reads}/sample2_00_L001_R1_001.fastq.gz",
-                        aligner="kma",
-                        rev=None,
-                        threads=1,
-                        include_wildcard=False,
-                        include_other_models=False,
-                    ),
-                ]
-            else:
-                exp_calls_mock_run = [
-                    call(
-                        cwd=tmp_dir,
-                        samp="sample1",
-                        fwd=f"{reads}/sample1_00_L001_R1_001.fastq.gz",
-                        rev=f"{reads}/sample1_00_L001_R2_001.fastq.gz",
-                        aligner="kma",
-                        threads=1,
-                        include_wildcard=False,
-                        include_other_models=False,
-                    ),
-                    call(
-                        cwd=tmp_dir,
-                        samp="sample2",
-                        fwd=f"{reads}/sample2_00_L001_R1_001.fastq.gz",
-                        rev=f"{reads}/sample2_00_L001_R2_001.fastq.gz",
-                        aligner="kma",
-                        threads=1,
-                        include_wildcard=False,
-                        include_other_models=False,
-                    ),
-                ]
+
+            # Create four expected call objects for mock_run_rgi_bwt
+            exp_calls_mock_bwt = [
+                call(
+                    cwd=tmp_dir,
+                    aligner="kma",
+                    threads=1,
+                    include_wildcard=False,
+                    include_other_models=False,
+                    samp=f"sample{i}",
+                    fwd=f"{reads}/sample{i}_00_L001_R1_001.fastq.gz",
+                    rev=None
+                    if read_type == "single"
+                    else f"{reads}/sample{i}_00_L001_R2_001.fastq.gz",
+                )
+                for i in range(1, 3)
+            ]
+
+            # Expected call object for mock_run_rgi_load
             exp_calls_mock_load = [
                 call(
                     tmp=tmp_dir,
@@ -124,37 +123,35 @@ class TestAnnotateReadsCARD(TestPluginBase):
                     include_wildcard=False,
                 ),
             ]
+
+            # Create four expected call objects for mock_read_in_txt
             exp_calls_mock_read = [
                 call(
-                    path=f"{tmp_dir}/sample1/output.allele_mapping_data.txt",
+                    path=f"{tmp_dir}/{samp}/output.{model}_mapping_data.txt",
                     col_name="ARO Accession",
-                    samp_bin_name="sample1",
-                ),
-                call(
-                    path=f"{tmp_dir}/sample1/output.gene_mapping_data.txt",
-                    col_name="ARO Accession",
-                    samp_bin_name="sample1",
-                ),
-                call(
-                    path=f"{tmp_dir}/sample2/output.allele_mapping_data.txt",
-                    col_name="ARO Accession",
-                    samp_bin_name="sample2",
-                ),
-                call(
-                    path=f"{tmp_dir}/sample2/output.gene_mapping_data.txt",
-                    col_name="ARO Accession",
-                    samp_bin_name="sample2",
-                ),
+                    samp_bin_name=samp,
+                )
+                for samp in ["sample1", "sample2"]
+                for model in ["allele", "gene"]
             ]
+
+            # Expected call objects for mock_create_count_table
             exp_calls_mock_count = [call([ANY, ANY]), call([ANY, ANY])]
-            mock_run_rgi_bwt.assert_has_calls(exp_calls_mock_run)
+
+            # Assert if all patched function were called with the expected calls
+            mock_run_rgi_bwt.assert_has_calls(exp_calls_mock_bwt)
             mock_run_rgi_load.assert_has_calls(exp_calls_mock_load)
             mock_read_in_txt.assert_has_calls(exp_calls_mock_read)
             mock_create_count_table.assert_has_calls(exp_calls_mock_count)
+
+            # Assert if all output files are the expected format
             self.assertIsInstance(result[0], CARDAlleleAnnotationDirectoryFormat)
             self.assertIsInstance(result[1], CARDGeneAnnotationDirectoryFormat)
             self.assertIsInstance(result[2], pd.DataFrame)
             self.assertIsInstance(result[3], pd.DataFrame)
+
+            # Assert if the expected files are in every sample directory and in both
+            # resulting CARD annotation objects
             for num in [0, 1]:
                 map_type = "allele" if num == 0 else "gene"
                 for samp in ["sample1", "sample2"]:
@@ -211,14 +208,7 @@ class TestAnnotateReadsCARD(TestPluginBase):
             "q2_amr.card.reads.run_command"
         ) as mock_run_command, self.assertRaises(Exception) as cm:
             mock_run_command.side_effect = subprocess.CalledProcessError(1, "cmd")
-            run_rgi_bwt(
-                cwd="path/cwd",
-                samp="sample1",
-                fwd="path/fwd",
-                rev="path/rev",
-                aligner="bwa",
-                threads=1,
-            )
+            run_rgi_bwt()
             self.assertEqual(str(cm.exception), expected_message)
 
     def test_move_files_allele(self):
@@ -264,45 +254,37 @@ class TestAnnotateReadsCARD(TestPluginBase):
             new_mapping_stats_path = os.path.join(tmp, "overall_mapping_stats.txt")
             shutil.copy(mapping_stats_path, new_mapping_stats_path)
             sample_stats = extract_sample_stats(tmp)
-            expected_result = {
-                "total_reads": 5000,
-                "mapped_reads": 59,
-                "percentage": 1.18,
-            }
-            self.assertEqual(sample_stats, expected_result)
+
+            self.assertEqual(sample_stats, self.sample_stats["sample1"])
 
     def test_plot_sample_stats(self):
         with tempfile.TemporaryDirectory() as tmp:
-            sample_stats = {
-                "sample1": {
-                    "total_reads": 5000,
-                    "mapped_reads": 106,
-                    "percentage": 2.12,
-                },
-                "sample2": {
-                    "total_reads": 7000,
-                    "mapped_reads": 212,
-                    "percentage": 3.03,
-                },
-            }
-            plot_sample_stats(sample_stats, tmp)
+            plot_sample_stats(self.sample_stats, tmp)
             self.assertTrue(os.path.exists(os.path.join(tmp, "sample_stats_plot.html")))
+
+    def mock_plot_sample_stats(self, sample_stats, output_dir):
+        # Create a dummy HTML file and copy it to the output_dir
+        with open(os.path.join(output_dir, "sample_stats_plot.html"), "w") as file:
+            file.write("file")
 
     def test_visualize_annotation_stats(self):
-        def mock_plot_sample_stats(sample_stats, output_dir):
-            with open(os.path.join(tmp, "sample_stats_plot.html"), "w") as file:
-                file.write("file")
-
+        # Create a CARDGeneAnnotation object
         amr_reads_annotation = CARDGeneAnnotationDirectoryFormat()
-        sample1_dir = os.path.join(str(amr_reads_annotation), "sample1")
-        sample2_dir = os.path.join(str(amr_reads_annotation), "sample2")
-        os.makedirs(sample1_dir)
-        os.makedirs(sample2_dir)
+
+        # Create two sample directories in the CARDGeneAnnotation object
+        for num in range(1, 3):
+            os.makedirs(os.path.join(str(amr_reads_annotation), f"sample{num}"))
+
+        # Patch extract_sample_stats and plot_sample_stats with side effect
+        # mock_plot_sample_stats
         with patch("q2_amr.card.reads.extract_sample_stats"), patch(
             "q2_amr.card.reads.plot_sample_stats",
-            side_effect=mock_plot_sample_stats,
+            side_effect=self.mock_plot_sample_stats,
         ), tempfile.TemporaryDirectory() as tmp:
+
+            # Run visualize_annotation_stats function
             visualize_annotation_stats(tmp, amr_reads_annotation)
-            self.assertTrue(os.path.exists(os.path.join(tmp, "sample_stats_plot.html")))
-            self.assertTrue(os.path.exists(os.path.join(tmp, "index.html")))
-            self.assertTrue(os.path.exists(os.path.join(tmp, "q2templateassets")))
+
+            # Assert if all expected files are created
+            for file in ["sample_stats_plot.html", "index.html", "q2templateassets"]:
+                self.assertTrue(os.path.exists(os.path.join(tmp, file)))

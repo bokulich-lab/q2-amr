@@ -104,7 +104,7 @@ plugin.methods.register_function(
         "alignment_tool": "Specify alignment tool BLAST or DIAMOND.",
         "split_prodigal_jobs": "Run multiple prodigal jobs simultaneously for contigs"
         " in one sample",
-        "include_loose": "Include loose hits in addition to strict and perfect hits .",
+        "include_loose": "Include loose hits in addition to strict and perfect hits.",
         "include_nudge": "Include hits nudged from loose to strict hits.",
         "low_quality": "Use for short contigs to predict partial genes.",
         "threads": "Number of threads (CPUs) to use in the BLAST search.",
@@ -117,7 +117,6 @@ plugin.methods.register_function(
     description="Annotate MAGs with antimicrobial resistance genes from CARD.",
     citations=[citations["alcock_card_2023"]],
 )
-
 
 plugin.methods.register_function(
     function=annotate_reads_card,
