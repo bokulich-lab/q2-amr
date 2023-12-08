@@ -4,13 +4,11 @@ import subprocess
 import tempfile
 from unittest.mock import ANY, MagicMock, call, patch
 
-import pandas as pd
 from q2_types.per_sample_sequences import (
     SingleLanePerSamplePairedEndFastqDirFmt,
     SingleLanePerSampleSingleEndFastqDirFmt,
 )
 from qiime2.plugin.testing import TestPluginBase
-from test_mags import TestAnnotateMagsCard
 
 from q2_amr.card.reads import (
     annotate_reads_card,
@@ -41,7 +39,6 @@ class TestAnnotateReadsCARD(TestPluginBase):
             "output.allele_mapping_data.txt",
             "output.gene_mapping_data.txt",
             "output.overall_mapping_stats.txt",
-            "output.sorted.length_100.bam",
         ]
         for file in file_list:
             shutil.copy(self.get_data_path(file), os.path.join(cwd, samp))
@@ -58,10 +55,7 @@ class TestAnnotateReadsCARD(TestPluginBase):
         mock_run_rgi_bwt = MagicMock(side_effect=self.copy_files)
         mock_run_rgi_load = MagicMock()
         mock_read_in_txt = MagicMock()
-        mag_test_class = TestAnnotateMagsCard()
-        mock_create_count_table = MagicMock(
-            side_effect=mag_test_class.return_count_table
-        )
+        mock_create_count_table = MagicMock()
         with patch("q2_amr.card.reads.run_rgi_bwt", mock_run_rgi_bwt), patch(
             "q2_amr.card.reads.load_preprocess_card_db", mock_run_rgi_load
         ), patch("q2_amr.card.reads.read_in_txt", mock_read_in_txt), patch(
@@ -116,23 +110,23 @@ class TestAnnotateReadsCARD(TestPluginBase):
             exp_calls_mock_read = [
                 call(
                     path=f"{tmp_dir}/sample1/output.allele_mapping_data.txt",
-                    col_name="ARO Accession",
                     samp_bin_name="sample1",
+                    data_type="reads",
                 ),
                 call(
                     path=f"{tmp_dir}/sample1/output.gene_mapping_data.txt",
-                    col_name="ARO Accession",
                     samp_bin_name="sample1",
+                    data_type="reads",
                 ),
                 call(
                     path=f"{tmp_dir}/sample2/output.allele_mapping_data.txt",
-                    col_name="ARO Accession",
                     samp_bin_name="sample2",
+                    data_type="reads",
                 ),
                 call(
                     path=f"{tmp_dir}/sample2/output.gene_mapping_data.txt",
-                    col_name="ARO Accession",
                     samp_bin_name="sample2",
+                    data_type="reads",
                 ),
             ]
             exp_calls_mock_count = [call([ANY, ANY]), call([ANY, ANY])]
@@ -142,8 +136,6 @@ class TestAnnotateReadsCARD(TestPluginBase):
             mock_create_count_table.assert_has_calls(exp_calls_mock_count)
             self.assertIsInstance(result[0], CARDAlleleAnnotationDirectoryFormat)
             self.assertIsInstance(result[1], CARDGeneAnnotationDirectoryFormat)
-            self.assertIsInstance(result[2], pd.DataFrame)
-            self.assertIsInstance(result[3], pd.DataFrame)
             for num in [0, 1]:
                 map_type = "allele" if num == 0 else "gene"
                 for samp in ["sample1", "sample2"]:

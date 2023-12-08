@@ -49,23 +49,39 @@ def load_preprocess_card_db(tmp, card_db, operation):
         )
 
 
-def read_in_txt(path: str, col_name: str, samp_bin_name: str):
+def read_in_txt(path: str, samp_bin_name: str, data_type):
+    # Read in txt file to pd.Dataframe
     df = pd.read_csv(path, sep="\t")
-    df = df[[col_name]]
+
+    # Process the df depending on the data type (from reads or mags)
+    if data_type == "reads":
+        df = df[["ARO Term", "All Mapped Reads"]]
+        df.rename(columns={"All Mapped Reads": samp_bin_name}, inplace=True)
+    else:
+        df = df[["Best_Hit_ARO"]]
+        df[samp_bin_name] = 1
+
     df = df.astype(str)
     return df
 
 
 def create_count_table(df_list: list) -> pd.DataFrame:
+    # Remove all empty lists from df_list
     df_list = [df for df in df_list if not df.empty]
+
+    # Raise ValueError if df_list is empty. This happens when no ARGs were detected
     if not df_list:
         raise ValueError(
             "RGI did not identify any AMR genes. No output can be created."
         )
+
+    # Merge all dfs contained in df_list
     df = reduce(
         lambda left, right: pd.merge(left, right, on=left.columns[0], how="outer"),
         df_list,
     )
+
+    # Process the df to meet all requirements for a FeatureTable
     df = df.transpose()
     df = df.fillna(0)
     df.columns = df.iloc[0]
