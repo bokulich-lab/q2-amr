@@ -25,9 +25,16 @@ setup(
     package_data={
         "q2_amr": [
             "citations.bib",
+            "tests/data/*",
             "assets/rgi/annotation_stats/*",
             "assets/rgi/heatmap/*",
         ],
+        "q2_amr.types.tests": [
+            "data/*",
+            "data/annotate_mags_output/*/*/*",
+            "data/annotate_reads_output/*/*",
+        ],
+        "q2_amr.tests": ["data/*"],
     },
     zip_safe=False,
 )

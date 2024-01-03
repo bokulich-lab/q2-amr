@@ -1,0 +1,2 @@
+prevalence_sequence_id	model_id	aro_term	aro_accession	detection_model	species_name	ncbi_accession	data_type	rgi_criteria	percent_identity	bitscore	amr_gene_family	resistance_mechanism	drug_class	card_short_name
+1	5731	qacG	ARO:3007015	protein homolog model	Acinetobacter haemolyticus	NZ_WTTI01	ncbi_contig	Strict	41.9	87.8	small multidrug resistance (SMR) antibiotic efflux pump	antibiotic efflux	disinfecting agents and antiseptics	qacG

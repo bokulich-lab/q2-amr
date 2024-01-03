@@ -7,6 +7,7 @@
 # ----------------------------------------------------------------------------
 import json
 import os
+import shutil
 import tempfile
 
 import pandas as pd
@@ -25,12 +26,18 @@ from skbio import DNA, Protein
 
 from q2_amr.types import (
     CARDAlleleAnnotationDirectoryFormat,
+    CARDDatabaseDirectoryFormat,
     CARDGeneAnnotationDirectoryFormat,
 )
 from q2_amr.types._format import (
     CARDAnnotationDirectoryFormat,
     CARDAnnotationTXTFormat,
     CARDDatabaseFormat,
+    CARDKmerDatabaseDirectoryFormat,
+    CARDKmerJSONFormat,
+    CARDKmerTXTFormat,
+    CARDWildcardIndexFormat,
+    GapDNAFASTAFormat,
 )
 from q2_amr.types._transformer import (
     _read_from_card_file,
@@ -57,6 +64,48 @@ class TestCARDDatabaseTypesAndFormats(AMRTypesTestPluginBase):
     def test_card_database_format_validate_positive(self):
         filepath = self.get_data_path("card_test.json")
         format = CARDDatabaseFormat(filepath, mode="r")
+        format.validate()
+
+    def test_wildcard_index_format_validate_positive(self):
+        filepath = self.get_data_path("index-for-model-sequences-test.txt")
+        format = CARDWildcardIndexFormat(filepath, mode="r")
+        format.validate()
+
+    def test_extended_dna_fasta_format_validate_positive(self):
+        filepath = self.get_data_path("DNA_fasta_-.fasta")
+        format = GapDNAFASTAFormat(filepath, mode="r")
+        format.validate()
+
+    def test_card_database_directory_format_validate_positive(self):
+        src_des_list = [
+            ("card_test.json", "card.json"),
+            ("DNA_fasta.fasta", "card_database_v3.2.7.fasta"),
+            ("DNA_fasta_-.fasta", "card_database_v3.2.7_all.fasta"),
+            ("DNA_fasta.fasta", "wildcard_database_v0.fasta"),
+            ("DNA_fasta_-.fasta", "wildcard_database_v0_all.fasta"),
+            ("index-for-model-sequences-test.txt", "index-for-model-sequences.txt"),
+            (
+                "DNA_fasta.fasta",
+                "nucleotide_fasta_protein_homolog_model_variants.fasta",
+            ),
+            (
+                "DNA_fasta.fasta",
+                "nucleotide_fasta_protein_overexpression_model_variants.fasta",
+            ),
+            (
+                "DNA_fasta.fasta",
+                "nucleotide_fasta_protein_variant_model_variants.fasta",
+            ),
+            (
+                "DNA_fasta_-.fasta",
+                "nucleotide_fasta_rRNA_gene_variant_model_variants.fasta",
+            ),
+        ]
+        for scr_file, des_file in src_des_list:
+            shutil.copy(
+                self.get_data_path(scr_file), os.path.join(self.temp_dir.name, des_file)
+            )
+        format = CARDDatabaseDirectoryFormat(self.temp_dir.name, mode="r")
         format.validate()
 
     def test_dataframe_to_card_format_transformer(self):
@@ -162,6 +211,30 @@ class TestCARDDatabaseTypesAndFormats(AMRTypesTestPluginBase):
         genomes = _read_from_card_file(path, "protein")
         generator = ProteinIterator(genomes)
         self.assertIsInstance(generator, ProteinIterator)
+
+
+class TestCARDCARDKmerDirectoryTypesAndFormats(AMRTypesTestPluginBase):
+    def test_kmer_txt_format_validate_positive(self):
+        filepath = self.get_data_path("kmer_txt_test.txt")
+        format = CARDKmerTXTFormat(filepath, mode="r")
+        format.validate()
+
+    def test_kmer_json_format_validate_positive(self):
+        filepath = self.get_data_path("kmer_json_test.json")
+        format = CARDKmerJSONFormat(filepath, mode="r")
+        format.validate()
+
+    def test_card_kmer_database_directory_format_validate_positive(self):
+        src_des_list = [
+            ("kmer_json_test.json", "61_kmer_db.json"),
+            ("kmer_txt_test.txt", "all_amr_61mers.txt"),
+        ]
+        for scr_file, des_file in src_des_list:
+            shutil.copy(
+                self.get_data_path(scr_file), os.path.join(self.temp_dir.name, des_file)
+            )
+        format = CARDKmerDatabaseDirectoryFormat(self.temp_dir.name, mode="r")
+        format.validate()
 
 
 class TestCARDMagsAnnotationTypesAndFormats(AMRTypesTestPluginBase):
