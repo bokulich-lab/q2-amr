@@ -10,10 +10,9 @@ To install _q2-amr_, follow the installation steps described below.
 
 ```shell
 mamba create -yn q2-amr \
--c conda-forge -c bioconda -c qiime2 -c defaults \
--c https://packages.qiime2.org/qiime2/2023.5/tested \
---no-channel-priority \
-qiime2 q2cli q2templates q2-types q2-types-genomics rgi altair
+  -c conda-forge -c bioconda -c qiime2 -c defaults \
+  -c https://packages.qiime2.org/qiime2/2023.9/shotgun/released/ \
+  qiime2 q2cli q2templates q2-types q2-types-genomics rgi altair
 
 conda activate q2-amr
 
@@ -34,13 +33,13 @@ sequencing reads and MAGs with antimicrobial resistance genes. Currently, the [C
 the implementation and usage, please refer to the [rgi](https://github.com/arpcard/rgi) documentation). Below you will
 find an overview of actions available in the plugin.
 
-| Action                     | Description                                                                          | Underlying tool                       |
-|----------------------------|--------------------------------------------------------------------------------------|---------------------------------------|
-| fetch-card-db              | Download CARD data.                                                                  | [rgi](https://github.com/arpcard/rgi) |
-| annotate-mags-card         | Annotate MAGs with antimicrobial resistance gene information from CARD.              | [rgi](https://github.com/arpcard/rgi) |
-| annotate-reads-card        | Annotate metagenomic reads with antimicrobial resistance gene information from CARD. | [rgi](https://github.com/arpcard/rgi) |
-| heatmap                    | Create a heatmap from annotate-mags-card output files.                               |                                       |
-| visualize-annotation-stats | Plot annotate-reads-card annotation statistics.                                      |                                       |
+| Action                     | Description                                                                          | Underlying tool                       | Used function |
+|----------------------------|--------------------------------------------------------------------------------------|---------------------------------------|---------------|
+| fetch-card-db              | Download CARD data.                                                                  | [rgi](https://github.com/arpcard/rgi) | load          |
+| annotate-mags-card         | Annotate MAGs with antimicrobial resistance gene information from CARD.              | [rgi](https://github.com/arpcard/rgi) | main          |
+| annotate-reads-card        | Annotate metagenomic reads with antimicrobial resistance gene information from CARD. | [rgi](https://github.com/arpcard/rgi) | bwt           |
+| heatmap                    | Create a heatmap from annotate-mags-card output files.                               | [rgi](https://github.com/arpcard/rgi) | heatmap       |
+| visualize-annotation-stats | Plot annotate-reads-card annotation statistics.                                      |                                       |               |
 
 
 ## Dev environment
