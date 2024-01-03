@@ -1,87 +1,121 @@
+import os
+import shutil
 import subprocess
-from unittest.mock import patch
+from unittest.mock import call, patch
 
 import pandas as pd
 from qiime2.plugin.testing import TestPluginBase
 from test_mags import TestAnnotateMagsCard
 
-from q2_amr.card.utils import create_count_table, load_preprocess_card_db, read_in_txt
-from q2_amr.types import CARDDatabaseFormat
+from q2_amr.card.utils import create_count_table, load_card_db, read_in_txt
+from q2_amr.types import CARDDatabaseDirectoryFormat, CARDKmerDatabaseDirectoryFormat
 
 
 class TestAnnotateReadsCARD(TestPluginBase):
     package = "q2_amr.tests"
 
-    mapping_data_sample1 = pd.DataFrame(
-        {
-            "ARO Accession": [3000796, 3000815, 3000805, 3000026],
-            "sample1": [1, 1, 1, 1],
-        }
-    )
+    @classmethod
+    def setUpClass(cls):
+        cls.mapping_data_sample1 = pd.DataFrame(
+            {
+                "ARO Accession": [3000796, 3000815, 3000805, 3000026],
+                "sample1": [1, 1, 1, 1],
+            }
+        )
 
-    mags_mapping_data_sample1 = pd.DataFrame(
-        {
-            "ARO": [3000796, 3000815, 3000805, 3000026],
-            "sample1": [1, 1, 1, 1],
-        }
-    )
+        cls.mapping_data_sample2 = pd.DataFrame(
+            {
+                "ARO Accession": [3000797, 3000815, 3000805, 3000026],
+                "sample2": [1, 1, 1, 2],
+            }
+        )
 
-    mapping_data_sample2 = pd.DataFrame(
-        {
-            "ARO Accession": [3000797, 3000815, 3000805, 3000026],
-            "sample2": [1, 1, 1, 2],
-        }
-    )
-
-    def test_load_card_db(self):
-        card_db = CARDDatabaseFormat()
-        with patch("q2_amr.card.utils.run_command") as mock_run_command:
-            load_preprocess_card_db("path_tmp", card_db, "load")
-            mock_run_command.assert_called_once_with(
-                ["rgi", "load", "--card_json", str(card_db), "--local"],
-                "path_tmp",
-                verbose=True,
-            )
-
-    def test_preprocess_card_db(self):
-        card_db = CARDDatabaseFormat()
-        with patch("q2_amr.card.utils.run_command") as mock_run_command:
-            load_preprocess_card_db("path_tmp", card_db, "preprocess")
-            mock_run_command.assert_called_once_with(
-                ["rgi", "card_annotation", "-i", str(card_db)], "path_tmp", verbose=True
-            )
+        cls.mags_mapping_data_sample1 = pd.DataFrame(
+            {
+                "ARO": [3000796, 3000815, 3000805, 3000026],
+                "sample1": [1, 1, 1, 1],
+            }
+        )
 
     def test_load_card_db_fasta(self):
-        card_db = self.get_data_path("card_test.json")
+        # Create CARD and Kmer database objects
+        card_db = CARDDatabaseDirectoryFormat()
+        kmer_db = CARDKmerDatabaseDirectoryFormat()
+
+        # Tuples with source file name, destination file name and destination directory
+        src_des_dir = [
+            ("card_test.json", "card.json", card_db),
+            ("kmer_txt_test.txt", "all_amr_61mers.txt", kmer_db),
+            ("kmer_json_test.json", "61_kmer_db.json", kmer_db),
+        ]
+
+        # Copy files in src_des_dir to CARD and Kmer database objects
+        for src, des, dir in src_des_dir:
+            shutil.copy(self.get_data_path(src), os.path.join(str(dir), des))
+
+        # Patch run_command
         with patch("q2_amr.card.utils.run_command") as mock_run_command:
-            load_preprocess_card_db("path_tmp", card_db, "load_fasta")
-            mock_run_command.assert_called_once_with(
-                [
-                    "rgi",
-                    "load",
-                    "-i",
-                    str(card_db),
-                    "--card_annotation",
-                    "card_database_v3.2.5.fasta",
-                    "--local",
-                ],
-                "path_tmp",
-                verbose=True,
-            )
+            # Run load_card_db two times with include_other_models set to True and False
+            for parameters in [False, True]:
+                load_card_db(
+                    tmp="path_tmp",
+                    card_db=card_db,
+                    kmer_db=kmer_db,
+                    kmer=True,
+                    fasta=True,
+                    include_wildcard=True,
+                    include_other_models=parameters,
+                )
+
+            # Create two expected call objects
+            flags = ["", "_all_models"]
+            parameters = ["", "_all"]
+
+            expected_calls = [
+                call(
+                    [
+                        "rgi",
+                        "load",
+                        "--card_json",
+                        os.path.join(str(card_db), "card.json"),
+                        "--local",
+                        f"--card_annotation{flag}",
+                        os.path.join(
+                            str(card_db), f"card_database_v3.2.5{parameter}.fasta"
+                        ),
+                        f"--wildcard_annotation{flag}",
+                        os.path.join(
+                            str(card_db), f"wildcard_database_v0{parameter}.fasta"
+                        ),
+                        "--wildcard_index",
+                        os.path.join(str(card_db), "index-for-model-sequences.txt"),
+                        "--kmer_database",
+                        os.path.join(str(kmer_db), "61_kmer_db.json"),
+                        "--amr_kmers",
+                        os.path.join(str(kmer_db), "all_amr_61mers.txt"),
+                        "--kmer_size",
+                        "61",
+                    ],
+                    "path_tmp",
+                    verbose=True,
+                )
+                for flag, parameter in zip(flags, parameters)
+            ]
+
+            # Assert if function was called with expected calls
+            mock_run_command.assert_has_calls(expected_calls, any_order=False)
 
     def test_exception_raised(self):
-        tmp = "path/to/tmp"
-        card_db = "path/to/card_db.json"
+        # Simulate a subprocess.CalledProcessError during run_command
         expected_message = (
             "An error was encountered while running rgi, "
             "(return code 1), please inspect stdout and stderr to learn more."
         )
-        operation = "load"
         with patch(
             "q2_amr.card.utils.run_command"
         ) as mock_run_command, self.assertRaises(Exception) as cm:
             mock_run_command.side_effect = subprocess.CalledProcessError(1, "cmd")
-            load_preprocess_card_db(tmp, card_db, operation)
+            load_card_db()
             self.assertEqual(str(cm.exception), expected_message)
 
     def test_read_in_txt_mags(self):

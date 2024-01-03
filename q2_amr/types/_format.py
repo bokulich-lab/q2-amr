@@ -6,10 +6,12 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 import json
+import re
 from copy import copy
 
 import pandas as pd
 import qiime2.plugin.model as model
+from q2_types.feature_data._format import DNAFASTAFormat
 from q2_types_genomics.per_sample_data._format import MultiDirValidationMixin
 from qiime2.plugin import ValidationError
 
@@ -50,9 +52,117 @@ class CARDDatabaseFormat(model.TextFileFormat):
         self._validate()
 
 
-CARDDatabaseDirectoryFormat = model.SingleFileDirectoryFormat(
-    "CARDDatabaseDirectoryFormat", "card.json", CARDDatabaseFormat
-)
+class CARDWildcardIndexFormat(model.TextFileFormat):
+    def _validate(self, n_records=None):
+        header_exp = [
+            "prevalence_sequence_id",
+            "model_id",
+            "aro_term",
+            "aro_accession",
+            "detection_model",
+            "species_name",
+            "ncbi_accession",
+            "data_type",
+            "rgi_criteria",
+            "percent_identity",
+            "bitscore",
+            "amr_gene_family",
+            "resistance_mechanism",
+            "drug_class",
+            "card_short_name",
+        ]
+
+        df = pd.read_csv(str(self), sep="\t")
+        header_obs = list(df.columns)
+        if not set(header_exp).issubset(set(header_obs)):
+            raise ValidationError(
+                "Values do not match CARDWildcardindexFormat. Must contain"
+                "the following values: "
+                + ", ".join(header_exp)
+                + ".\n\nFound instead: "
+                + ", ".join(header_obs)
+            )
+
+    def _validate_(self, level):
+        self._validate()
+
+
+class GapDNAFASTAFormat(DNAFASTAFormat):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.alphabet += "-"
+
+
+class CARDDatabaseDirectoryFormat(model.DirectoryFormat):
+    card_fasta = model.File(
+        r"card_database_v\d+\.\d+\.\d+.fasta", format=DNAFASTAFormat
+    )
+    card_fasta_all = model.File(
+        r"card_database_v\d+\.\d+\.\d+_all.fasta", format=GapDNAFASTAFormat
+    )
+    wildcard = model.File("wildcard_database_v0.fasta", format=DNAFASTAFormat)
+    wildcard_all = model.File(
+        "wildcard_database_v0_all.fasta", format=GapDNAFASTAFormat
+    )
+    card_json = model.File("card.json", format=CARDDatabaseFormat)
+    index = model.File("index-for-model-sequences.txt", format=CARDWildcardIndexFormat)
+    homolog_model = model.File(
+        "nucleotide_fasta_protein_homolog_model_variants.fasta", format=DNAFASTAFormat
+    )
+    overexpression_model = model.File(
+        "nucleotide_fasta_protein_overexpression_model_variants.fasta",
+        format=DNAFASTAFormat,
+    )
+    protein_model = model.File(
+        "nucleotide_fasta_protein_variant_model_variants.fasta",
+        format=DNAFASTAFormat,
+    )
+    rRNA_model = model.File(
+        "nucleotide_fasta_rRNA_gene_variant_model_variants.fasta",
+        format=GapDNAFASTAFormat,
+    )
+
+
+class CARDKmerTXTFormat(model.TextFileFormat):
+    def _validate(self, n_records=None):
+        pattern = r"^[AGCT]+\t\d+$"
+
+        with open(str(self), "r") as file:
+            lines = file.readlines()[:10]
+            for line in lines:
+                if not re.match(pattern, line.strip()):
+                    raise ValidationError(
+                        "The provided file is not the correct format. All lines must "
+                        r"match the regex pattern r'^[AGCT]+\t\d+$'."
+                    )
+
+    def _validate_(self, level):
+        self._validate()
+
+
+class CARDKmerJSONFormat(model.TextFileFormat):
+    def _validate(self, n_records=None):
+        keys_exp = ["p", "c", "b", "s", "g"]
+        with open(str(self)) as json_file:
+            kmer_dict = json.load(json_file)
+        keys_obs = list(kmer_dict.keys())
+
+        if keys_obs != keys_exp:
+            raise ValidationError(
+                "Keys do not match KMERJSON format. Must consist of "
+                "the following values: "
+                + ", ".join(keys_exp)
+                + ".\n\nFound instead: "
+                + ", ".join(keys_obs)
+            )
+
+    def _validate_(self, level):
+        self._validate()
+
+
+class CARDKmerDatabaseDirectoryFormat(model.DirectoryFormat):
+    kmer_json = model.File(r"\d+_kmer_db.json", format=CARDKmerJSONFormat)
+    kmer_fasta = model.File(r"all_amr_\d+mers.txt", format=CARDKmerTXTFormat)
 
 
 class CARDAnnotationTXTFormat(model.TextFileFormat):

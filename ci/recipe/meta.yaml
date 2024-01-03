@@ -19,6 +19,12 @@ requirements:
   run:
     - python {{ python }}
     - qiime2 {{ qiime2_epoch }}.*
+    - q2-types-genomics {{ qiime2_epoch }}.*
+    - q2-types {{ qiime2_epoch }}.*
+    - q2templates {{ qiime2_epoch }}.*
+    - q2cli {{ qiime2_epoch }}.*
+    - rgi
+    - altair
 
 test:
   requires:
@@ -28,7 +34,7 @@ test:
     - q2_amr
     - qiime2.plugins.amr
   commands:
-    - pytest --cov q2_amr --pyargs q2_amr
+    - pytest --cov q2_amr --cov-report xml:coverage.xml --pyargs q2_amr
 
 about:
   home: https://github.com/bokulich-lab/q2-amr
