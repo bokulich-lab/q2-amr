@@ -7,7 +7,7 @@
 # ----------------------------------------------------------------------------
 import importlib
 
-from q2_types.feature_table import FeatureTable, PresenceAbsence
+from q2_types.feature_table import FeatureTable, Frequency, PresenceAbsence
 from q2_types.per_sample_sequences import (
     PairedEndSequencesWithQuality,
     SequencesWithQuality,
@@ -133,8 +133,8 @@ plugin.methods.register_function(
     outputs=[
         ("amr_allele_annotation", SampleData[CARDAlleleAnnotation]),
         ("amr_gene_annotation", SampleData[CARDGeneAnnotation]),
-        ("allele_feature_table", FeatureTable[PresenceAbsence]),
-        ("gene_feature_table", FeatureTable[PresenceAbsence]),
+        ("allele_feature_table", FeatureTable[Frequency]),
+        ("gene_feature_table", FeatureTable[Frequency]),
     ],
     input_descriptions={
         "reads": "Paired or single end reads.",
@@ -162,10 +162,10 @@ plugin.methods.register_function(
     output_descriptions={
         "amr_allele_annotation": "AMR annotation mapped on alleles.",
         "amr_gene_annotation": "AMR annotation mapped on genes.",
-        "allele_feature_table": "Presence and absence table of ARGs in all samples for"
-        " allele mapping.",
-        "gene_feature_table": "Presence and absence table of ARGs in all samples for "
-        "gene mapping.",
+        "allele_feature_table": "Frequency table of ARGs in all samples for allele "
+        "mapping.",
+        "gene_feature_table": "Frequency table of ARGs in all samples for gene "
+        "mapping.",
     },
     name="Annotate reads with antimicrobial resistance genes from CARD.",
     description="Annotate reads with antimicrobial resistance genes from CARD.",

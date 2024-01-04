@@ -5,7 +5,6 @@ from unittest.mock import call, patch
 
 import pandas as pd
 from qiime2.plugin.testing import TestPluginBase
-from test_mags import TestAnnotateMagsCard
 
 from q2_amr.card.utils import create_count_table, load_card_db, read_in_txt
 from q2_amr.types import CARDDatabaseDirectoryFormat, CARDKmerDatabaseDirectoryFormat
@@ -16,26 +15,31 @@ class TestAnnotateReadsCARD(TestPluginBase):
 
     @classmethod
     def setUpClass(cls):
-        cls.mapping_data_sample1 = pd.DataFrame(
-            {
-                "ARO Accession": [3000796, 3000815, 3000805, 3000026],
-                "sample1": [1, 1, 1, 1],
-            }
-        )
+        cls.count_df_list = []
+        for colname, ARG, sample in zip(
+            ["ARO Term", "ARO Term", "Best_Hit_ARO"],
+            ["mdtF", "mdtE", "mdtF"],
+            ["sample1", "sample2", "sample1"],
+        ):
+            df = pd.DataFrame(
+                {
+                    colname: [ARG, "mgrA", "OprN", "mepA"],
+                    sample: ["1", "1", "1", "1"],
+                }
+            )
+            cls.count_df_list.append(df)
 
-        cls.mapping_data_sample2 = pd.DataFrame(
+        cls.frequency_table = pd.DataFrame(
             {
-                "ARO Accession": [3000797, 3000815, 3000805, 3000026],
-                "sample2": [1, 1, 1, 2],
+                "sample_id": ["sample1", "sample2"],
+                "mdtF": ["1", "0"],
+                "mgrA": ["1", "1"],
+                "OprN": ["1", "1"],
+                "mepA": ["1", "1"],
+                "mdtE": ["0", "1"],
             }
         )
-
-        cls.mags_mapping_data_sample1 = pd.DataFrame(
-            {
-                "ARO": [3000796, 3000815, 3000805, 3000026],
-                "sample1": [1, 1, 1, 1],
-            }
-        )
+        cls.frequency_table.set_index("sample_id", inplace=True)
 
     def test_load_card_db_fasta(self):
         # Create CARD and Kmer database objects
@@ -119,37 +123,35 @@ class TestAnnotateReadsCARD(TestPluginBase):
             self.assertEqual(str(cm.exception), expected_message)
 
     def test_read_in_txt_mags(self):
-        path = self.get_data_path("output.mags.txt")
+        # Test read_in_txt with output data from annotate_mags_card
         self.read_in_txt_test_body(
-            path, "ARO", "sample1", self.mags_mapping_data_sample1
+            "output.mags.txt", "sample1", self.count_df_list[2], "mags"
         )
 
-    def test_read_in_txt_allele(self):
-        path = self.get_data_path("output.allele_mapping_data.txt")
+    def test_read_in_txt_reads(self):
+        # Test read_in_txt with output data from annotate_reads_card
         self.read_in_txt_test_body(
-            path, "ARO Accession", "sample1", self.mapping_data_sample1
+            "output.allele_mapping_data.txt", "sample1", self.count_df_list[0], "reads"
         )
 
-    def test_read_in_txt_gene(self):
-        path = self.get_data_path("output.gene_mapping_data.txt")
-        self.read_in_txt_test_body(
-            path, "ARO Accession", "sample1", self.mapping_data_sample1
-        )
-
-    def read_in_txt_test_body(self, path, col_name, samp_bin_name, mapping_data):
+    def read_in_txt_test_body(self, txt_file, samp_bin_name, mapping_data, data_type):
+        # Create expected and observed count dataframes and compares them
         exp = mapping_data
-        obs = read_in_txt(path, col_name, samp_bin_name)
-        obs[col_name] = obs[col_name].astype(int)
+        obs = read_in_txt(self.get_data_path(txt_file), samp_bin_name, data_type)
         pd.testing.assert_frame_equal(exp, obs)
 
     def test_create_count_table(self):
-        df_list = [self.mapping_data_sample1, self.mapping_data_sample2]
+        # Create observed count table with create_count_table function
+        df_list = [self.count_df_list[0], self.count_df_list[1]]
         obs = create_count_table(df_list)
-        mag_test_class = TestAnnotateMagsCard()
-        exp = mag_test_class.table
-        exp.set_index("sample_id", inplace=True)
-        exp = exp.astype(float)
-        exp.columns = exp.columns.astype(float)
+        obs = obs.astype(str)
+
+        # Define expected count table
+        exp = self.frequency_table
+
+        # Compare expected and observed count table
         pd.testing.assert_frame_equal(exp, obs)
-        df_list_empty = []
-        self.assertRaises(ValueError, create_count_table, df_list_empty)
+
+    def test_create_count_table_value_error(self):
+        # Assert if ValueError is called when empy list is passed
+        self.assertRaises(ValueError, create_count_table, [])

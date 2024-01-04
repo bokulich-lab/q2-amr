@@ -4,13 +4,11 @@ import subprocess
 import tempfile
 from unittest.mock import ANY, MagicMock, call, patch
 
-import pandas as pd
 from q2_types.per_sample_sequences import (
     SingleLanePerSamplePairedEndFastqDirFmt,
     SingleLanePerSampleSingleEndFastqDirFmt,
 )
 from qiime2.plugin.testing import TestPluginBase
-from test_mags import TestAnnotateMagsCard
 
 from q2_amr.card.reads import (
     annotate_reads_card,
@@ -77,9 +75,7 @@ class TestAnnotateReadsCARD(TestPluginBase):
         mock_run_rgi_bwt = MagicMock(side_effect=self.copy_needed_files)
         mock_run_rgi_load = MagicMock()
         mock_read_in_txt = MagicMock()
-        mock_create_count_table = MagicMock(
-            side_effect=TestAnnotateMagsCard().return_count_table
-        )
+        mock_create_count_table = MagicMock()
 
         # Patch run_rgi_bwt, run_rgi_load, read_in_txt and create_count_table functions
         # and assign MagicMock objects
@@ -128,8 +124,8 @@ class TestAnnotateReadsCARD(TestPluginBase):
             exp_calls_mock_read = [
                 call(
                     path=f"{tmp_dir}/{samp}/output.{model}_mapping_data.txt",
-                    col_name="ARO Accession",
                     samp_bin_name=samp,
+                    data_type="reads",
                 )
                 for samp in ["sample1", "sample2"]
                 for model in ["allele", "gene"]
@@ -147,8 +143,6 @@ class TestAnnotateReadsCARD(TestPluginBase):
             # Assert if all output files are the expected format
             self.assertIsInstance(result[0], CARDAlleleAnnotationDirectoryFormat)
             self.assertIsInstance(result[1], CARDGeneAnnotationDirectoryFormat)
-            self.assertIsInstance(result[2], pd.DataFrame)
-            self.assertIsInstance(result[3], pd.DataFrame)
 
             # Assert if the expected files are in every sample directory and in both
             # resulting CARD annotation objects
