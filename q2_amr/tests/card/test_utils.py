@@ -39,6 +39,7 @@ class TestAnnotateReadsCARD(TestPluginBase):
                 "mdtE": ["0", "1"],
             }
         )
+        cls.frequency_table.set_index("sample_id", inplace=True)
 
     def test_load_card_db_fasta(self):
         # Create CARD and Kmer database objects
@@ -122,13 +123,13 @@ class TestAnnotateReadsCARD(TestPluginBase):
             self.assertEqual(str(cm.exception), expected_message)
 
     def test_read_in_txt_mags(self):
-        # Test read_read_in_txt with output data from annotate_mags_card
+        # Test read_in_txt with output data from annotate_mags_card
         self.read_in_txt_test_body(
             "output.mags.txt", "sample1", self.count_df_list[2], "mags"
         )
 
     def test_read_in_txt_reads(self):
-        # Test read_read_in_txt with output data from annotate_reads_card
+        # Test read_in_txt with output data from annotate_reads_card
         self.read_in_txt_test_body(
             "output.allele_mapping_data.txt", "sample1", self.count_df_list[0], "reads"
         )
@@ -145,9 +146,8 @@ class TestAnnotateReadsCARD(TestPluginBase):
         obs = create_count_table(df_list)
         obs = obs.astype(str)
 
-        # Create expected count table from
+        # Define expected count table
         exp = self.frequency_table
-        exp.set_index("sample_id", inplace=True)
 
         # Compare expected and observed count table
         pd.testing.assert_frame_equal(exp, obs)
