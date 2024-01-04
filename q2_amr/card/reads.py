@@ -71,16 +71,14 @@ def annotate_reads_card(
             )
             path_allele = os.path.join(samp_input_dir, "output.allele_mapping_data.txt")
             allele_frequency = read_in_txt(
-                path=path_allele, col_name="ARO Accession", samp_bin_name=samp
+                path=path_allele, samp_bin_name=samp, data_type="reads"
             )
-            if allele_frequency is not None:
-                allele_frequency_list.append(allele_frequency)
+            allele_frequency_list.append(allele_frequency)
             path_gene = os.path.join(samp_input_dir, "output.gene_mapping_data.txt")
             gene_frequency = read_in_txt(
-                path=path_gene, col_name="ARO Accession", samp_bin_name=samp
+                path=path_gene, samp_bin_name=samp, data_type="reads"
             )
-            if gene_frequency is not None:
-                gene_frequency_list.append(gene_frequency)
+            gene_frequency_list.append(gene_frequency)
             move_files(samp_input_dir, samp_allele_dir, "allele")
             move_files(samp_input_dir, samp_gene_dir, "gene")
 

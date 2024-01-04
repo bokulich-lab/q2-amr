@@ -1,30 +1,17 @@
 import os
 import shutil
 import subprocess
-from copy import deepcopy
 from unittest.mock import MagicMock, patch
 
-import pandas as pd
 from q2_types_genomics.per_sample_data import MultiMAGSequencesDirFmt
 from qiime2.plugin.testing import TestPluginBase
 
 from q2_amr.card.mags import annotate_mags_card, run_rgi_main
-from q2_amr.types import CARDAnnotationDirectoryFormat, CARDDatabaseFormat
+from q2_amr.types import CARDAnnotationDirectoryFormat, CARDDatabaseDirectoryFormat
 
 
 class TestAnnotateMagsCard(TestPluginBase):
     package = "q2_amr.tests"
-
-    table = pd.DataFrame(
-        {
-            "sample_id": ["sample1", "sample2"],
-            3000796: [1, 0],
-            3000815: [1, 1],
-            3000805: [1, 1],
-            3000026: [1, 2],
-            3000797: [0, 1],
-        }
-    )
 
     def mock_run_rgi_main(
         self,
@@ -42,21 +29,13 @@ class TestAnnotateMagsCard(TestPluginBase):
         shutil.copy(output_txt, f"{tmp}/output.txt")
         shutil.copy(output_json, f"{tmp}/output.json")
 
-    def return_count_table(self, df_list):
-        count_table = deepcopy(self.table)
-        count_table.set_index("sample_id", inplace=True)
-        count_table = count_table.astype(float)
-        count_table.columns = count_table.columns.astype(float)
-        return count_table
-
     def test_annotate_mags_card(self):
-
         manifest = self.get_data_path("MANIFEST_mags")
         mag = MultiMAGSequencesDirFmt()
-        card_db = CARDDatabaseFormat()
+        card_db = CARDDatabaseDirectoryFormat()
         shutil.copy(manifest, os.path.join(str(mag), "MANIFEST"))
 
-        mock_create_count_table = MagicMock(side_effect=self.return_count_table)
+        mock_create_count_table = MagicMock()
         mock_read_in_txt = MagicMock()
         with patch(
             "q2_amr.card.mags.run_rgi_main", side_effect=self.mock_run_rgi_main
@@ -67,7 +46,6 @@ class TestAnnotateMagsCard(TestPluginBase):
         ):
             result = annotate_mags_card(mag, card_db)
             self.assertIsInstance(result[0], CARDAnnotationDirectoryFormat)
-            self.assertIsInstance(result[1], pd.DataFrame)
             self.assertTrue(
                 os.path.exists(
                     os.path.join(
