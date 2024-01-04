@@ -7,7 +7,7 @@ from q2_types_genomics.per_sample_data import MultiMAGSequencesDirFmt
 from qiime2.plugin.testing import TestPluginBase
 
 from q2_amr.card.mags import annotate_mags_card, run_rgi_main
-from q2_amr.types import CARDAnnotationDirectoryFormat, CARDDatabaseFormat
+from q2_amr.types import CARDAnnotationDirectoryFormat, CARDDatabaseDirectoryFormat
 
 
 class TestAnnotateMagsCard(TestPluginBase):
@@ -32,14 +32,14 @@ class TestAnnotateMagsCard(TestPluginBase):
     def test_annotate_mags_card(self):
         manifest = self.get_data_path("MANIFEST_mags")
         mag = MultiMAGSequencesDirFmt()
-        card_db = CARDDatabaseFormat()
+        card_db = CARDDatabaseDirectoryFormat()
         shutil.copy(manifest, os.path.join(str(mag), "MANIFEST"))
 
         mock_create_count_table = MagicMock()
         mock_read_in_txt = MagicMock()
         with patch(
             "q2_amr.card.mags.run_rgi_main", side_effect=self.mock_run_rgi_main
-        ), patch("q2_amr.card.mags.load_preprocess_card_db"), patch(
+        ), patch("q2_amr.card.mags.load_card_db"), patch(
             "q2_amr.card.mags.read_in_txt", mock_read_in_txt
         ), patch(
             "q2_amr.card.mags.create_count_table", mock_create_count_table

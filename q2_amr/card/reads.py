@@ -14,15 +14,10 @@ from q2_types.per_sample_sequences import (
     SingleLanePerSampleSingleEndFastqDirFmt,
 )
 
-from q2_amr.card.utils import (
-    create_count_table,
-    load_preprocess_card_db,
-    read_in_txt,
-    run_command,
-)
+from q2_amr.card.utils import create_count_table, load_card_db, read_in_txt, run_command
 from q2_amr.types import (
     CARDAlleleAnnotationDirectoryFormat,
-    CARDDatabaseFormat,
+    CARDDatabaseDirectoryFormat,
     CARDGeneAnnotationDirectoryFormat,
 )
 
@@ -31,9 +26,11 @@ def annotate_reads_card(
     reads: Union[
         SingleLanePerSamplePairedEndFastqDirFmt, SingleLanePerSampleSingleEndFastqDirFmt
     ],
-    card_db: CARDDatabaseFormat,
+    card_db: CARDDatabaseDirectoryFormat,
     aligner: str = "kma",
     threads: int = 1,
+    include_wildcard: bool = False,
+    include_other_models: bool = False,
 ) -> (
     CARDAlleleAnnotationDirectoryFormat,
     CARDGeneAnnotationDirectoryFormat,
@@ -46,9 +43,13 @@ def annotate_reads_card(
     amr_allele_annotation = CARDAlleleAnnotationDirectoryFormat()
     amr_gene_annotation = CARDGeneAnnotationDirectoryFormat()
     with tempfile.TemporaryDirectory() as tmp:
-        load_preprocess_card_db(tmp, card_db, "load")
-        load_preprocess_card_db(tmp, card_db, "preprocess")
-        load_preprocess_card_db(tmp, card_db, "load_fasta")
+        load_card_db(
+            tmp=tmp,
+            card_db=card_db,
+            fasta=True,
+            include_other_models=include_other_models,
+            include_wildcard=include_wildcard,
+        )
         for samp in list(manifest.index):
             fwd = manifest.loc[samp, "forward"]
             rev = manifest.loc[samp, "reverse"] if paired else None
@@ -65,6 +66,8 @@ def annotate_reads_card(
                 rev=rev,
                 aligner=aligner,
                 threads=threads,
+                include_wildcard=include_wildcard,
+                include_other_models=include_other_models,
             )
             path_allele = os.path.join(samp_input_dir, "output.allele_mapping_data.txt")
             allele_frequency = read_in_txt(
@@ -107,6 +110,8 @@ def run_rgi_bwt(
     rev: str,
     aligner: str,
     threads: int,
+    include_wildcard: bool,
+    include_other_models: bool,
 ):
     cmd = [
         "rgi",
@@ -124,6 +129,10 @@ def run_rgi_bwt(
     ]
     if rev:
         cmd.extend(["--read_two", rev])
+    if include_wildcard:
+        cmd.append("--include_wildcard")
+    if include_other_models:
+        cmd.append("--include_other_models")
     try:
         run_command(cmd, cwd, verbose=True)
     except subprocess.CalledProcessError as e:
