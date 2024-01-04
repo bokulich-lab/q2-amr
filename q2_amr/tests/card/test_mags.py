@@ -50,7 +50,6 @@ class TestAnnotateMagsCard(TestPluginBase):
         return count_table
 
     def test_annotate_mags_card(self):
-
         manifest = self.get_data_path("MANIFEST_mags")
         mag = MultiMAGSequencesDirFmt()
         card_db = CARDDatabaseFormat()

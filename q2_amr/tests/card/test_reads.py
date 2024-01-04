@@ -88,7 +88,6 @@ class TestAnnotateReadsCARD(TestPluginBase):
         ), patch("q2_amr.card.reads.read_in_txt", mock_read_in_txt), patch(
             "q2_amr.card.reads.create_count_table", mock_create_count_table
         ):
-
             # Run annotate_reads_card function
             result = annotate_reads_card(reads, card_db)
 
@@ -281,7 +280,6 @@ class TestAnnotateReadsCARD(TestPluginBase):
             "q2_amr.card.reads.plot_sample_stats",
             side_effect=self.mock_plot_sample_stats,
         ), tempfile.TemporaryDirectory() as tmp:
-
             # Run visualize_annotation_stats function
             visualize_annotation_stats(tmp, amr_reads_annotation)
 
