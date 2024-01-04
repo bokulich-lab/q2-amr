@@ -7,12 +7,12 @@ import pandas as pd
 from q2_types_genomics.per_sample_data import MultiMAGSequencesDirFmt
 
 from q2_amr.card.utils import create_count_table, load_card_db, read_in_txt, run_command
-from q2_amr.types import CARDAnnotationDirectoryFormat, CARDDatabaseFormat
+from q2_amr.types import CARDAnnotationDirectoryFormat, CARDDatabaseDirectoryFormat
 
 
 def annotate_mags_card(
     mag: MultiMAGSequencesDirFmt,
-    card_db: CARDDatabaseFormat,
+    card_db: CARDDatabaseDirectoryFormat,
     alignment_tool: str = "BLAST",
     split_prodigal_jobs: bool = False,
     include_loose: bool = False,
