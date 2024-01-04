@@ -10,7 +10,4 @@ jobs:
       - uses: psf/black@stable
         with:
           version: "23.12.1"
-      - name: Lint with pre-commit pattern
-        run: |
-          find . -name "*.py" | grep -E '^((?!_version).)*\.py$' | xargs black --check
-        shell: bash
+          args: ". --check --exclude '_version.py'"
