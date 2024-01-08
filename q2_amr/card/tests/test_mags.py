@@ -11,7 +11,7 @@ from q2_amr.types import CARDAnnotationDirectoryFormat, CARDDatabaseDirectoryFor
 
 
 class TestAnnotateMagsCard(TestPluginBase):
-    package = "q2_amr.tests"
+    package = "q2_amr.card.tests"
 
     def mock_run_rgi_main(
         self,

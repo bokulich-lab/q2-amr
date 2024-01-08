@@ -12,7 +12,7 @@ from q2_amr.types import CARDDatabaseDirectoryFormat, CARDKmerDatabaseDirectoryF
 
 
 class TestAnnotateMagsCard(TestPluginBase):
-    package = "q2_amr.tests"
+    package = "q2_amr.card.tests"
 
     def mock_preprocess(self, dir, operation):
         if operation == "card":

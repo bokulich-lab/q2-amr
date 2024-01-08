@@ -26,7 +26,7 @@ from q2_amr.types import (
 
 
 class TestAnnotateReadsCARD(TestPluginBase):
-    package = "q2_amr.tests"
+    package = "q2_amr.card.tests"
 
     @classmethod
     def setUpClass(cls):
