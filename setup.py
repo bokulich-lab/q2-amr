@@ -25,6 +25,7 @@ setup(
     package_data={
         "q2_amr": [
             "citations.bib",
+            "card/tests/data/*",
             "assets/rgi/annotation_stats/*",
             "assets/rgi/heatmap/*",
         ],
