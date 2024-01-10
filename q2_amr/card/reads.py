@@ -85,8 +85,11 @@ def annotate_reads_card(
             for map_type, des_dir in zip(
                 ["allele", "gene"], [samp_allele_dir, samp_gene_dir]
             ):
-                files = [f"{map_type}_mapping_data.txt", "overall_mapping_stats.txt"]
-
+                files = [f"{map_type}_mapping_data.txt"]
+                # mapping statistics only go to the allele directories
+                files.append(
+                    "overall_mapping_stats.txt"
+                ) if map_type == "allele" else None
                 for file in files:
                     shutil.copy(
                         os.path.join(samp_input_dir, "output." + file),
@@ -215,9 +218,7 @@ def extract_sample_stats(samp_dir: str):
 
 def visualize_annotation_stats(
     output_dir: str,
-    amr_reads_annotation: Union[
-        CARDGeneAnnotationDirectoryFormat, CARDAlleleAnnotationDirectoryFormat
-    ],
+    amr_reads_annotation: CARDAlleleAnnotationDirectoryFormat,
 ):
     directory = str(amr_reads_annotation)
     sample_stats = {}
