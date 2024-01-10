@@ -140,7 +140,7 @@ class TestAnnotateReadsCARD(TestPluginBase):
         )
 
     def test_read_in_txt_reads_allele(self):
-        # Test read_in_txt with output data from annotate_reads_card
+        # Test read_in_txt with allele mapping output data from annotate_reads_card
         self.read_in_txt_test_body(
             filename="output.allele_mapping_data.txt",
             samp_bin_name="sample1",
@@ -150,7 +150,7 @@ class TestAnnotateReadsCARD(TestPluginBase):
         )
 
     def test_read_in_txt_reads_gene(self):
-        # Test read_in_txt with output data from annotate_reads_card
+        # Test read_in_txt with gene mapping output data from annotate_reads_card
         self.read_in_txt_test_body(
             filename="output.gene_mapping_data.txt",
             samp_bin_name="sample1",

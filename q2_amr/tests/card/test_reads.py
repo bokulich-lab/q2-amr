@@ -122,12 +122,13 @@ class TestAnnotateReadsCARD(TestPluginBase):
             # Create four expected call objects for mock_read_in_txt
             exp_calls_mock_read = [
                 call(
-                    path=f"{tmp_dir}/{samp}/output.{model}_mapping_data.txt",
+                    path=f"{tmp_dir}/{samp}/output.{map_type}_mapping_data.txt",
                     samp_bin_name=samp,
                     data_type="reads",
+                    map_type=map_type,
                 )
                 for samp in ["sample1", "sample2"]
-                for model in ["allele", "gene"]
+                for map_type in ["allele", "gene"]
             ]
 
             # Expected call objects for mock_create_count_table
