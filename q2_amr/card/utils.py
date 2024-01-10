@@ -91,13 +91,14 @@ def load_card_db(
         )
 
 
-def read_in_txt(path: str, samp_bin_name: str, data_type):
+def read_in_txt(path: str, samp_bin_name: str, data_type: str, map_type=None):
     # Read in txt file to pd.Dataframe
     df = pd.read_csv(path, sep="\t")
 
-    # Process the df depending on the data type (from reads or mags)
+    # Process the df depending on the data type and mapping type
     if data_type == "reads":
-        df = df[["ARO Term", "All Mapped Reads"]]
+        colname = "Reference Sequence" if map_type == "allele" else "ARO Term"
+        df = df[[colname, "All Mapped Reads"]]
         df.rename(columns={"All Mapped Reads": samp_bin_name}, inplace=True)
     else:
         df = df[["Best_Hit_ARO"]]

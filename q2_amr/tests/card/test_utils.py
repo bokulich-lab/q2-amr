@@ -16,15 +16,23 @@ class TestAnnotateReadsCARD(TestPluginBase):
     @classmethod
     def setUpClass(cls):
         cls.count_df_list = []
-        for colname, ARG, sample in zip(
-            ["ARO Term", "ARO Term", "Best_Hit_ARO"],
-            ["mdtF", "mdtE", "mdtF"],
-            ["sample1", "sample2", "sample1"],
+        for colname, values in zip(
+            ["Reference Sequence", "ARO Term", "Best_Hit_ARO"],
+            [
+                [
+                    "ARO:3000796|ID:121|Name:mdtF|NCBI:U00096.1",
+                    "ARO:3000815|ID:154|Name:mgrA|NCBI:BA000018.3",
+                    "ARO:3000805|ID:172|Name:OprN|NCBI:AE004091.2",
+                    "ARO:3000026|ID:377|Name:mepA|NCBI:AY661734.1",
+                ],
+                ["mdtF", "mgrA", "OprN", "mepA"],
+                ["mdtF", "mgrA", "OprN", "mepA"],
+            ],
         ):
             df = pd.DataFrame(
                 {
-                    colname: [ARG, "mgrA", "OprN", "mepA"],
-                    sample: ["1", "1", "1", "1"],
+                    colname: values,
+                    "sample1": ["1", "1", "1", "1"],
                 }
             )
             cls.count_df_list.append(df)
@@ -125,24 +133,48 @@ class TestAnnotateReadsCARD(TestPluginBase):
     def test_read_in_txt_mags(self):
         # Test read_in_txt with output data from annotate_mags_card
         self.read_in_txt_test_body(
-            "output.mags.txt", "sample1", self.count_df_list[2], "mags"
+            filename="output.mags.txt",
+            samp_bin_name="sample1",
+            exp=self.count_df_list[2],
+            data_type="mags",
         )
 
-    def test_read_in_txt_reads(self):
+    def test_read_in_txt_reads_allele(self):
         # Test read_in_txt with output data from annotate_reads_card
         self.read_in_txt_test_body(
-            "output.allele_mapping_data.txt", "sample1", self.count_df_list[0], "reads"
+            filename="output.allele_mapping_data.txt",
+            samp_bin_name="sample1",
+            exp=self.count_df_list[0],
+            data_type="reads",
+            map_type="allele",
         )
 
-    def read_in_txt_test_body(self, txt_file, samp_bin_name, mapping_data, data_type):
-        # Create expected and observed count dataframes and compares them
-        exp = mapping_data
-        obs = read_in_txt(self.get_data_path(txt_file), samp_bin_name, data_type)
+    def test_read_in_txt_reads_gene(self):
+        # Test read_in_txt with output data from annotate_reads_card
+        self.read_in_txt_test_body(
+            filename="output.gene_mapping_data.txt",
+            samp_bin_name="sample1",
+            exp=self.count_df_list[1],
+            data_type="reads",
+            map_type="gene",
+        )
+
+    def read_in_txt_test_body(
+        self, filename, samp_bin_name, exp, data_type, map_type=None
+    ):
+        # Create expected and observed count dataframes and compare them
+        obs = read_in_txt(
+            self.get_data_path(filename), samp_bin_name, data_type, map_type
+        )
         pd.testing.assert_frame_equal(exp, obs)
 
     def test_create_count_table(self):
+        # Create list of dataframes to be used by create_count_table
+        df_list = [self.count_df_list[1].copy(), self.count_df_list[1].copy()]
+        df_list[1].iloc[0, 0] = "mdtE"
+        df_list[1].rename(columns={"sample1": "sample2"}, inplace=True)
+
         # Create observed count table with create_count_table function
-        df_list = [self.count_df_list[0], self.count_df_list[1]]
         obs = create_count_table(df_list)
         obs = obs.astype(str)
 
