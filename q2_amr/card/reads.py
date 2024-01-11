@@ -86,8 +86,17 @@ def annotate_reads_card(
                 )
                 table_list.append(frequency_table)
 
-            move_files(samp_input_dir, samp_allele_dir, "allele")
-            move_files(samp_input_dir, samp_gene_dir, "gene")
+            # Move mapping and stats files to the sample allele and gene directories
+            for map_type, des_dir in zip(
+                ["allele", "gene"], [samp_allele_dir, samp_gene_dir]
+            ):
+                files = [f"{map_type}_mapping_data.txt", "overall_mapping_stats.txt"]
+
+                for file in files:
+                    shutil.copy(
+                        os.path.join(samp_input_dir, "output." + file),
+                        os.path.join(des_dir, file),
+                    )
 
     allele_feature_table = create_count_table(allele_frequency_list)
     gene_feature_table = create_count_table(gene_frequency_list)
@@ -96,17 +105,6 @@ def annotate_reads_card(
         amr_gene_annotation,
         allele_feature_table,
         gene_feature_table,
-    )
-
-
-def move_files(source_dir: str, des_dir: str, map_type: str):
-    shutil.move(
-        os.path.join(source_dir, f"output.{map_type}_mapping_data.txt"),
-        os.path.join(des_dir, f"{map_type}_mapping_data.txt"),
-    )
-    shutil.copy(
-        os.path.join(source_dir, "output.overall_mapping_stats.txt"),
-        os.path.join(des_dir, "overall_mapping_stats.txt"),
     )
 
 
