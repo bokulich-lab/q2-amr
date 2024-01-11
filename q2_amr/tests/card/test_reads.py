@@ -144,7 +144,6 @@ class TestAnnotateReadsCARD(TestPluginBase):
 
             # Assert if the expected files are in every sample directory and in both
             # resulting CARD annotation objects
-
             for num in [0, 1]:
                 map_type = "allele" if num == 0 else "gene"
                 files = [f"{map_type}_mapping_data.txt", "overall_mapping_stats.txt"]
