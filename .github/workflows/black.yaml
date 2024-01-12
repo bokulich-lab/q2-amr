@@ -10,4 +10,4 @@ jobs:
       - uses: psf/black@stable
         with:
           version: "23.12.1"
-          args: ". --check --extend-exclude '.*_version\\.py$'"
+          args: ". --check --extend '._version\\.py$'"
