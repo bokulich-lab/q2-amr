@@ -7,10 +7,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Debug
-        run: |
-          pwd
-          ls -R
       - uses: psf/black@stable
         with:
           version: "23.12.1"
