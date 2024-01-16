@@ -216,11 +216,9 @@ plugin.visualizers.register_function(
 
 plugin.visualizers.register_function(
     function=visualize_annotation_stats,
-    inputs={"amr_reads_annotation": CARDGeneAnnotation | CARDAlleleAnnotation},
+    inputs={"amr_reads_annotation": SampleData[CARDAlleleAnnotation]},
     parameters={},
-    input_descriptions={
-        "amr_reads_annotation": "AMR annotation mapped on alleles or genes."
-    },
+    input_descriptions={"amr_reads_annotation": "AMR annotations on the allele level."},
     parameter_descriptions={},
     name="Visualize mapping statistics.",
     description="Visualize mapping statistics of an annotate-reads-card output.",
