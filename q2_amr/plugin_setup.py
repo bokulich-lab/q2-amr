@@ -7,7 +7,7 @@
 # ----------------------------------------------------------------------------
 import importlib
 
-from q2_types.feature_table import FeatureTable, PresenceAbsence
+from q2_types.feature_table import FeatureTable, Frequency, PresenceAbsence
 from q2_types.per_sample_sequences import (
     PairedEndSequencesWithQuality,
     SequencesWithQuality,
@@ -21,6 +21,7 @@ from q2_amr import __version__
 from q2_amr.card.database import fetch_card_db
 from q2_amr.card.heatmap import heatmap
 from q2_amr.card.mags import annotate_mags_card
+from q2_amr.card.normalization import normalize
 from q2_amr.card.reads import annotate_reads_card, visualize_annotation_stats
 from q2_amr.types import (
     CARDAnnotationJSONFormat,
@@ -104,7 +105,6 @@ plugin.methods.register_function(
     citations=[citations["alcock_card_2023"]],
 )
 
-
 plugin.methods.register_function(
     function=annotate_reads_card,
     inputs={
@@ -175,6 +175,22 @@ plugin.visualizers.register_function(
     name="Visualize mapping statistics.",
     description="Visualize mapping statistics of an annotate-reads-card output.",
     citations=[citations["alcock_card_2023"]],
+)
+
+plugin.methods.register_function(
+    function=normalize,
+    inputs={
+        "table": FeatureTable[Frequency],
+        "reads": SampleData[PairedEndSequencesWithQuality | SequencesWithQuality],
+    },
+    parameters={},
+    outputs=[("normalized_table", FeatureTable[Frequency])],
+    input_descriptions={"table": "The ", "reads": "The "},
+    parameter_descriptions={},
+    output_descriptions={"normalized_table": "hello"},
+    name="Shannon's Entropy",
+    description="Compute Shannon's Entropy for each sample in a ",
+    citations=[],
 )
 
 # Registrations
