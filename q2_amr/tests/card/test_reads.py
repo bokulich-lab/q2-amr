@@ -146,7 +146,10 @@ class TestAnnotateReadsCARD(TestPluginBase):
             # resulting CARD annotation objects
             for num in [0, 1]:
                 map_type = "allele" if num == 0 else "gene"
-                files = [f"{map_type}_mapping_data.txt", "overall_mapping_stats.txt"]
+                files = [f"{map_type}_mapping_data.txt"]
+                files.append(
+                    "overall_mapping_stats.txt"
+                ) if map_type == "allele" else None
                 for samp in ["sample1", "sample2"]:
                     for file in files:
                         self.assertTrue(
