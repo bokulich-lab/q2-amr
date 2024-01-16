@@ -2,13 +2,9 @@ import os
 import shutil
 import subprocess
 import tempfile
-from distutils.dir_util import copy_tree
 from typing import Union
 
-import altair as alt
 import pandas as pd
-import pkg_resources
-import q2templates
 from q2_types.per_sample_sequences import (
     SingleLanePerSamplePairedEndFastqDirFmt,
     SingleLanePerSampleSingleEndFastqDirFmt,
@@ -144,93 +140,3 @@ def run_rgi_bwt(
             f"(return code {e.returncode}), please inspect "
             "stdout and stderr to learn more."
         )
-
-
-def plot_sample_stats(sample_stats: dict, output_dir: str):
-    sample_stats_df = pd.DataFrame.from_dict(sample_stats, orient="index")
-    sample_stats_df.reset_index(inplace=True)
-
-    mapped_reads_plot = (
-        alt.Chart(sample_stats_df)
-        .mark_bar()
-        .encode(
-            x=alt.X(
-                "index:N",
-                title=None,
-                axis=alt.Axis(labels=False, ticks=False),
-                bandPosition=0.1,
-            ),
-            y=alt.Y(
-                "mapped_reads",
-                title="Mapped Reads",
-                scale=alt.Scale(
-                    domain=(0, sample_stats_df["mapped_reads"].max() * 1.1)
-                ),
-            ),
-            tooltip=[
-                alt.Tooltip("index", title="Sample"),
-                alt.Tooltip("mapped_reads", title="Mapped Reads"),
-                alt.Tooltip("total_reads", title="Total Reads"),
-            ],
-        )
-        .properties(width=alt.Step(80), height=200)
-    )
-
-    percentage_plot = (
-        alt.Chart(sample_stats_df)
-        .mark_bar()
-        .encode(
-            x=alt.X(
-                "index:N", title=None, axis=alt.Axis(labelAngle=15), bandPosition=0.1
-            ),
-            y=alt.Y(
-                "percentage",
-                title="Mapped Reads (%)",
-                scale=alt.Scale(domain=(0, sample_stats_df["percentage"].max() * 1.1)),
-            ),
-            tooltip=[
-                alt.Tooltip("index", title="Sample"),
-                alt.Tooltip("percentage", title="Mapped Reads (%)"),
-                alt.Tooltip("total_reads", title="Total Reads"),
-            ],
-        )
-        .properties(width=alt.Step(80), height=200)
-    )
-    combined_chart = alt.vconcat(mapped_reads_plot, percentage_plot, spacing=0)
-    combined_chart.save(os.path.join(output_dir, "sample_stats_plot.html"))
-
-
-def extract_sample_stats(samp_dir: str):
-    with open(os.path.join(samp_dir, "overall_mapping_stats.txt"), "r") as f:
-        for line in f:
-            if "Total reads:" in line:
-                total_reads = int(line.split()[2])
-            elif "Mapped reads:" in line:
-                mapped_reads = int(line.split()[2])
-                percentage = float(line.split()[3].strip("()").strip("%"))
-        sample_stats_dict = {
-            "total_reads": total_reads,
-            "mapped_reads": mapped_reads,
-            "percentage": percentage,
-        }
-    return sample_stats_dict
-
-
-def visualize_annotation_stats(
-    output_dir: str,
-    amr_reads_annotation: Union[
-        CARDGeneAnnotationDirectoryFormat, CARDAlleleAnnotationDirectoryFormat
-    ],
-):
-    directory = str(amr_reads_annotation)
-    sample_stats = {}
-    for samp in os.listdir(directory):
-        samp_dir = os.path.join(directory, samp)
-        sample_stats[samp] = extract_sample_stats(samp_dir)
-    plot_sample_stats(sample_stats, output_dir)
-    TEMPLATES = pkg_resources.resource_filename("q2_amr", "assets")
-    copy_tree(os.path.join(TEMPLATES, "rgi", "annotation_stats"), output_dir)
-    context = {"tabs": [{"title": "Mapped Reads", "url": "index.html"}]}
-    index = os.path.join(TEMPLATES, "rgi", "annotation_stats", "index.html")
-    templates = [index]
-    q2templates.render(templates, output_dir, context=context)

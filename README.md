@@ -39,8 +39,6 @@ find an overview of actions available in the plugin.
 | annotate-mags-card         | Annotate MAGs with antimicrobial resistance gene information from CARD.              | [rgi](https://github.com/arpcard/rgi) | main, load                           |
 | annotate-reads-card        | Annotate metagenomic reads with antimicrobial resistance gene information from CARD. | [rgi](https://github.com/arpcard/rgi) | bwt, load                            |
 | heatmap                    | Create a heatmap from annotate-mags-card output files.                               | [rgi](https://github.com/arpcard/rgi) | heatmap                              |
-| visualize-annotation-stats | Plot annotate-reads-card annotation statistics.                                      |                                       |                                      |
-
 
 ## Dev environment
 This repository follows the _black_ code style. To make the development slightly easier
