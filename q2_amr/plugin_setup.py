@@ -14,7 +14,7 @@ from q2_types.per_sample_sequences import (
 )
 from q2_types.sample_data import SampleData
 from q2_types_genomics.per_sample_data import MAGs
-from qiime2.core.type import Bool, Choices, Int, Range, Str
+from qiime2.core.type import Bool, Choices, Int, Properties, Range, Str, TypeMap
 from qiime2.plugin import Citations, Plugin
 
 from q2_amr import __version__
@@ -118,6 +118,26 @@ plugin.methods.register_function(
     citations=[citations["alcock_card_2023"]],
 )
 
+P_aligner, T_allele_annotation, T_gene_annotation = TypeMap(
+    {
+        Str
+        % Choices("kma"): (
+            SampleData[CARDAlleleAnnotation % Properties("kma")],
+            SampleData[CARDGeneAnnotation % Properties("kma")],
+        ),
+        Str
+        % Choices("bowtie2"): (
+            SampleData[CARDAlleleAnnotation % Properties("bowtie2")],
+            SampleData[CARDGeneAnnotation % Properties("bowtie2")],
+        ),
+        Str
+        % Choices("bwa"): (
+            SampleData[CARDAlleleAnnotation % Properties("bwa")],
+            SampleData[CARDGeneAnnotation % Properties("bwa")],
+        ),
+    }
+)
+
 plugin.methods.register_function(
     function=annotate_reads_card,
     inputs={
@@ -125,14 +145,14 @@ plugin.methods.register_function(
         "card_db": CARDDatabase,
     },
     parameters={
-        "aligner": Str % Choices(["kma", "bowtie2", "bwa"]),
+        "aligner": P_aligner,
         "threads": Int % Range(0, None, inclusive_start=False),
         "include_wildcard": Bool,
         "include_other_models": Bool,
     },
     outputs=[
-        ("amr_allele_annotation", SampleData[CARDAlleleAnnotation]),
-        ("amr_gene_annotation", SampleData[CARDGeneAnnotation]),
+        ("amr_allele_annotation", T_allele_annotation),
+        ("amr_gene_annotation", T_gene_annotation),
         ("allele_feature_table", FeatureTable[Frequency]),
         ("gene_feature_table", FeatureTable[Frequency]),
     ],
@@ -147,9 +167,9 @@ plugin.methods.register_function(
         "allelic variants available in CARD's Resistomes & Variants"
         " data set. This is highly recommended for non-clinical "
         "samples .",
-        "include_other_models": "The default settings for will align reads against "
+        "include_other_models": "The default settings will align reads against "
         "CARD's protein homolog models. With include_other_"
-        "models set to True reads are additionally aligned to "
+        "models set to True, reads are additionally aligned to "
         "protein variant models, rRNA mutation models, and "
         "protein over-expression models. These three model "
         "types require comparison to CARD's curated lists of "
@@ -190,7 +210,7 @@ plugin.visualizers.register_function(
         "frequency": "Represent samples based on resistance profile.",
     },
     name="Create heatmap from annotate-mags-card output.",
-    description=("Create heatmap from annotate-mags-card output."),
+    description="Create heatmap from annotate-mags-card output.",
     citations=[citations["alcock_card_2023"]],
 )
 
