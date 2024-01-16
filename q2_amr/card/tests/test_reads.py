@@ -1,7 +1,6 @@
 import os
 import shutil
 import subprocess
-import tempfile
 from unittest.mock import ANY, MagicMock, call, patch
 
 from q2_types.per_sample_sequences import (
@@ -10,10 +9,7 @@ from q2_types.per_sample_sequences import (
 )
 from qiime2.plugin.testing import TestPluginBase
 
-from q2_amr.card.reads import (
-    annotate_reads_card,
-    run_rgi_bwt,
-)
+from q2_amr.card.reads import annotate_reads_card, run_rgi_bwt
 from q2_amr.types import (
     CARDAlleleAnnotationDirectoryFormat,
     CARDDatabaseDirectoryFormat,
