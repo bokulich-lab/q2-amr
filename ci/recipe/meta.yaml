@@ -17,15 +17,14 @@ requirements:
     - setuptools
 
   run:
-    - altair
-    - pyarrow >=11.0.0
     - python {{ python }}
-    - q2-cli {{ qiime2_epoch }}.*
-    - q2-templates {{ qiime2_epoch }}.*
-    - q2-types {{ qiime2_epoch }}.*
-    - q2-types-genomics {{ qiime2_epoch }}.*
     - qiime2 {{ qiime2_epoch }}.*
+    - q2-types-genomics {{ qiime2_epoch }}.*
+    - q2-types {{ qiime2_epoch }}.*
+    - q2templates {{ qiime2_epoch }}.*
+    - q2cli {{ qiime2_epoch }}.*
     - rgi
+    - altair
 
 test:
   requires:
