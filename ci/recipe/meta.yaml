@@ -24,7 +24,6 @@ requirements:
     - q2templates {{ qiime2_epoch }}.*
     - q2cli
     - rgi
-    - altair
 
 test:
   requires:
