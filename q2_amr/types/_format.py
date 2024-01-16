@@ -421,14 +421,7 @@ class CARDGeneAnnotationDirectoryFormat(MultiDirValidationMixin, model.Directory
     gene = model.FileCollection(
         r".+(gene_mapping_data.txt)$", format=CARDGeneAnnotationFormat
     )
-    stats = model.FileCollection(
-        r".+(overall_mapping_stats.txt)$", format=CARDAnnotationStatsFormat
-    )
 
     @gene.set_path_maker
     def gene_path_maker(self, sample_id):
         return "%s/gene_mapping_data.txt" % sample_id
-
-    @stats.set_path_maker
-    def stats_path_maker(self, sample_id):
-        return "%s/overall_mapping_stats.txt" % sample_id
