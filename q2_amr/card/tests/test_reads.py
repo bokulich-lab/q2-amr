@@ -1,7 +1,6 @@
 import os
 import shutil
 import subprocess
-import tempfile
 from unittest.mock import ANY, MagicMock, call, patch
 
 from q2_types.per_sample_sequences import (
@@ -10,13 +9,7 @@ from q2_types.per_sample_sequences import (
 )
 from qiime2.plugin.testing import TestPluginBase
 
-from q2_amr.card.reads import (
-    annotate_reads_card,
-    extract_sample_stats,
-    plot_sample_stats,
-    run_rgi_bwt,
-    visualize_annotation_stats,
-)
+from q2_amr.card.reads import annotate_reads_card, run_rgi_bwt
 from q2_amr.types import (
     CARDAlleleAnnotationDirectoryFormat,
     CARDDatabaseDirectoryFormat,
@@ -25,7 +18,7 @@ from q2_amr.types import (
 
 
 class TestAnnotateReadsCARD(TestPluginBase):
-    package = "q2_amr.tests"
+    package = "q2_amr.card.tests"
 
     @classmethod
     def setUpClass(cls):
@@ -203,43 +196,3 @@ class TestAnnotateReadsCARD(TestPluginBase):
             mock_run_command.side_effect = subprocess.CalledProcessError(1, "cmd")
             run_rgi_bwt()
             self.assertEqual(str(cm.exception), expected_message)
-
-    def test_extract_sample_stats(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            mapping_stats_path = self.get_data_path("output.overall_mapping_stats.txt")
-            new_mapping_stats_path = os.path.join(tmp, "overall_mapping_stats.txt")
-            shutil.copy(mapping_stats_path, new_mapping_stats_path)
-            sample_stats = extract_sample_stats(tmp)
-
-            self.assertEqual(sample_stats, self.sample_stats["sample1"])
-
-    def test_plot_sample_stats(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            plot_sample_stats(self.sample_stats, tmp)
-            self.assertTrue(os.path.exists(os.path.join(tmp, "sample_stats_plot.html")))
-
-    def mock_plot_sample_stats(self, sample_stats, output_dir):
-        # Create a dummy HTML file and copy it to the output_dir
-        with open(os.path.join(output_dir, "sample_stats_plot.html"), "w") as file:
-            file.write("file")
-
-    def test_visualize_annotation_stats(self):
-        # Create a CARDGeneAnnotation object
-        amr_reads_annotation = CARDGeneAnnotationDirectoryFormat()
-
-        # Create two sample directories in the CARDGeneAnnotation object
-        for num in range(1, 3):
-            os.makedirs(os.path.join(str(amr_reads_annotation), f"sample{num}"))
-
-        # Patch extract_sample_stats and plot_sample_stats with side effect
-        # mock_plot_sample_stats
-        with patch("q2_amr.card.reads.extract_sample_stats"), patch(
-            "q2_amr.card.reads.plot_sample_stats",
-            side_effect=self.mock_plot_sample_stats,
-        ), tempfile.TemporaryDirectory() as tmp:
-            # Run visualize_annotation_stats function
-            visualize_annotation_stats(tmp, amr_reads_annotation)
-
-            # Assert if all expected files are created
-            for file in ["sample_stats_plot.html", "index.html", "q2templateassets"]:
-                self.assertTrue(os.path.exists(os.path.join(tmp, file)))

@@ -21,7 +21,7 @@ from q2_amr import __version__
 from q2_amr.card.database import fetch_card_db
 from q2_amr.card.heatmap import heatmap
 from q2_amr.card.mags import annotate_mags_card
-from q2_amr.card.reads import annotate_reads_card, visualize_annotation_stats
+from q2_amr.card.reads import annotate_reads_card
 from q2_amr.types import (
     CARDAnnotationJSONFormat,
     CARDAnnotationTXTFormat,
@@ -211,17 +211,6 @@ plugin.visualizers.register_function(
     },
     name="Create heatmap from annotate-mags-card output.",
     description="Create heatmap from annotate-mags-card output.",
-    citations=[citations["alcock_card_2023"]],
-)
-
-plugin.visualizers.register_function(
-    function=visualize_annotation_stats,
-    inputs={"amr_reads_annotation": SampleData[CARDAlleleAnnotation]},
-    parameters={},
-    input_descriptions={"amr_reads_annotation": "AMR annotations on the allele level."},
-    parameter_descriptions={},
-    name="Visualize mapping statistics.",
-    description="Visualize mapping statistics of an annotate-reads-card output.",
     citations=[citations["alcock_card_2023"]],
 )
 

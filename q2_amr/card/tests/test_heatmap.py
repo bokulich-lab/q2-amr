@@ -14,7 +14,7 @@ from q2_amr.types import CARDAnnotationDirectoryFormat
 
 
 class TestHeatmap(TestPluginBase):
-    package = "q2_amr.tests"
+    package = "q2_amr.card.tests"
 
     def test_heatmap(self):
         amr_annotation = CARDAnnotationDirectoryFormat()
