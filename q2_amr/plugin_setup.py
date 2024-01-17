@@ -21,7 +21,7 @@ from q2_amr import __version__
 from q2_amr.card.database import fetch_card_db
 from q2_amr.card.heatmap import heatmap
 from q2_amr.card.mags import annotate_mags_card
-from q2_amr.card.reads import annotate_reads_card, visualize_annotation_stats
+from q2_amr.card.reads import annotate_reads_card
 from q2_amr.types import (
     CARDAnnotationJSONFormat,
     CARDAnnotationTXTFormat,
@@ -167,9 +167,9 @@ plugin.methods.register_function(
         "allelic variants available in CARD's Resistomes & Variants"
         " data set. This is highly recommended for non-clinical "
         "samples .",
-        "include_other_models": "The default settings for will align reads against "
+        "include_other_models": "The default settings will align reads against "
         "CARD's protein homolog models. With include_other_"
-        "models set to True reads are additionally aligned to "
+        "models set to True, reads are additionally aligned to "
         "protein variant models, rRNA mutation models, and "
         "protein over-expression models. These three model "
         "types require comparison to CARD's curated lists of "
@@ -210,18 +210,7 @@ plugin.visualizers.register_function(
         "frequency": "Represent samples based on resistance profile.",
     },
     name="Create heatmap from annotate-mags-card output.",
-    description=("Create heatmap from annotate-mags-card output."),
-    citations=[citations["alcock_card_2023"]],
-)
-
-plugin.visualizers.register_function(
-    function=visualize_annotation_stats,
-    inputs={"amr_reads_annotation": SampleData[CARDAlleleAnnotation]},
-    parameters={},
-    input_descriptions={"amr_reads_annotation": "AMR annotations on the allele level."},
-    parameter_descriptions={},
-    name="Visualize mapping statistics.",
-    description="Visualize mapping statistics of an annotate-reads-card output.",
+    description="Create heatmap from annotate-mags-card output.",
     citations=[citations["alcock_card_2023"]],
 )
 

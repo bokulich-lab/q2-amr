@@ -11,7 +11,7 @@ from q2_amr.types import CARDDatabaseDirectoryFormat, CARDKmerDatabaseDirectoryF
 
 
 class TestAnnotateReadsCARD(TestPluginBase):
-    package = "q2_amr.tests"
+    package = "q2_amr.card.tests"
 
     @classmethod
     def setUpClass(cls):
