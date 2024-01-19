@@ -23,17 +23,25 @@ def heatmap(
     TEMPLATES = pkg_resources.resource_filename("q2_amr", "assets")
     annotation_dir = str(amr_annotation)
     with tempfile.TemporaryDirectory() as tmp:
+        # Create directories for the JSON annotation files and the heatmap output files
         results_dir = os.path.join(tmp, "results")
         json_files_dir = os.path.join(tmp, "json_files")
         os.makedirs(results_dir)
         os.makedirs(json_files_dir)
+
+        # Move all JSON files from the annotation directories into one json_files_dir.
+        # Files get renamed to include sample and bin name.
         for json_file in glob.glob(os.path.join(annotation_dir, "*", "*", "*.json")):
             sample, bin_name, _ = json_file.split(os.path.sep)[-3:]
-            destination_path = os.path.join(json_files_dir, f"{sample}_{bin_name}")
+            destination_path = os.path.join(json_files_dir, f"{sample}_{bin_name}.json")
             shutil.copy(json_file, destination_path)
 
+        # Run RGI heatmap function.
         run_rgi_heatmap(tmp, json_files_dir, clus, cat, display, frequency)
+
+        # Change names of all output files to not include number of files.
         change_names(results_dir)
+
         copy_tree(os.path.join(TEMPLATES, "rgi", "heatmap"), output_dir)
         copy_tree(results_dir, os.path.join(output_dir, "rgi_data"))
     context = {"tabs": [{"title": "Heatmap", "url": "index.html"}]}
