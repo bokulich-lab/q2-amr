@@ -9,7 +9,7 @@ QIIME 2 plugin for antimicrobial resistance gene annotation of MAGs and metageno
 To install _q2-amr_, follow the steps described below.
 
 <details>
-<summary><b>macOS (intel)</b></summary>
+<summary><b>macOS (intel) / Linux</b></summary>
 
 ```shell
 mamba create -yn q2-amr \
