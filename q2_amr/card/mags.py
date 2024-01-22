@@ -6,18 +6,13 @@ import tempfile
 import pandas as pd
 from q2_types_genomics.per_sample_data import MultiMAGSequencesDirFmt
 
-from q2_amr.card.utils import (
-    create_count_table,
-    load_preprocess_card_db,
-    read_in_txt,
-    run_command,
-)
-from q2_amr.types import CARDAnnotationDirectoryFormat, CARDDatabaseFormat
+from q2_amr.card.utils import create_count_table, load_card_db, read_in_txt, run_command
+from q2_amr.types import CARDAnnotationDirectoryFormat, CARDDatabaseDirectoryFormat
 
 
 def annotate_mags_card(
     mag: MultiMAGSequencesDirFmt,
-    card_db: CARDDatabaseFormat,
+    card_db: CARDDatabaseDirectoryFormat,
     alignment_tool: str = "BLAST",
     split_prodigal_jobs: bool = False,
     include_loose: bool = False,
@@ -29,7 +24,7 @@ def annotate_mags_card(
     amr_annotations = CARDAnnotationDirectoryFormat()
     frequency_list = []
     with tempfile.TemporaryDirectory() as tmp:
-        load_preprocess_card_db(tmp, card_db, "load")
+        load_card_db(tmp=tmp, card_db=card_db)
         for samp_bin in list(manifest.index):
             bin_dir = os.path.join(str(amr_annotations), samp_bin[0], samp_bin[1])
             os.makedirs(bin_dir, exist_ok=True)
@@ -51,10 +46,9 @@ def annotate_mags_card(
             shutil.move(f"{tmp}/output.json", json_path)
             samp_bin_name = os.path.join(samp_bin[0], samp_bin[1])
             frequency_df = read_in_txt(
-                path=txt_path, col_name="ARO", samp_bin_name=samp_bin_name
+                path=txt_path, samp_bin_name=samp_bin_name, data_type="mags"
             )
-            if frequency_df is not None:
-                frequency_list.append(frequency_df)
+            frequency_list.append(frequency_df)
         feature_table = create_count_table(df_list=frequency_list)
     return (
         amr_annotations,

@@ -14,7 +14,7 @@ from q2_types.per_sample_sequences import (
 )
 from q2_types.sample_data import SampleData
 from q2_types_genomics.per_sample_data import MAGs
-from qiime2.core.type import Bool, Choices, Int, Range, Str
+from qiime2.core.type import Bool, Choices, Int, Properties, Range, Str, TypeMap
 from qiime2.plugin import Citations, Plugin
 
 from q2_amr import __version__
@@ -22,7 +22,7 @@ from q2_amr.card.database import fetch_card_db
 from q2_amr.card.heatmap import heatmap
 from q2_amr.card.mags import annotate_mags_card
 from q2_amr.card.normalization import normalize
-from q2_amr.card.reads import annotate_reads_card, visualize_annotation_stats
+from q2_amr.card.reads import annotate_reads_card
 from q2_amr.types import (
     CARDAnnotationJSONFormat,
     CARDAnnotationTXTFormat,
@@ -37,8 +37,18 @@ from q2_amr.types._format import (
     CARDAnnotationStatsFormat,
     CARDGeneAnnotationDirectoryFormat,
     CARDGeneAnnotationFormat,
+    CARDKmerDatabaseDirectoryFormat,
+    CARDKmerJSONFormat,
+    CARDKmerTXTFormat,
+    CARDWildcardIndexFormat,
+    GapDNAFASTAFormat,
 )
-from q2_amr.types._type import CARDAlleleAnnotation, CARDAnnotation, CARDGeneAnnotation
+from q2_amr.types._type import (
+    CARDAlleleAnnotation,
+    CARDAnnotation,
+    CARDGeneAnnotation,
+    CARDKmerDatabase,
+)
 
 citations = Citations.load("citations.bib", package="q2_amr")
 
@@ -56,15 +66,19 @@ plugin.methods.register_function(
     function=fetch_card_db,
     inputs={},
     parameters={},
-    outputs=[("card_db", CARDDatabase)],
+    outputs=[("card_db", CARDDatabase), ("kmer_db", CARDKmerDatabase)],
     input_descriptions={},
     parameter_descriptions={},
     output_descriptions={
-        "card_db": "CARD database of resistance genes, their products and associated "
-        "phenotypes."
+        "card_db": "CARD and WildCARD database of resistance genes, their products and "
+        "associated phenotypes.",
+        "kmer_db": "Database of k-mers that are uniquely found within AMR alleles of "
+        "individual pathogen species, pathogen genera, pathogen-restricted "
+        "plasmids, or promiscuous plasmids. The default k-mer length is 61 "
+        "bp, but users can create k-mers of any length.",
     },
-    name="Download CARD data.",
-    description=("Download the latest version of the CARD database."),
+    name="Download CARD and WildCARD data.",
+    description="Download the latest version of the CARD and WildCARD databases.",
     citations=[citations["alcock_card_2023"]],
 )
 
@@ -91,7 +105,7 @@ plugin.methods.register_function(
         "alignment_tool": "Specify alignment tool BLAST or DIAMOND.",
         "split_prodigal_jobs": "Run multiple prodigal jobs simultaneously for contigs"
         " in one sample",
-        "include_loose": "Include loose hits in addition to strict and perfect hits .",
+        "include_loose": "Include loose hits in addition to strict and perfect hits.",
         "include_nudge": "Include hits nudged from loose to strict hits.",
         "low_quality": "Use for short contigs to predict partial genes.",
         "threads": "Number of threads (CPUs) to use in the BLAST search.",
@@ -105,6 +119,26 @@ plugin.methods.register_function(
     citations=[citations["alcock_card_2023"]],
 )
 
+P_aligner, T_allele_annotation, T_gene_annotation = TypeMap(
+    {
+        Str
+        % Choices("kma"): (
+            SampleData[CARDAlleleAnnotation % Properties("kma")],
+            SampleData[CARDGeneAnnotation % Properties("kma")],
+        ),
+        Str
+        % Choices("bowtie2"): (
+            SampleData[CARDAlleleAnnotation % Properties("bowtie2")],
+            SampleData[CARDGeneAnnotation % Properties("bowtie2")],
+        ),
+        Str
+        % Choices("bwa"): (
+            SampleData[CARDAlleleAnnotation % Properties("bwa")],
+            SampleData[CARDGeneAnnotation % Properties("bwa")],
+        ),
+    }
+)
+
 plugin.methods.register_function(
     function=annotate_reads_card,
     inputs={
@@ -112,14 +146,16 @@ plugin.methods.register_function(
         "card_db": CARDDatabase,
     },
     parameters={
-        "aligner": Str % Choices(["kma", "bowtie2", "bwa"]),
+        "aligner": P_aligner,
         "threads": Int % Range(0, None, inclusive_start=False),
+        "include_wildcard": Bool,
+        "include_other_models": Bool,
     },
     outputs=[
-        ("amr_allele_annotation", SampleData[CARDAlleleAnnotation]),
-        ("amr_gene_annotation", SampleData[CARDGeneAnnotation]),
-        ("allele_feature_table", FeatureTable[PresenceAbsence]),
-        ("gene_feature_table", FeatureTable[PresenceAbsence]),
+        ("amr_allele_annotation", T_allele_annotation),
+        ("amr_gene_annotation", T_gene_annotation),
+        ("allele_feature_table", FeatureTable[Frequency]),
+        ("gene_feature_table", FeatureTable[Frequency]),
     ],
     input_descriptions={
         "reads": "Paired or single end reads.",
@@ -128,14 +164,29 @@ plugin.methods.register_function(
     parameter_descriptions={
         "aligner": "Specify alignment tool.",
         "threads": "Number of threads (CPUs) to use.",
+        "include_wildcard": "Additionally align reads to the in silico predicted "
+        "allelic variants available in CARD's Resistomes & Variants"
+        " data set. This is highly recommended for non-clinical "
+        "samples .",
+        "include_other_models": "The default settings will align reads against "
+        "CARD's protein homolog models. With include_other_"
+        "models set to True, reads are additionally aligned to "
+        "protein variant models, rRNA mutation models, and "
+        "protein over-expression models. These three model "
+        "types require comparison to CARD's curated lists of "
+        "mutations known to confer phenotypic antibiotic "
+        "resistance to differentiate alleles conferring "
+        "resistance from antibiotic susceptible alleles, "
+        "but RGI as of yet does not perform this comparison. "
+        "Use these results with caution.",
     },
     output_descriptions={
         "amr_allele_annotation": "AMR annotation mapped on alleles.",
         "amr_gene_annotation": "AMR annotation mapped on genes.",
-        "allele_feature_table": "Presence and absence table of ARGs in all samples for"
-        " allele mapping.",
-        "gene_feature_table": "Presence and absence table of ARGs in all samples for "
-        "gene mapping.",
+        "allele_feature_table": "Frequency table of ARGs in all samples for allele "
+        "mapping.",
+        "gene_feature_table": "Frequency table of ARGs in all samples for gene "
+        "mapping.",
     },
     name="Annotate reads with antimicrobial resistance genes from CARD.",
     description="Annotate reads with antimicrobial resistance genes from CARD.",
@@ -160,20 +211,7 @@ plugin.visualizers.register_function(
         "frequency": "Represent samples based on resistance profile.",
     },
     name="Create heatmap from annotate-mags-card output.",
-    description=("Create heatmap from annotate-mags-card output."),
-    citations=[citations["alcock_card_2023"]],
-)
-
-plugin.visualizers.register_function(
-    function=visualize_annotation_stats,
-    inputs={"amr_reads_annotation": CARDGeneAnnotation | CARDAlleleAnnotation},
-    parameters={},
-    input_descriptions={
-        "amr_reads_annotation": "AMR annotation mapped on alleles or genes."
-    },
-    parameter_descriptions={},
-    name="Visualize mapping statistics.",
-    description="Visualize mapping statistics of an annotate-reads-card output.",
+    description="Create heatmap from annotate-mags-card output.",
     citations=[citations["alcock_card_2023"]],
 )
 
@@ -195,9 +233,16 @@ plugin.methods.register_function(
 
 # Registrations
 plugin.register_semantic_types(
-    CARDDatabase, CARDAnnotation, CARDAlleleAnnotation, CARDGeneAnnotation
+    CARDDatabase,
+    CARDKmerDatabase,
+    CARDAnnotation,
+    CARDAlleleAnnotation,
+    CARDGeneAnnotation,
 )
 
+plugin.register_semantic_type_to_format(
+    CARDKmerDatabase, artifact_format=CARDKmerDatabaseDirectoryFormat
+)
 plugin.register_semantic_type_to_format(
     CARDDatabase, artifact_format=CARDDatabaseDirectoryFormat
 )
@@ -213,6 +258,11 @@ plugin.register_semantic_type_to_format(
 )
 
 plugin.register_formats(
+    CARDKmerDatabaseDirectoryFormat,
+    CARDKmerJSONFormat,
+    CARDKmerTXTFormat,
+    GapDNAFASTAFormat,
+    CARDWildcardIndexFormat,
     CARDAnnotationTXTFormat,
     CARDAnnotationJSONFormat,
     CARDAnnotationDirectoryFormat,

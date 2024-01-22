@@ -1,4 +1,5 @@
 [run]
+source=q2_amr
 branch = True
 omit =
     */tests*

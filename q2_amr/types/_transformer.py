@@ -213,23 +213,6 @@ def card_annotation_df_to_fasta(txt_file_path: str, seq_type: str):
     return fasta_format
 
 
-def read_mapping_data(data_path, variant):
-    df_list = []
-    for samp in os.listdir(str(data_path)):
-        file_path = os.path.join(
-            str(data_path), samp, f"{samp}.{variant}_mapping_data.txt"
-        )
-        df = pd.read_csv(file_path, sep="\t")
-        df.insert(0, "Sample Name", samp)
-        df_list.append(df)
-    mapping_data_cat = pd.concat(df_list, axis=0)
-    mapping_data_cat.reset_index(inplace=True, drop=True)
-    mapping_data_cat.index.name = "id"
-    mapping_data_cat.index = mapping_data_cat.index.astype(str)
-    metadata = qiime2.Metadata(mapping_data_cat)
-    return metadata
-
-
 @plugin.register_transformer
 def _12(data: CARDAlleleAnnotationDirectoryFormat) -> qiime2.Metadata:
     return tabulate_data(data, "allele")
