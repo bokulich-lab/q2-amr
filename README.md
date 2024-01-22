@@ -6,13 +6,16 @@
 QIIME 2 plugin for antimicrobial resistance gene annotation of MAGs and metagenomic reads.
 
 ## Installation
-To install _q2-amr_, follow the installation steps described below.
+To install _q2-amr_, follow the steps described below.
+
+<details>
+<summary><b>macOS (intel) / Linux</b></summary>
 
 ```shell
 mamba create -yn q2-amr \
   -c conda-forge -c bioconda -c qiime2 -c defaults \
   -c https://packages.qiime2.org/qiime2/2023.9/shotgun/released/ \
-  qiime2 q2cli q2templates q2-types q2-types-genomics rgi altair
+  qiime2 q2cli q2templates q2-types q2-types-genomics rgi
 
 conda activate q2-amr
 
@@ -26,6 +29,31 @@ Refresh cache and check that everything worked:
 qiime dev refresh-cache
 qiime info
 ```
+</details>
+
+<details>
+<summary><b>macOS (apple silicon)</b></summary>
+
+```shell
+CONDA_SUBDIR=osx-64 mamba create -yn q2-amr \
+  -c conda-forge -c bioconda -c qiime2 -c defaults \
+  -c https://packages.qiime2.org/qiime2/2023.9/shotgun/released/ \
+  qiime2 q2cli q2templates q2-types q2-types-genomics rgi
+
+conda activate q2-amr
+conda config --env --set subdir osx-64
+
+pip install --no-deps --force-reinstall \
+  git+https://github.com/misialq/rgi.git@py38-fix \
+  git+https://github.com/bokulich-lab/q2-amr.git
+```
+
+Refresh cache and check that everything worked:
+```shell
+qiime dev refresh-cache
+qiime info
+```
+</details>
 
 ## Functionality
 This QIIME 2 plugin contains actions used to annotate short single/paired-end
