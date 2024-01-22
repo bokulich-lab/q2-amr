@@ -65,17 +65,22 @@ def annotate_reads_card(
                 include_wildcard=include_wildcard,
                 include_other_models=include_other_models,
             )
-            path_allele = os.path.join(samp_input_dir, "output.allele_mapping_data.txt")
-            allele_frequency = read_in_txt(
-                path=path_allele, samp_bin_name=samp, data_type="reads"
-            )
-            allele_frequency_list.append(allele_frequency)
 
-            path_gene = os.path.join(samp_input_dir, "output.gene_mapping_data.txt")
-            gene_frequency = read_in_txt(
-                path=path_gene, samp_bin_name=samp, data_type="reads"
-            )
-            gene_frequency_list.append(gene_frequency)
+            # Create a frequency table and add it to a list, for gene and allele
+            # mapping data
+            for map_type, table_list in zip(
+                ["allele", "gene"], [allele_frequency_list, gene_frequency_list]
+            ):
+                path_txt = os.path.join(
+                    samp_input_dir, f"output.{map_type}_mapping_data.txt"
+                )
+                frequency_table = read_in_txt(
+                    path=path_txt,
+                    samp_bin_name=samp,
+                    data_type="reads",
+                    map_type=map_type,
+                )
+                table_list.append(frequency_table)
 
             # Move mapping and stats files to the sample allele and gene directories
             for map_type, des_dir in zip(
