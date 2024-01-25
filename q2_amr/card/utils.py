@@ -15,7 +15,13 @@ EXTERNAL_CMD_WARNING = (
 )
 
 
-def run_command(cmd, cwd, verbose=True):
+def run_command(
+    cmd,
+    cwd,
+    verbose=True,
+    shell=False,
+    stdout=None,
+):
     if verbose:
         print(EXTERNAL_CMD_WARNING)
         print("\nCommand:", end=" ")

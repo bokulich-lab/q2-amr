@@ -21,7 +21,7 @@ from q2_amr import __version__
 from q2_amr.card.database import fetch_card_db
 from q2_amr.card.heatmap import heatmap
 from q2_amr.card.mags import annotate_mags_card
-from q2_amr.card.normalization import normalize
+from q2_amr.card.normalization import normalize_mor, normalize_tpm
 from q2_amr.card.reads import annotate_reads_card
 from q2_amr.types import (
     CARDAnnotationJSONFormat,
@@ -216,18 +216,31 @@ plugin.visualizers.register_function(
 )
 
 plugin.methods.register_function(
-    function=normalize,
+    function=normalize_mor,
+    inputs={"table": FeatureTable[Frequency]},
+    parameters={},
+    outputs=[("normalized_table", FeatureTable[Frequency])],
+    input_descriptions={"table": "FeatureTable"},
+    parameter_descriptions={},
+    output_descriptions={"normalized_table": "hello"},
+    name="",
+    description="",
+    citations=[],
+)
+
+plugin.methods.register_function(
+    function=normalize_tpm,
     inputs={
         "table": FeatureTable[Frequency],
-        "reads": SampleData[PairedEndSequencesWithQuality | SequencesWithQuality],
+        "amr_annotations": SampleData[CARDAlleleAnnotation],
     },
     parameters={},
     outputs=[("normalized_table", FeatureTable[Frequency])],
-    input_descriptions={"table": "The ", "reads": "The "},
+    input_descriptions={"table": "FeatureTable"},
     parameter_descriptions={},
     output_descriptions={"normalized_table": "hello"},
-    name="Shannon's Entropy",
-    description="Compute Shannon's Entropy for each sample in a ",
+    name="",
+    description="",
     citations=[],
 )
 
