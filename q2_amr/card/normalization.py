@@ -1,12 +1,10 @@
 import os
-import subprocess
-import tempfile
 
 import biom
 import pandas as pd
 from pydeseq2.dds import DeseqDataSet
+from rnanorm import TPM
 
-from q2_amr.card.utils import run_command
 from q2_amr.types import CARDAlleleAnnotationDirectoryFormat
 
 
@@ -38,8 +36,8 @@ def normalize_mor(
 def normalize_tpm(
     table: biom.Table, amr_annotations: CARDAlleleAnnotationDirectoryFormat
 ) -> pd.DataFrame:
-    # Initialize an empty list to store individual DataFrames
-    len_list = []
+    # Initialize an empty series for gene lengths
+    len_all = pd.Series()
 
     # Iterate over samples in the specified path
     for samp in os.listdir(amr_annotations.path):
@@ -48,46 +46,15 @@ def normalize_tpm(
         # Read each DataFrame and append it to the list
         len_sample = pd.read_csv(
             anno_txt, sep="\t", usecols=["Reference Sequence", "Reference Length"]
-        )
-        # index_col="Reference Sequence")
+        ).set_index("Reference Sequence")["Reference Length"]
 
-        len_list.append(len_sample)
-
-    # Concatenate all DataFrames into a single DataFrame and remove duplicate rows
-    len_df = pd.concat(len_list)
-    len_df.drop_duplicates(inplace=True)
-    len_df.columns = ["gene_id", "gene_length"]
-
-    counts_df = table.to_dataframe()
-    counts_df = counts_df.T
-
-    with tempfile.TemporaryDirectory() as tmp:
-        len = os.path.join(tmp, "len.csv")
-        counts = os.path.join(tmp, "counts.csv")
-        len_df.to_csv(len, index=False)
-        counts_df.to_csv(counts, index=True)
-
-        run_rnanorm_tpm(cwd=tmp, len=len, counts=counts)
-        normalized_table = pd.read_csv(
-            os.path.join(tmp, "out.csv"),
-            index_col=0,
-        )
-        normalized_table.index.name = "sample_id"
-    return normalized_table
-
-
-def run_rnanorm_tpm(
-    cwd: str,
-    len: str,
-    counts: str,
-):
-    cmd = ["rnanorm", "tpm", counts, "--gene-lengths", len, "--out", f"{cwd}/out.csv"]
-
-    try:
-        run_command(cmd, cwd, verbose=True, shell=True)
-    except subprocess.CalledProcessError as e:
-        raise Exception(
-            "An error was encountered while running RNAnorm, "
-            f"(return code {e.returncode}), please inspect "
-            "stdout and stderr to learn more."
-        )
+        len_all = len_all.combine_first(len_sample)
+    len_all = len_all
+    # len_all = len_all.values.reshape(-1, 1)
+    counts_arr = table.matrix_data.toarray().T
+    # counts_arr = counts_arr.T
+    # len_all = len_all.reshape(-1, 1)
+    tpm_normalizer = TPM(gene_lengths=len_all).set_output(transform="pandas")
+    tpm_df = tpm_normalizer.fit_transform(counts_arr)
+    tpm_df.index.name = "sample_id"
+    return tpm_df
