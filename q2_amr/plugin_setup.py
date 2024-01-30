@@ -7,7 +7,7 @@
 # ----------------------------------------------------------------------------
 import importlib
 
-from q2_types.feature_table import FeatureTable, Frequency, PresenceAbsence
+from q2_types.feature_table import FeatureTable, Frequency
 from q2_types.per_sample_sequences import (
     PairedEndSequencesWithQuality,
     SequencesWithQuality,
@@ -94,7 +94,7 @@ plugin.methods.register_function(
     },
     outputs=[
         ("amr_annotations", SampleData[CARDAnnotation]),
-        ("feature_table", FeatureTable[PresenceAbsence]),
+        ("feature_table", FeatureTable[Frequency]),
     ],
     input_descriptions={
         "mag": "MAGs to be annotated with CARD.",
@@ -111,7 +111,7 @@ plugin.methods.register_function(
     },
     output_descriptions={
         "amr_annotations": "AMR annotation as .txt and .json file.",
-        "feature_table": "Presence and absence table of ARGs in all samples.",
+        "feature_table": "Frequency table of ARGs in all samples.",
     },
     name="Annotate MAGs with antimicrobial resistance genes from CARD.",
     description="Annotate MAGs with antimicrobial resistance genes from CARD.",
