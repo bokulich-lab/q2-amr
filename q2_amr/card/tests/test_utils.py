@@ -15,27 +15,31 @@ class TestAnnotateReadsCARD(TestPluginBase):
 
     @classmethod
     def setUpClass(cls):
-        cls.count_df_list = []
-        for colname, values in zip(
-            ["Reference Sequence", "ARO Term", "Best_Hit_ARO"],
-            [
-                [
+        cls.allele_count_df = pd.DataFrame(
+            {
+                "Reference Sequence": [
                     "ARO:3000796|ID:121|Name:mdtF|NCBI:U00096.1",
                     "ARO:3000815|ID:154|Name:mgrA|NCBI:BA000018.3",
                     "ARO:3000805|ID:172|Name:OprN|NCBI:AE004091.2",
                     "ARO:3000026|ID:377|Name:mepA|NCBI:AY661734.1",
                 ],
-                ["mdtF", "mgrA", "OprN", "mepA"],
-                ["mdtF", "mgrA", "OprN", "mepA"],
-            ],
-        ):
-            df = pd.DataFrame(
-                {
-                    colname: values,
-                    "sample1": ["1", "1", "1", "1"],
-                }
-            )
-            cls.count_df_list.append(df)
+                "sample1": ["1", "1", "1", "1"],
+            }
+        )
+
+        cls.gene_count_df = pd.DataFrame(
+            {
+                "ARO Term": ["mdtF", "mgrA", "OprN", "mepA"],
+                "sample1": ["1", "1", "1", "1"],
+            }
+        )
+
+        cls.mag_count_df = pd.DataFrame(
+            {
+                "Best_Hit_ARO": ["mdtF", "OprN", "mepA"],
+                "sample1/bin1": ["2", "1", "1"],
+            }
+        )
 
         cls.frequency_table = pd.DataFrame(
             {
@@ -134,8 +138,8 @@ class TestAnnotateReadsCARD(TestPluginBase):
         # Test read_in_txt with output data from annotate_mags_card
         self.read_in_txt_test_body(
             filename="output.mags.txt",
-            samp_bin_name="sample1",
-            exp=self.count_df_list[2],
+            samp_bin_name="sample1/bin1",
+            exp=self.mag_count_df,
             data_type="mags",
         )
 
@@ -144,7 +148,7 @@ class TestAnnotateReadsCARD(TestPluginBase):
         self.read_in_txt_test_body(
             filename="output.allele_mapping_data.txt",
             samp_bin_name="sample1",
-            exp=self.count_df_list[0],
+            exp=self.allele_count_df,
             data_type="reads",
             map_type="allele",
         )
@@ -154,7 +158,7 @@ class TestAnnotateReadsCARD(TestPluginBase):
         self.read_in_txt_test_body(
             filename="output.gene_mapping_data.txt",
             samp_bin_name="sample1",
-            exp=self.count_df_list[1],
+            exp=self.gene_count_df,
             data_type="reads",
             map_type="gene",
         )
@@ -170,7 +174,7 @@ class TestAnnotateReadsCARD(TestPluginBase):
 
     def test_create_count_table(self):
         # Create list of dataframes to be used by create_count_table
-        df_list = [self.count_df_list[1].copy(), self.count_df_list[1].copy()]
+        df_list = [self.gene_count_df.copy(), self.gene_count_df.copy()]
         df_list[1].iloc[0, 0] = "mdtE"
         df_list[1].rename(columns={"sample1": "sample2"}, inplace=True)
 
