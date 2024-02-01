@@ -356,3 +356,15 @@ class TestGeneLengthsTypesAndFormats(AMRTypesTestPluginBase):
         shutil.copy(filepath, os.path.join(self.temp_dir.name, "gene_length.txt"))
         format = GeneLengthDirectoryFormat(self.temp_dir.name, mode="r")
         format.validate()
+
+    def test_card_annotation_format_to_df_transformertt(self):
+        transformer = self.get_transformer(
+            CARDAlleleAnnotationDirectoryFormat, GeneLengthDirectoryFormat
+        )
+
+        annotation = CARDAlleleAnnotationDirectoryFormat(
+            self.get_data_path("annotate_reads_output"), "r"
+        )
+
+        obs = transformer(annotation)
+        self.assertIsInstance(obs, GeneLengthDirectoryFormat)
