@@ -107,8 +107,10 @@ def read_in_txt(path: str, samp_bin_name: str, data_type: str, map_type=None):
         df = df[[colname, "All Mapped Reads"]]
         df.rename(columns={"All Mapped Reads": samp_bin_name}, inplace=True)
     else:
-        df = df[["Best_Hit_ARO"]]
-        df[samp_bin_name] = 1
+        df = df["Best_Hit_ARO"].value_counts().reset_index()
+
+        # Rename the columns
+        df.columns = ["Best_Hit_ARO", samp_bin_name]
 
     df = df.astype(str)
     return df

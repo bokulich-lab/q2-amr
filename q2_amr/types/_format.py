@@ -425,3 +425,25 @@ class CARDGeneAnnotationDirectoryFormat(MultiDirValidationMixin, model.Directory
     @gene.set_path_maker
     def gene_path_maker(self, sample_id):
         return "%s/gene_mapping_data.txt" % sample_id
+
+
+class GeneLengthFormat(model.TextFileFormat):
+    def _validate(self, n_records=None):
+        df = pd.read_csv(str(self), sep="\t", header=None)
+        has_two_columns = len(df.columns) == 2
+        lengths_num = df.iloc[:, 1].apply(lambda x: isinstance(x, (float, int))).all()
+        if not (has_two_columns and lengths_num):
+            raise ValidationError(
+                "Format does not match GeneLengthsFormat. Must consist of tab "
+                "separated values in two columns with no header. The first column must "
+                "be the gene names and the second column must be the corresponding "
+                "gene lengths."
+            )
+
+    def _validate_(self, level):
+        self._validate()
+
+
+GeneLengthDirectoryFormat = model.SingleFileDirectoryFormat(
+    "GeneLengthDirectoryFormat", "gene_length.txt", GeneLengthFormat
+)

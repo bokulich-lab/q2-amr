@@ -17,3 +17,4 @@ CARDAlleleAnnotation = SemanticType(
 CARDGeneAnnotation = SemanticType(
     "CARDGeneAnnotation", variant_of=SampleData.field["type"]
 )
+GeneLength = SemanticType("GeneLength")

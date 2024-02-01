@@ -21,6 +21,7 @@ from q2_types.feature_data import (
     ProteinIterator,
 )
 from q2_types_genomics.genome_data import GenesDirectoryFormat, ProteinsDirectoryFormat
+from qiime2.plugin import ValidationError
 from qiime2.plugin.testing import TestPluginBase
 from skbio import DNA, Protein
 
@@ -38,6 +39,8 @@ from q2_amr.types._format import (
     CARDKmerTXTFormat,
     CARDWildcardIndexFormat,
     GapDNAFASTAFormat,
+    GeneLengthDirectoryFormat,
+    GeneLengthFormat,
 )
 from q2_amr.types._transformer import (
     _read_from_card_file,
@@ -328,3 +331,40 @@ class TestCARDReadsAnnotationTypesAndFormats(AMRTypesTestPluginBase):
         )
         metadata_obt = transformer(annotation)
         self.assertIsInstance(metadata_obt, qiime2.Metadata)
+
+
+class TestGeneLengthsTypesAndFormats(AMRTypesTestPluginBase):
+    def test_gene_length_format_validate_positive(self):
+        filepath = self.get_data_path("gene_length.txt")
+        format = GeneLengthFormat(filepath, mode="r")
+        format.validate()
+
+    def test_gene_length_format_validate_negative_3_cols(self):
+        filepath = self.get_data_path("gene_length_3_cols.txt")
+        with self.assertRaises(ValidationError):
+            format = GeneLengthFormat(filepath, mode="r")
+            format.validate()
+
+    def test_gene_length_format_validate_negative_switched(self):
+        filepath = self.get_data_path("gene_length_switched.txt")
+        with self.assertRaises(ValidationError):
+            format = GeneLengthFormat(filepath, mode="r")
+            format.validate()
+
+    def test_gene_length_directory_format_validate_positive(self):
+        filepath = self.get_data_path("gene_length.txt")
+        shutil.copy(filepath, os.path.join(self.temp_dir.name, "gene_length.txt"))
+        format = GeneLengthDirectoryFormat(self.temp_dir.name, mode="r")
+        format.validate()
+
+    def test_card_annotation_format_to_df_transformertt(self):
+        transformer = self.get_transformer(
+            CARDAlleleAnnotationDirectoryFormat, GeneLengthDirectoryFormat
+        )
+
+        annotation = CARDAlleleAnnotationDirectoryFormat(
+            self.get_data_path("annotate_reads_output"), "r"
+        )
+
+        obs = transformer(annotation)
+        self.assertIsInstance(obs, GeneLengthDirectoryFormat)
