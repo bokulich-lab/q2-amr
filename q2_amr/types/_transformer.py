@@ -269,6 +269,7 @@ def _16(data: CARDGeneAnnotationDirectoryFormat) -> GeneLengthDirectoryFormat:
 
 
 def get_gene_lengths(map_type, annotations):
+    # Extracts gene lengths from CARDAlleleAnnotation and CARDGeneAnnotation
     gene_name_col = "Reference Sequence" if map_type == "allele" else "ARO Term"
     len_all = pd.Series()
     directory = GeneLengthDirectoryFormat()
