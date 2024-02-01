@@ -1,8 +1,10 @@
+import os
+
 import biom
 import pandas as pd
 from rnanorm import TPM
 
-from q2_amr.types import CARDAlleleAnnotationDirectoryFormat
+from q2_amr.types import GeneLengthDirectoryFormat
 
 
 def normalize_mor(
@@ -31,40 +33,25 @@ def normalize_mor(
 
 
 def normalize_tpm(
-    table: biom.Table, amr_annotations: CARDAlleleAnnotationDirectoryFormat
+    table: biom.Table, gene_length: GeneLengthDirectoryFormat
 ) -> pd.DataFrame:
-    # # Initialize an empty series for gene lengths
-    # len_all = pd.Series()
-    #
-    # # Iterate over samples in the specified path
-    # for samp in os.listdir(amr_annotations.path):
-    #     anno_txt = os.path.join(amr_annotations.path, samp, "allele_mapping_data.txt")
-    #
-    #     # Read each DataFrame and append it to the list
-    #     len_sample = pd.read_csv(
-    #         anno_txt, sep="\t", usecols=["Reference Sequence", "Reference Length"]
-    #     ).set_index("Reference Sequence")["Reference Length"]
-    #
-    #     len_all = len_all.combine_first(len_sample)
-    len_all = pd.read_csv(
-        "/Users/rischv/Desktop/genelengts.txt",
+    gene_length_series = pd.read_csv(
+        os.path.join(gene_length.path, "gene_length.txt"),
         sep="\t",
         header=None,
         names=["index", "values"],
         index_col="index",
         squeeze=True,
     )
-    len_all = len_all.astype(int)
     df = pd.DataFrame(
         data=table.matrix_data.toarray(),
         index=table.ids(axis="observation"),
         columns=table.ids(axis="sample"),
     ).T
-    # Work with pandas.
     # len_all.to_csv("/Users/rischv/Desktop/genelengts.txt", sep='\t', index=True,
     # header=False)
 
-    transformer = TPM(gene_lengths=len_all).set_output(transform="pandas")
+    transformer = TPM(gene_lengths=gene_length_series).set_output(transform="pandas")
     exp_normalized = transformer.fit_transform(df)
 
     exp_normalized.index.name = "sample_id"

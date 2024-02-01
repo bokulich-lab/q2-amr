@@ -235,11 +235,11 @@ plugin.methods.register_function(
     function=normalize_tpm,
     inputs={
         "table": FeatureTable[Frequency],
-        "amr_annotations": SampleData[CARDAlleleAnnotation],
+        "gene_length": SampleData[CARDAlleleAnnotation],
     },
     parameters={},
     outputs=[("normalized_table", FeatureTable[Frequency])],
-    input_descriptions={"table": "FeatureTable"},
+    input_descriptions={"table": "FeatureTable", "gene_length": "gene_length"},
     parameter_descriptions={},
     output_descriptions={"normalized_table": "hello"},
     name="",
