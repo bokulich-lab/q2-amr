@@ -340,8 +340,8 @@ class TestGeneLengthsTypesAndFormats(AMRTypesTestPluginBase):
         format.validate()
 
     def test_gene_length_format_validate_negative(self):
-        # Test ValidationErrors for wrong columns, wrong data type and duplicate gene
-        # names
+        # Test ValidationErrors for wrong number of columns, wrong data type and
+        # duplicate gene names
         test_cases = [
             (
                 "gene_length_3_cols.txt",

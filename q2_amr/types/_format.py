@@ -431,25 +431,28 @@ class GeneLengthFormat(model.TextFileFormat):
     """
     Tab-separated format for gene length data.
 
-    The format must consist of tab separated values in two columns with no header.
+    The file must consist of tab separated values in two columns with no header.
     The first column must be the gene names and the second column must be the
     corresponding gene lengths. The gene names can not be duplicated.
     """
 
     def _validate(self, n_records=None):
         df = pd.read_csv(str(self), sep="\t", header=None)
+        # Check if df has exactly two columns
         has_two_columns = len(df.columns) == 2
-        lengths_num = df.iloc[:, 1].apply(lambda x: isinstance(x, (float, int))).all()
         if not has_two_columns:
             raise ValidationError(
                 "The file must consist of two tab separated columns. The first column "
                 "must be the gene names and the second column must be the "
                 "corresponding gene lengths."
             )
+        # Check if gene length column is numerical (float or int)
+        lengths_num = df.iloc[:, 1].apply(lambda x: isinstance(x, (float, int))).all()
         if not lengths_num:
             raise ValidationError(
                 "The second column (gene lengths) must be of type int or float."
             )
+        # Check if gene names column doesn't have duplicates
         duplicates = df.iloc[:, 0].duplicated().any()
         if duplicates:
             raise ValidationError(
