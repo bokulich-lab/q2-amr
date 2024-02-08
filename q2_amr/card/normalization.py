@@ -2,57 +2,74 @@ import os
 
 import biom
 import pandas as pd
-from rnanorm import TPM
+from rnanorm import CTF, CUF, FPKM, TMM, TPM, UQ
 
+from q2_amr.card.utils import InvalidParameterCombinationError
 from q2_amr.types import GeneLengthDirectoryFormat
 
 
-def normalize_mor(
+def normalize(
     table: biom.Table,
+    method: str,
+    m_trim: float = 0.3,
+    a_trim: float = 0.05,
+    gene_length: GeneLengthDirectoryFormat = None,
 ) -> pd.DataFrame:
-    # manifest = reads.manifest.view(pd.DataFrame)
-    # #paired = isinstance(reads, SingleLanePerSamplePairedEndFastqDirFmt)
-    # for samp in list(manifest.index):
-    #     # fwd = manifest.loc[samp, "forward"]
-    #     # rev = manifest.loc[samp, "reverse"] if paired else None
-    data = table.matrix_data.toarray()
-    columns = table.ids(axis="sample")
-    index = table.ids(axis="observation")
-    df = pd.DataFrame(data, index=index, columns=columns)
-    df = df.T
-    metadata = df.iloc[:, 0].to_frame()
-    metadata.iloc[0, 0] = "a"
-    original_columns = metadata.columns
-
-    metadata.columns = ["condition"] + list(original_columns[1:])
-    # dds = DeseqDataSet(counts=df, metadata=metadata)
-    # dds.fit_size_factors()
-
-    # normalizedcounts = dds.obsm["size_factors"]
-    return df
-
-
-def normalize_tpm(
-    table: biom.Table, gene_length: GeneLengthDirectoryFormat
-) -> pd.DataFrame:
-    gene_length_series = pd.read_csv(
-        os.path.join(gene_length.path, "gene_length.txt"),
-        sep="\t",
-        header=None,
-        names=["index", "values"],
-        index_col="index",
-        squeeze=True,
-    )
-    df = pd.DataFrame(
+    # Create Dataframe with counts from biom.Table
+    counts = pd.DataFrame(
         data=table.matrix_data.toarray(),
         index=table.ids(axis="observation"),
         columns=table.ids(axis="sample"),
     ).T
-    # len_all.to_csv("/Users/rischv/Desktop/genelengts.txt", sep='\t', index=True,
-    # header=False)
-
-    transformer = TPM(gene_lengths=gene_length_series).set_output(transform="pandas")
-    exp_normalized = transformer.fit_transform(df)
-
-    exp_normalized.index.name = "sample_id"
-    return exp_normalized
+    if method in ["tpm", "fpkm", "uq", "cuf"]:
+        # Raise Error if m or a-trim parameters are given with methods TPM, FPKM, UQ or
+        # CUF
+        if m_trim != 0.3 or a_trim != 0.05:
+            raise InvalidParameterCombinationError(
+                "Parameters m-trim and a-trim can only be used with methods TMM and "
+                "CTF."
+            )
+        if method in ["tpm", "fpkm"]:
+            # Raise Error if gene-length is missing when using methods TPM or FPKM
+            if not gene_length:
+                raise ValueError("gene-length input is missing.")
+            # Create pd.Series from gene_length input
+            gene_length_series = pd.read_csv(
+                os.path.join(gene_length.path, "gene_length.txt"),
+                sep="\t",
+                header=None,
+                names=["index", "values"],
+                index_col="index",
+                squeeze=True,
+            )
+            # Raise Error if there are genes in the counts that are not present in the
+            # gene length
+            if not set(counts.columns).issubset(set(gene_length_series.index)):
+                only_in_counts = set(counts.columns) - set(gene_length_series.index)
+                raise ValueError(
+                    f"There are genes present in the FeatureTable that are not present "
+                    f"in the gene-length input. Missing lengths for genes: "
+                    f"{only_in_counts}"
+                )
+            # Define the methods TPM and FPKM with the gene length series as an input
+            methods = {
+                "tpm": TPM(gene_lengths=gene_length_series),
+                "fpkm": FPKM(gene_lengths=gene_length_series),
+            }
+    if method in ["tmm", "uq", "cuf", "ctf"]:
+        # Raise Error if gene-length is given when using methods TMM, UQ, CUF or CTF
+        if gene_length:
+            raise ValueError(
+                "gene-length input can only be used with FPKM and TPM methods."
+            )
+        # Define the methods TMM and CTF with parameters, also UQ and CUF
+        methods = {
+            "tmm": TMM(m_trim=m_trim, a_trim=a_trim),
+            "ctf": CTF(m_trim=m_trim, a_trim=a_trim),
+            "uq": UQ(),
+            "cuf": CUF(),
+        }
+    # Run normalization method on count dataframe
+    normalized = methods[method].set_output(transform="pandas").fit_transform(counts)
+    normalized.index.name = "sample_id"
+    return normalized

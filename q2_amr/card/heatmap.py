@@ -8,7 +8,7 @@ from distutils.dir_util import copy_tree
 import pkg_resources
 import q2templates
 
-from q2_amr.card.utils import run_command
+from q2_amr.card.utils import InvalidParameterCombinationError, run_command
 from q2_amr.types import CARDAnnotationDirectoryFormat
 
 
@@ -48,12 +48,6 @@ def heatmap(
     index = os.path.join(TEMPLATES, "rgi", "heatmap", "index.html")
     templates = [index]
     q2templates.render(templates, output_dir, context=context)
-
-
-class InvalidParameterCombinationError(Exception):
-    def __init__(self, message="Invalid parameter combination"):
-        self.message = message
-        super().__init__(self.message)
 
 
 def run_rgi_heatmap(tmp, json_files_dir, clus, cat, display, frequency):

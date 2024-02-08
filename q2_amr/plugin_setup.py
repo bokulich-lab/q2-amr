@@ -14,14 +14,14 @@ from q2_types.per_sample_sequences import (
 )
 from q2_types.sample_data import SampleData
 from q2_types_genomics.per_sample_data import MAGs
-from qiime2.core.type import Bool, Choices, Int, Properties, Range, Str, TypeMap
+from qiime2.core.type import Bool, Choices, Float, Int, Properties, Range, Str, TypeMap
 from qiime2.plugin import Citations, Plugin
 
 from q2_amr import __version__
 from q2_amr.card.database import fetch_card_db
 from q2_amr.card.heatmap import heatmap
 from q2_amr.card.mags import annotate_mags_card
-from q2_amr.card.normalization import normalize_mor, normalize_tpm
+from q2_amr.card.normalization import normalize
 from q2_amr.card.reads import annotate_reads_card
 from q2_amr.types import (
     CARDAnnotationJSONFormat,
@@ -219,32 +219,24 @@ plugin.visualizers.register_function(
 )
 
 plugin.methods.register_function(
-    function=normalize_mor,
-    inputs={"table": FeatureTable[Frequency]},
-    parameters={},
-    outputs=[("normalized_table", FeatureTable[Frequency])],
-    input_descriptions={"table": "FeatureTable"},
-    parameter_descriptions={},
-    output_descriptions={"normalized_table": "hello"},
-    name="",
-    description="",
-    citations=[],
-)
-
-plugin.methods.register_function(
-    function=normalize_tpm,
+    function=normalize,
     inputs={
         "table": FeatureTable[Frequency],
-        "gene_length": SampleData[CARDAlleleAnnotation],
+        "gene_length": GeneLength
+        | SampleData[CARDAlleleAnnotation | CARDGeneAnnotation],
     },
-    parameters={},
+    parameters={
+        "method": Str % Choices(["tpm", "fpkm", "tmm", "uq", "cuf", "ctf"]),
+        "m_trim": Float,
+        "a_trim": Float,
+    },
     outputs=[("normalized_table", FeatureTable[Frequency])],
     input_descriptions={"table": "FeatureTable", "gene_length": "gene_length"},
     parameter_descriptions={},
     output_descriptions={"normalized_table": "hello"},
     name="",
     description="",
-    citations=[],
+    citations=[citations["Zmrzlikar_RNAnorm_RNA-seq_data_2023"]],
 )
 
 # Registrations

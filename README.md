@@ -15,7 +15,7 @@ To install _q2-amr_, follow the steps described below.
 mamba create -yn q2-amr \
   -c conda-forge -c bioconda -c qiime2 -c defaults \
   -c https://packages.qiime2.org/qiime2/2023.9/shotgun/released/ \
-  qiime2 q2cli q2templates q2-types q2-types-genomics rgi
+  qiime2 q2cli q2templates q2-types q2-types-genomics rgi rnanorm
 
 conda activate q2-amr
 
@@ -38,7 +38,7 @@ qiime info
 CONDA_SUBDIR=osx-64 mamba create -yn q2-amr \
   -c conda-forge -c bioconda -c qiime2 -c defaults \
   -c https://packages.qiime2.org/qiime2/2023.9/shotgun/released/ \
-  qiime2 q2cli q2templates q2-types q2-types-genomics rgi
+  qiime2 q2cli q2templates q2-types q2-types-genomics rgi rnanorm
 
 conda activate q2-amr
 conda config --env --set subdir osx-64
@@ -58,15 +58,17 @@ qiime info
 ## Functionality
 This QIIME 2 plugin contains actions used to annotate short single/paired-end
 sequencing reads and MAGs with antimicrobial resistance genes. Currently, the [CARD](https://card.mcmaster.ca) database is supported  (for details on
-the implementation and usage, please refer to the [rgi](https://github.com/arpcard/rgi) documentation). Below you will
+the implementation and usage, please refer to the [RGI](https://github.com/arpcard/rgi) documentation). Below you will
 find an overview of actions available in the plugin.
 
-| Action                     | Description                                                                          | Underlying tool                       | Used function                        |
-|----------------------------|--------------------------------------------------------------------------------------|---------------------------------------|--------------------------------------|
-| fetch-card-db              | Download and preprocess CARD and WildCARD data.                                      | [rgi](https://github.com/arpcard/rgi) | card_annotation, wildcard_annotation |
-| annotate-mags-card         | Annotate MAGs with antimicrobial resistance gene information from CARD.              | [rgi](https://github.com/arpcard/rgi) | main, load                           |
-| annotate-reads-card        | Annotate metagenomic reads with antimicrobial resistance gene information from CARD. | [rgi](https://github.com/arpcard/rgi) | bwt, load                            |
-| heatmap                    | Create a heatmap from annotate-mags-card output files.                               | [rgi](https://github.com/arpcard/rgi) | heatmap                              |
+| Action              | Description                                                                          | Underlying tool                           | Used function                        |
+|---------------------|--------------------------------------------------------------------------------------|-------------------------------------------|--------------------------------------|
+| fetch-card-db       | Download and preprocess CARD and WildCARD data.                                      | [RGI](https://github.com/arpcard/rgi)     | card_annotation, wildcard_annotation |
+| annotate-mags-card  | Annotate MAGs with antimicrobial resistance gene information from CARD.              | [RGI](https://github.com/arpcard/rgi)     | main, load                           |
+| annotate-reads-card | Annotate metagenomic reads with antimicrobial resistance gene information from CARD. | [RGI](https://github.com/arpcard/rgi)     | bwt, load                            |
+| heatmap             | Create a heatmap from annotate-mags-card output files.                               | [RGI](https://github.com/arpcard/rgi)     | heatmap                              |
+| normalize           | Normalize feature table with [FPKM](https://www.nature.com/articles/nmeth.1226), [TPM](https://link.springer.com/article/10.1007/s12064-012-0162-3), [TMM](https://genomebiology.biomedcentral.com/articles/10.1186/gb-2010-11-3-r25), [UQ](https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-11-94), [CUF](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-021-02568-9/), or [CTF](https://genomebiology.biomedcentral.com/articles/10.1186/s13059-021-02568-9/) method.                 | [rnaNORM](https://github.com/genialis/RNAnorm) | fpkm, tpm, tmm, uq, cuf, ctf         |
+
 
 ## Dev environment
 This repository follows the _black_ code style. To make the development slightly easier

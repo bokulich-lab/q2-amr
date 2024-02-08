@@ -140,3 +140,9 @@ def create_count_table(df_list: list) -> pd.DataFrame:
     df.columns.name = None
     df.index.name = "sample_id"
     return df
+
+
+class InvalidParameterCombinationError(Exception):
+    def __init__(self, message="Invalid parameter combination"):
+        self.message = message
+        super().__init__(self.message)
