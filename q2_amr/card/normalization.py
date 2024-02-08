@@ -2,7 +2,7 @@ import os
 
 import biom
 import pandas as pd
-from rnanorm import CTF, CUF, FPKM, TMM, TPM, UQ
+from rnanorm import CPM, CTF, CUF, FPKM, TMM, TPM, UQ
 
 from q2_amr.card.utils import InvalidParameterCombinationError
 from q2_amr.types import GeneLengthDirectoryFormat
@@ -21,9 +21,9 @@ def normalize(
         index=table.ids(axis="observation"),
         columns=table.ids(axis="sample"),
     ).T
-    if method in ["tpm", "fpkm", "uq", "cuf"]:
-        # Raise Error if m or a-trim parameters are given with methods TPM, FPKM, UQ or
-        # CUF
+    if method in ["tpm", "fpkm", "uq", "cuf", "cpm"]:
+        # Raise Error if m or a-trim parameters are given with methods TPM, FPKM, UQ,
+        # CPM or CUF
         if m_trim != 0.3 or a_trim != 0.05:
             raise InvalidParameterCombinationError(
                 "Parameters m-trim and a-trim can only be used with methods TMM and "
@@ -56,18 +56,20 @@ def normalize(
                 "tpm": TPM(gene_lengths=gene_length_series),
                 "fpkm": FPKM(gene_lengths=gene_length_series),
             }
-    if method in ["tmm", "uq", "cuf", "ctf"]:
-        # Raise Error if gene-length is given when using methods TMM, UQ, CUF or CTF
+    if method in ["tmm", "uq", "cuf", "ctf", "cpm"]:
+        # Raise Error if gene-length is given when using methods TMM, UQ, CUF, CPM or
+        # CTF
         if gene_length:
             raise ValueError(
                 "gene-length input can only be used with FPKM and TPM methods."
             )
-        # Define the methods TMM and CTF with parameters, also UQ and CUF
+        # Define the methods TMM and CTF with parameters, also UQ, CPM and CUF
         methods = {
             "tmm": TMM(m_trim=m_trim, a_trim=a_trim),
             "ctf": CTF(m_trim=m_trim, a_trim=a_trim),
             "uq": UQ(),
             "cuf": CUF(),
+            "cpm": CPM(),
         }
     # Run normalization method on count dataframe
     normalized = methods[method].set_output(transform="pandas").fit_transform(counts)

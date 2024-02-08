@@ -226,7 +226,7 @@ plugin.methods.register_function(
         | SampleData[CARDAlleleAnnotation | CARDGeneAnnotation],
     },
     parameters={
-        "method": Str % Choices(["tpm", "fpkm", "tmm", "uq", "cuf", "ctf"]),
+        "method": Str % Choices(["tpm", "fpkm", "tmm", "uq", "cuf", "ctf", "cpm"]),
         "m_trim": Float,
         "a_trim": Float,
     },
