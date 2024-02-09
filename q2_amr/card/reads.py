@@ -88,8 +88,8 @@ def annotate_reads_card(
             ):
                 files = [f"{map_type}_mapping_data.txt"]
                 # mapping statistics only go to the allele directories
-                files.append(
-                    "overall_mapping_stats.txt"
+                files.extend(
+                    ["overall_mapping_stats.txt", "sorted.length_100.bam"]
                 ) if map_type == "allele" else None
                 for file in files:
                     shutil.copy(
