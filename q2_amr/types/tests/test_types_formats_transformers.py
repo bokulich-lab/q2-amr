@@ -21,7 +21,6 @@ from q2_types.feature_data import (
     ProteinIterator,
 )
 from q2_types_genomics.genome_data import GenesDirectoryFormat, ProteinsDirectoryFormat
-from qiime2.core.exceptions import ValidationError
 from qiime2.plugin.testing import TestPluginBase
 from skbio import DNA, Protein
 
@@ -31,7 +30,6 @@ from q2_amr.types import (
     CARDGeneAnnotationDirectoryFormat,
 )
 from q2_amr.types._format import (
-    CARDAnnotationBamFormat,
     CARDAnnotationDirectoryFormat,
     CARDAnnotationTXTFormat,
     CARDDatabaseFormat,
@@ -330,14 +328,3 @@ class TestCARDReadsAnnotationTypesAndFormats(AMRTypesTestPluginBase):
         )
         metadata_obt = transformer(annotation)
         self.assertIsInstance(metadata_obt, qiime2.Metadata)
-
-    def test_card_annotation_bam_format_validate_positive(self):
-        filepath = self.get_data_path("sorted.length_100.bam")
-        format = CARDAnnotationBamFormat(filepath, mode="r")
-        format.validate()
-
-    def test_card_annotation_bam_format_validate_error(self):
-        filepath = self.get_data_path("rgi_output_protein.fna")
-        with self.assertRaises(ValidationError):
-            format = CARDAnnotationBamFormat(filepath, mode="r")
-            format.validate()

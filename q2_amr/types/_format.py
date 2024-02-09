@@ -10,10 +10,9 @@ import re
 from copy import copy
 
 import pandas as pd
-import pysam
 import qiime2.plugin.model as model
 from q2_types.feature_data._format import DNAFASTAFormat
-from q2_types_genomics.per_sample_data._format import MultiDirValidationMixin
+from q2_types_genomics.per_sample_data._format import BAMFormat, MultiDirValidationMixin
 from qiime2.plugin import ValidationError
 
 
@@ -399,18 +398,6 @@ class CARDAnnotationStatsFormat(model.TextFileFormat):
         self._validate()
 
 
-class CARDAnnotationBamFormat(model.TextFileFormat):
-    def _validate(self, n_records=None):
-        try:
-            with pysam.AlignmentFile(str(self), "rb"):
-                pass
-        except ValueError:
-            raise ValidationError("File must be a BAM file.")
-
-    def _validate_(self, level):
-        self._validate()
-
-
 class CARDAlleleAnnotationDirectoryFormat(
     MultiDirValidationMixin, model.DirectoryFormat
 ):
@@ -420,9 +407,7 @@ class CARDAlleleAnnotationDirectoryFormat(
     stats = model.FileCollection(
         r".+overall_mapping_stats.txt$", format=CARDAnnotationStatsFormat
     )
-    bam = model.FileCollection(
-        r".+sorted.length_100.bam$", format=CARDAnnotationBamFormat
-    )
+    bam = model.FileCollection(r".+sorted.length_100.bam$", format=BAMFormat)
 
     @allele.set_path_maker
     def allele_path_maker(self, sample_id):
