@@ -227,8 +227,8 @@ plugin.methods.register_function(
     },
     parameters={
         "method": Str % Choices(["tpm", "fpkm", "tmm", "uq", "cuf", "ctf", "cpm"]),
-        "m_trim": Float,
-        "a_trim": Float,
+        "m_trim": Float % Range(0, 1, inclusive_start=True),
+        "a_trim": Float % Range(0, 1, inclusive_start=True),
     },
     outputs=[("normalized_table", FeatureTable[Frequency])],
     input_descriptions={
