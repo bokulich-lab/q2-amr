@@ -231,11 +231,27 @@ plugin.methods.register_function(
         "a_trim": Float,
     },
     outputs=[("normalized_table", FeatureTable[Frequency])],
-    input_descriptions={"table": "FeatureTable", "gene_length": "gene_length"},
-    parameter_descriptions={},
-    output_descriptions={"normalized_table": "hello"},
-    name="",
-    description="",
+    input_descriptions={
+        "table": "Feature table with gene counts.",
+        "gene_length": "Gene lengths of all genes in the feature table.",
+    },
+    parameter_descriptions={
+        "method": "Specify the normalization method to be used. Use FPKM or TPM for "
+        "within comparisons and TMM, UQ, CUF or CTF for between sample "
+        "camparisons. Check https://www.genialis.com/wp-content/uploads/2023"
+        "/12/2023-Normalizing-RNA-seq-data-in-Python-with-RNAnorm.pdf for "
+        "more information on the methods.",
+        "m_trim": "Two sided cutoff for M-values. Can only be used for methods TMM and "
+        "CTF.",
+        "a_trim": "Two sided cutoff for A-values. Can only be used for methods TMM and "
+        "CTF.",
+    },
+    output_descriptions={
+        "normalized_table": "Feature table normalized with specified " "method."
+    },
+    name="Normalize FeatureTable",
+    description="Normalize FeatureTable by gene length, library size and composition "
+    "with common methods for RNA-seq.",
     citations=[citations["Zmrzlikar_RNAnorm_RNA-seq_data_2023"]],
 )
 
