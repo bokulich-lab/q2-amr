@@ -1,0 +1,2 @@
+Reference Sequence / ARO term	Mapped reads with kmer DB hits	CARD kmer Prediction	Subsequent fields
+"Yes"	"Yes"	"Yes"	"Yes"

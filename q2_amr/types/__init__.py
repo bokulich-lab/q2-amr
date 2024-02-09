@@ -20,6 +20,10 @@ from ._format import (
     CARDKmerDatabaseDirectoryFormat,
     CARDKmerJSONFormat,
     CARDKmerTXTFormat,
+    CARDMAGsKmerAnalysisDirectoryFormat,
+    CARDMAGsKmerAnalysisFormat,
+    CARDReadsKmerAnalysisDirectoryFormat,
+    CARDReadsKmerAnalysisFormat,
     CARDWildcardIndexFormat,
     GapDNAFASTAFormat,
 )
@@ -52,4 +56,8 @@ __all__ = [
     "GapDNAFASTAFormat",
     "CARDWildcardIndexFormat",
     "CARDKmerDatabase",
+    "CARDMAGsKmerAnalysisFormat",
+    "CARDMAGsKmerAnalysisDirectoryFormat",
+    "CARDReadsKmerAnalysisFormat",
+    "CARDReadsKmerAnalysisDirectoryFormat",
 ]

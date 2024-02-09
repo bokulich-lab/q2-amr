@@ -425,3 +425,80 @@ class CARDGeneAnnotationDirectoryFormat(MultiDirValidationMixin, model.Directory
     @gene.set_path_maker
     def gene_path_maker(self, sample_id):
         return "%s/gene_mapping_data.txt" % sample_id
+
+
+class CARDMAGsKmerAnalysisFormat(model.TextFileFormat):
+    def _validate(self, n_records=None):
+        header_exp = [
+            "ORF_ID",
+            "Contig",
+            "Cut_Off",
+            "Best_Hit_ARO",
+            "CARD*kmer Prediction",
+            "Taxonomic kmers",
+            "Genomic kmers",
+        ]
+
+        df = pd.read_csv(str(self), sep="\t")
+        header_obs = list(df.columns)
+        if not set(header_exp).issubset(set(header_obs)):
+            raise ValidationError(
+                "Header line does not match CARDMAGsKmerAnalysisFormat. Must contain"
+                "the following values: "
+                + ", ".join(header_exp)
+                + ".\n\nFound instead: "
+                + ", ".join(header_obs)
+            )
+
+    def _validate_(self, level):
+        self._validate()
+
+
+class CARDMAGsKmerAnalysisDirectoryFormat(
+    MultiDirValidationMixin, model.DirectoryFormat
+):
+    txt = model.FileCollection(
+        r"\d+mer_analysis_mags.txt$", format=CARDMAGsKmerAnalysisFormat
+    )
+
+    @txt.set_path_maker
+    def txt_path_maker(self, sample_id, bin_id):
+        pattern = r"\d+mer_analysis_mags.txt$"
+        return f"{sample_id}/{bin_id}/{pattern}"
+
+
+class CARDReadsKmerAnalysisFormat(model.TextFileFormat):
+    def _validate(self, n_records=None):
+        header_exp = [
+            "Reference Sequence / ARO term",
+            "Mapped reads with kmer DB hits",
+            "CARD kmer Prediction",
+            "Subsequent fields",
+        ]
+
+        df = pd.read_csv(str(self), sep="\t")
+        header_obs = list(df.columns)
+        if not set(header_exp).issubset(set(header_obs)):
+            raise ValidationError(
+                "Header line does not match CARDReadsKmerAnalysisFormat. Must contain"
+                "the following values: "
+                + ", ".join(header_exp)
+                + ".\n\nFound instead: "
+                + ", ".join(header_obs)
+            )
+
+    def _validate_(self, level):
+        self._validate()
+
+
+class CARDReadsKmerAnalysisDirectoryFormat(
+    MultiDirValidationMixin, model.DirectoryFormat
+):
+    txt = model.FileCollection(
+        r"\d+mer_analysis_analysis_reads.txt$", format=CARDReadsKmerAnalysisFormat
+    )
+
+    @txt.set_path_maker
+    def txt_path_maker(self, sample_id, bin_id):
+        pattern = r"kmer_\d+mer_analysis_analysis_reads.txt$"
+        return f"{sample_id}/{bin_id}/{pattern}"
