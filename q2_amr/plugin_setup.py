@@ -41,12 +41,15 @@ from q2_amr.types._format import (
     CARDKmerTXTFormat,
     CARDWildcardIndexFormat,
     GapDNAFASTAFormat,
+    GeneLengthDirectoryFormat,
+    GeneLengthFormat,
 )
 from q2_amr.types._type import (
     CARDAlleleAnnotation,
     CARDAnnotation,
     CARDGeneAnnotation,
     CARDKmerDatabase,
+    GeneLength,
 )
 
 citations = Citations.load("citations.bib", package="q2_amr")
@@ -239,6 +242,9 @@ plugin.register_semantic_type_to_format(
 plugin.register_semantic_type_to_format(
     SampleData[CARDGeneAnnotation], artifact_format=CARDGeneAnnotationDirectoryFormat
 )
+plugin.register_semantic_type_to_format(
+    GeneLength, artifact_format=GeneLengthDirectoryFormat
+)
 
 plugin.register_formats(
     CARDKmerDatabaseDirectoryFormat,
@@ -256,6 +262,8 @@ plugin.register_formats(
     CARDAnnotationStatsFormat,
     CARDAlleleAnnotationDirectoryFormat,
     CARDGeneAnnotationDirectoryFormat,
+    GeneLengthFormat,
+    GeneLengthDirectoryFormat,
 )
 
 importlib.import_module("q2_amr.types._transformer")
