@@ -12,7 +12,7 @@ from copy import copy
 import pandas as pd
 import qiime2.plugin.model as model
 from q2_types.feature_data._format import DNAFASTAFormat
-from q2_types_genomics.per_sample_data._format import MultiDirValidationMixin
+from q2_types_genomics.per_sample_data._format import BAMFormat, MultiDirValidationMixin
 from qiime2.plugin import ValidationError
 
 
@@ -402,11 +402,12 @@ class CARDAlleleAnnotationDirectoryFormat(
     MultiDirValidationMixin, model.DirectoryFormat
 ):
     allele = model.FileCollection(
-        r".+(allele_mapping_data.txt)$", format=CARDAlleleAnnotationFormat
+        r".+allele_mapping_data.txt$", format=CARDAlleleAnnotationFormat
     )
     stats = model.FileCollection(
-        r".+(overall_mapping_stats.txt)$", format=CARDAnnotationStatsFormat
+        r".+overall_mapping_stats.txt$", format=CARDAnnotationStatsFormat
     )
+    bam = model.FileCollection(r".+sorted.length_100.bam$", format=BAMFormat)
 
     @allele.set_path_maker
     def allele_path_maker(self, sample_id):
@@ -416,10 +417,14 @@ class CARDAlleleAnnotationDirectoryFormat(
     def stats_path_maker(self, sample_id):
         return "%s/overall_mapping_stats.txt" % sample_id
 
+    @bam.set_path_maker
+    def bam_path_maker(self, sample_id):
+        return "%s/sorted.length_100.bam" % sample_id
+
 
 class CARDGeneAnnotationDirectoryFormat(MultiDirValidationMixin, model.DirectoryFormat):
     gene = model.FileCollection(
-        r".+(gene_mapping_data.txt)$", format=CARDGeneAnnotationFormat
+        r".+gene_mapping_data.txt$", format=CARDGeneAnnotationFormat
     )
 
     @gene.set_path_maker
