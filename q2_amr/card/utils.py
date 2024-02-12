@@ -15,7 +15,13 @@ EXTERNAL_CMD_WARNING = (
 )
 
 
-def run_command(cmd, cwd, verbose=True):
+def run_command(
+    cmd,
+    cwd,
+    verbose=True,
+    shell=False,
+    stdout=None,
+):
     if verbose:
         print(EXTERNAL_CMD_WARNING)
         print("\nCommand:", end=" ")
@@ -134,3 +140,9 @@ def create_count_table(df_list: list) -> pd.DataFrame:
     df.columns.name = None
     df.index.name = "sample_id"
     return df
+
+
+class InvalidParameterCombinationError(Exception):
+    def __init__(self, message="Invalid parameter combination"):
+        self.message = message
+        super().__init__(self.message)

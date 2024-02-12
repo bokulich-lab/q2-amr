@@ -26,6 +26,7 @@ from ._format import (
     CARDAnnotationTXTFormat,
     CARDDatabaseFormat,
     CARDGeneAnnotationDirectoryFormat,
+    GeneLengthDirectoryFormat,
 )
 
 
@@ -253,3 +254,35 @@ def tabulate_data(data_path, data_type):
     if data_type == "mags":
         df_combined.rename(columns={"ID": "HSP_Identifier"}, inplace=True)
     return qiime2.Metadata(df_combined)
+
+
+@plugin.register_transformer
+def _15(data: CARDAlleleAnnotationDirectoryFormat) -> GeneLengthDirectoryFormat:
+    directory = get_gene_lengths(map_type="allele", annotations=data.path)
+    return directory
+
+
+@plugin.register_transformer
+def _16(data: CARDGeneAnnotationDirectoryFormat) -> GeneLengthDirectoryFormat:
+    directory = get_gene_lengths(map_type="gene", annotations=data.path)
+    return directory
+
+
+def get_gene_lengths(map_type, annotations):
+    # Extracts gene lengths from CARDAlleleAnnotation and CARDGeneAnnotation
+    gene_name_col = "Reference Sequence" if map_type == "allele" else "ARO Term"
+    len_all = pd.Series()
+    directory = GeneLengthDirectoryFormat()
+
+    # Iterate over samples, read in each DataFrame and append it to the series
+    for samp in os.listdir(annotations):
+        anno_txt = os.path.join(annotations, samp, f"{map_type}_mapping_data.txt")
+        cols = [gene_name_col, "Reference Length"]
+        len_sample = pd.read_csv(anno_txt, sep="\t", usecols=cols)
+        len_sample = len_sample.set_index(cols[0])[cols[1]]
+        len_all = len_all.combine_first(len_sample)
+
+    len_all.to_csv(
+        os.path.join(directory.path, "gene_length.txt"), sep="\t", header=False
+    )
+    return directory

@@ -21,6 +21,7 @@ from q2_types.feature_data import (
     ProteinIterator,
 )
 from q2_types_genomics.genome_data import GenesDirectoryFormat, ProteinsDirectoryFormat
+from qiime2.plugin import ValidationError
 from qiime2.plugin.testing import TestPluginBase
 from skbio import DNA, Protein
 
@@ -38,6 +39,8 @@ from q2_amr.types._format import (
     CARDKmerTXTFormat,
     CARDWildcardIndexFormat,
     GapDNAFASTAFormat,
+    GeneLengthDirectoryFormat,
+    GeneLengthFormat,
 )
 from q2_amr.types._transformer import (
     _read_from_card_file,
@@ -328,3 +331,67 @@ class TestCARDReadsAnnotationTypesAndFormats(AMRTypesTestPluginBase):
         )
         metadata_obt = transformer(annotation)
         self.assertIsInstance(metadata_obt, qiime2.Metadata)
+
+
+class TestGeneLengthsTypesAndFormats(AMRTypesTestPluginBase):
+    def test_gene_length_format_validate_positive(self):
+        filepath = self.get_data_path("gene_length.txt")
+        format = GeneLengthFormat(filepath, mode="r")
+        format.validate()
+
+    def test_gene_length_format_validate_negative(self):
+        # Test ValidationErrors for wrong number of columns, wrong data type and
+        # duplicate gene names
+        test_cases = [
+            (
+                "gene_length_3_cols.txt",
+                " is not a(n) GeneLengthFormat file:\n\nThe file must consist of two "
+                "tab separated columns. The first column must be the gene names and "
+                "the second column must be the corresponding gene lengths.",
+            ),
+            (
+                "gene_length_switched.txt",
+                " is not a(n) GeneLengthFormat file:\n\nThe second column "
+                "(gene lengths) must be of type int or float.",
+            ),
+            (
+                "gene_length_duplicate.txt",
+                " is not a(n) GeneLengthFormat file:\n\nThere are no duplicate values "
+                "allowed in the first column (gene names).",
+            ),
+        ]
+
+        for file_name, expected_error_message in test_cases:
+            with self.subTest(file_name=file_name):
+                filepath = self.get_data_path(file_name)
+                with self.assertRaises(ValidationError) as context:
+                    format = GeneLengthFormat(filepath, mode="r")
+                    format.validate()
+                self.assertEqual(
+                    str(context.exception), filepath + expected_error_message
+                )
+
+    def test_gene_length_directory_format_validate_positive(self):
+        filepath = self.get_data_path("gene_length.txt")
+        shutil.copy(filepath, os.path.join(self.temp_dir.name, "gene_length.txt"))
+        format = GeneLengthDirectoryFormat(self.temp_dir.name, mode="r")
+        format.validate()
+
+    def test_card_allele_gene_annotation_dir_format_to_gene_length_dir_format(self):
+        transformations = [
+            (CARDAlleleAnnotationDirectoryFormat, GeneLengthDirectoryFormat),
+            (CARDGeneAnnotationDirectoryFormat, GeneLengthDirectoryFormat),
+        ]
+
+        for input_format, output_format in transformations:
+            with self.subTest(input_format=input_format, output_format=output_format):
+                transformer = self.get_transformer(input_format, output_format)
+                annotation = input_format(
+                    self.get_data_path("annotate_reads_output"), "r"
+                )
+                obs = transformer(annotation)
+                self.assertIsInstance(obs, GeneLengthDirectoryFormat)
+                format = GeneLengthFormat(
+                    os.path.join(obs.path, "gene_length.txt"), mode="r"
+                )
+                format.validate()
