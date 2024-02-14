@@ -14,7 +14,7 @@ import qiime2
 import skbio
 from q2_types.feature_data import DNAFASTAFormat, DNAIterator, ProteinFASTAFormat
 from q2_types.feature_data._transformer import ProteinIterator
-from q2_types_genomics.genome_data import GenesDirectoryFormat, ProteinsDirectoryFormat
+from q2_types.genome_data import GenesDirectoryFormat, ProteinsDirectoryFormat
 from skbio import DNA, Protein
 
 from q2_amr.types import CARDAnnotationDirectoryFormat

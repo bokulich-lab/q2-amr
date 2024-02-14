@@ -12,7 +12,7 @@ from copy import copy
 import pandas as pd
 import qiime2.plugin.model as model
 from q2_types.feature_data._format import DNAFASTAFormat
-from q2_types_genomics.per_sample_data._format import BAMFormat, MultiDirValidationMixin
+from q2_types.per_sample_sequences._format import BAMFormat, MultiDirValidationMixin
 from qiime2.plugin import ValidationError
 
 
