@@ -36,8 +36,14 @@ from q2_amr.types._format import (
     CARDKmerDatabaseDirectoryFormat,
     CARDKmerJSONFormat,
     CARDKmerTXTFormat,
+    CARDMAGsKmerAnalysisDirectoryFormat,
     CARDMAGsKmerAnalysisFormat,
-    CARDReadsKmerAnalysisFormat,
+    CARDMAGsKmerAnalysisJSONFormat,
+    CARDReadsAlleleKmerAnalysisDirectoryFormat,
+    CARDReadsAlleleKmerAnalysisFormat,
+    CARDReadsGeneKmerAnalysisDirectoryFormat,
+    CARDReadsGeneKmerAnalysisFormat,
+    CARDReadsKmerAnalysisJSONFormat,
     CARDWildcardIndexFormat,
     GapDNAFASTAFormat,
 )
@@ -334,11 +340,57 @@ class TestCARDReadsAnnotationTypesAndFormats(AMRTypesTestPluginBase):
 
 class TestKmerTypesAndFormats(AMRTypesTestPluginBase):
     def test_card_mags_kmer_analysis_validate_positive(self):
-        filepath = self.get_data_path("kmer_analysis_rgi_summary.txt")
+        filepath = self.get_data_path("61mer_analysis_rgi_summary.txt")
         format = CARDMAGsKmerAnalysisFormat(filepath, mode="r")
         format.validate()
 
-    def test_card_reads_kmer_analysis_validate_positive(self):
-        filepath = self.get_data_path("kmer_analysis_bwt_summary.txt")
-        format = CARDReadsKmerAnalysisFormat(filepath, mode="r")
+    def test_kmer_mags_analysis_json_format_validate_positive(self):
+        filepath = self.get_data_path("mags_61mer_analysis.json")
+        format = CARDMAGsKmerAnalysisJSONFormat(filepath, mode="r")
+        format.validate()
+
+    def test_card_reads_allele_kmer_analysis_validate_positive(self):
+        filepath = self.get_data_path("61mer_analysis.allele.txt")
+        format = CARDReadsAlleleKmerAnalysisFormat(filepath, mode="r")
+        format.validate()
+
+    def test_card_reads_gene_kmer_analysis_validate_positive(self):
+        filepath = self.get_data_path("61mer_analysis.gene.txt")
+        format = CARDReadsGeneKmerAnalysisFormat(filepath, mode="r")
+        format.validate()
+
+    def test_kmer_reads_analysis_json_format_validate_positive(self):
+        filepath = self.get_data_path("reads_61mer_analysis.json")
+        format = CARDReadsKmerAnalysisJSONFormat(filepath, mode="r")
+        format.validate()
+
+    def test_card_reads_gene_kmer_analysis_directory_format_validate_positive(self):
+        sample_dir = os.path.join(self.temp_dir.name, "sample1")
+        os.mkdir(sample_dir)
+        shutil.copy(self.get_data_path("61mer_analysis.gene.txt"), sample_dir)
+        format = CARDReadsGeneKmerAnalysisDirectoryFormat(self.temp_dir.name, mode="r")
+        format.validate()
+
+    def test_card_reads_allele_kmer_analysis_directory_format_validate_positive(self):
+        sample_dir = os.path.join(self.temp_dir.name, "sample1")
+        os.mkdir(sample_dir)
+        shutil.copy(self.get_data_path("61mer_analysis.allele.txt"), sample_dir)
+        shutil.copy(
+            self.get_data_path("reads_61mer_analysis.json"),
+            os.path.join(sample_dir, "61mer_analysis.json"),
+        )
+        format = CARDReadsAlleleKmerAnalysisDirectoryFormat(
+            self.temp_dir.name, mode="r"
+        )
+        format.validate()
+
+    def test_card_mags_kmer_analysis_directory_format_validate_positive(self):
+        sample_dir = os.path.join(self.temp_dir.name, "sample1")
+        os.mkdir(sample_dir)
+        shutil.copy(self.get_data_path("61mer_analysis_rgi_summary.txt"), sample_dir)
+        shutil.copy(
+            self.get_data_path("mags_61mer_analysis.json"),
+            os.path.join(sample_dir, "61mer_analysis.json"),
+        )
+        format = CARDMAGsKmerAnalysisDirectoryFormat(self.temp_dir.name, mode="r")
         format.validate()
