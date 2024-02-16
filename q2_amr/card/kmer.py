@@ -1,4 +1,3 @@
-import glob
 import os
 import shutil
 import subprocess
@@ -61,9 +60,7 @@ def kmer_query(data_type, card_db, kmer_db, amr_annotations, minimum, threads):
         kmer_analysis = mags_kmer_analysis
     with tempfile.TemporaryDirectory() as tmp:
         # Load all necessary files and retrieve K-mer size
-        load_card_db(tmp=tmp, card_db=card_db, kmer_db=kmer_db, kmer=True)
-        path_kmer_json = glob.glob(os.path.join(str(kmer_db), "*_kmer_db.json"))[0]
-        kmer_size = os.path.basename(path_kmer_json).split("_")[0]
+        kmer_size = load_card_db(tmp=tmp, card_db=card_db, kmer_db=kmer_db, kmer=True)
 
         # Retrieve all paths to annotation files
         for root, dirs, files in os.walk(str(amr_annotations)):
@@ -95,7 +92,7 @@ def kmer_query(data_type, card_db, kmer_db, amr_annotations, minimum, threads):
 
                 else:
                     files = (
-                        f"output_{kmer_size}mer_analysis_{input_type}_summary.txt",
+                        f"output_{kmer_size}mer_analysis_rgi_summary.txt",
                         f"output_{kmer_size}mer_analysis.json",
                     )
                     des_dir = os.path.join(

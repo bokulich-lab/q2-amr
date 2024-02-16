@@ -274,12 +274,8 @@ plugin.methods.register_function(
         "threads": Int % Range(0, None, inclusive_start=False),
     },
     outputs=[
-        (
-            "reads_allele_kmer_analysis",
-            SampleData[CARDReadsAlleleKmerAnalysis],
-            "reads_gene_kmer_analysis",
-            SampleData[CARDReadsGeneKmerAnalysis],
-        ),
+        ("reads_allele_kmer_analysis", SampleData[CARDReadsAlleleKmerAnalysis]),
+        ("reads_gene_kmer_analysis", SampleData[CARDReadsGeneKmerAnalysis]),
     ],
     input_descriptions={
         "amr_annotations": "AMR annotations created with annotate-reads-card.",
