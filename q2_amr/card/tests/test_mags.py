@@ -3,7 +3,7 @@ import shutil
 import subprocess
 from unittest.mock import MagicMock, patch
 
-from q2_types_genomics.per_sample_data import MultiMAGSequencesDirFmt
+from q2_types.per_sample_sequences import MultiMAGSequencesDirFmt
 from qiime2.plugin.testing import TestPluginBase
 
 from q2_amr.card.mags import annotate_mags_card, run_rgi_main

@@ -20,7 +20,7 @@ from q2_types.feature_data import (
     ProteinFASTAFormat,
     ProteinIterator,
 )
-from q2_types_genomics.genome_data import GenesDirectoryFormat, ProteinsDirectoryFormat
+from q2_types.genome_data import GenesDirectoryFormat, ProteinsDirectoryFormat
 from qiime2.plugin.testing import TestPluginBase
 from skbio import DNA, Protein
 
