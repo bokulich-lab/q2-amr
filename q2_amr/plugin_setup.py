@@ -14,13 +14,27 @@ from q2_types.per_sample_sequences import (
     SequencesWithQuality,
 )
 from q2_types.sample_data import SampleData
-from qiime2.core.type import Bool, Choices, Int, Properties, Range, Str, TypeMap
+from qiime2.core.type import (
+    Bool,
+    Choices,
+    Collection,
+    Int,
+    Properties,
+    Range,
+    Str,
+    TypeMap,
+)
 from qiime2.plugin import Citations, Plugin
 
 from q2_amr import __version__
 from q2_amr.card.database import fetch_card_db
 from q2_amr.card.heatmap import heatmap
 from q2_amr.card.mags import annotate_mags_card
+from q2_amr.card.partition import (
+    partition_mags_annotations,
+    partition_reads_allele_annotations,
+    partition_reads_gene_annotations,
+)
 from q2_amr.card.reads import annotate_reads_card
 from q2_amr.types import (
     CARDAnnotationJSONFormat,
@@ -213,6 +227,58 @@ plugin.visualizers.register_function(
     description="Create heatmap from annotate-mags-card output.",
     citations=[citations["alcock_card_2023"]],
 )
+
+plugin.methods.register_function(
+    function=partition_mags_annotations,
+    inputs={"annotations": SampleData[CARDAnnotation]},
+    parameters={"num_partitions": Int % Range(1, None)},
+    outputs={"partitioned_annotations": Collection[SampleData[CARDAnnotation]]},
+    input_descriptions={"annotations": "The annotations to partition."},
+    parameter_descriptions={
+        "num_partitions": "The number of partitions to split the annotations"
+        " into. Defaults to partitioning into individual"
+        " annotations."
+    },
+    output_descriptions={"partitioned_annotations": "partitioned annotations"},
+    name="Partition annotations",
+    description="Partition collections of amr annotations of MAGs into individual "
+    "artifacts or the number of partitions specified.",
+)
+
+plugin.methods.register_function(
+    function=partition_reads_allele_annotations,
+    inputs={"annotations": SampleData[CARDAlleleAnnotation]},
+    parameters={"num_partitions": Int % Range(1, None)},
+    outputs={"partitioned_annotations": Collection[SampleData[CARDAlleleAnnotation]]},
+    input_descriptions={"annotations": "The annotations to partition."},
+    parameter_descriptions={
+        "num_partitions": "The number of partitions to split the annotations"
+        " into. Defaults to partitioning into individual"
+        " annotations."
+    },
+    output_descriptions={"partitioned_annotations": "partitioned annotations"},
+    name="Partition annotations",
+    description="Partition collections of amr annotations of reads at allele level into"
+    " individual artifacts or the number of partitions specified.",
+)
+
+plugin.methods.register_function(
+    function=partition_reads_gene_annotations,
+    inputs={"annotations": SampleData[CARDGeneAnnotation]},
+    parameters={"num_partitions": Int % Range(1, None)},
+    outputs={"partitioned_annotations": Collection[SampleData[CARDGeneAnnotation]]},
+    input_descriptions={"annotations": "The annotations to partition."},
+    parameter_descriptions={
+        "num_partitions": "The number of partitions to split the annotations"
+        " into. Defaults to partitioning into individual"
+        " annotations."
+    },
+    output_descriptions={"partitioned_annotations": "partitioned annotations"},
+    name="Partition annotations",
+    description="Partition collections of amr annotations of reads at gene level into"
+    " individual artifacts or the number of partitions specified.",
+)
+
 
 # Registrations
 plugin.register_semantic_types(
