@@ -4,7 +4,7 @@ import subprocess
 import tempfile
 
 import pandas as pd
-from q2_types_genomics.per_sample_data import MultiMAGSequencesDirFmt
+from q2_types.per_sample_sequences import MultiMAGSequencesDirFmt
 
 from q2_amr.card.utils import create_count_table, load_card_db, read_in_txt, run_command
 from q2_amr.types import CARDAnnotationDirectoryFormat, CARDDatabaseDirectoryFormat

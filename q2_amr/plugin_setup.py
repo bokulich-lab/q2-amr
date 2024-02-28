@@ -9,11 +9,11 @@ import importlib
 
 from q2_types.feature_table import FeatureTable, Frequency
 from q2_types.per_sample_sequences import (
+    MAGs,
     PairedEndSequencesWithQuality,
     SequencesWithQuality,
 )
 from q2_types.sample_data import SampleData
-from q2_types_genomics.per_sample_data import MAGs
 from qiime2.core.type import Bool, Choices, Int, Properties, Range, Str, TypeMap
 from qiime2.plugin import Citations, Plugin
 
