@@ -236,12 +236,11 @@ plugin.methods.register_function(
     input_descriptions={"annotations": "The annotations to partition."},
     parameter_descriptions={
         "num_partitions": "The number of partitions to split the annotations"
-        " into. Defaults to partitioning into individual"
-        " annotations."
+        " into. Defaults to partitioning into individual annotations."
     },
     output_descriptions={"partitioned_annotations": "partitioned annotations"},
     name="Partition annotations",
-    description="Partition collections of amr annotations of MAGs into individual "
+    description="Partition amr annotations of MAGs into a collections of individual "
     "artifacts or the number of partitions specified.",
 )
 
@@ -253,13 +252,12 @@ plugin.methods.register_function(
     input_descriptions={"annotations": "The annotations to partition."},
     parameter_descriptions={
         "num_partitions": "The number of partitions to split the annotations"
-        " into. Defaults to partitioning into individual"
-        " annotations."
+        " into. Defaults to partitioning into individual annotations."
     },
     output_descriptions={"partitioned_annotations": "partitioned annotations"},
     name="Partition annotations",
-    description="Partition collections of amr annotations of reads at allele level into"
-    " individual artifacts or the number of partitions specified.",
+    description="Partition amr annotations of reads at allele level into a collections "
+    "of individual artifacts or the number of partitions specified.",
 )
 
 plugin.methods.register_function(
@@ -270,12 +268,11 @@ plugin.methods.register_function(
     input_descriptions={"annotations": "The annotations to partition."},
     parameter_descriptions={
         "num_partitions": "The number of partitions to split the annotations"
-        " into. Defaults to partitioning into individual"
-        " annotations."
+        " into. Defaults to partitioning into individual annotations."
     },
     output_descriptions={"partitioned_annotations": "partitioned annotations"},
     name="Partition annotations",
-    description="Partition collections of amr annotations of reads at gene level into"
+    description="Partition amr annotations of reads at gene level into a collection of"
     " individual artifacts or the number of partitions specified.",
 )
 
