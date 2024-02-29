@@ -41,8 +41,9 @@ def _partition_annotations(
     partitioned_annotations = {}
     # Save all dir paths and file names of the annotations as dictionaries in a list
     annotations_all = []
+
     for dirpath, dirnames, filenames in os.walk(annotations.path):
-        # This makes sure the location is the directory with the annotations files
+        # This makes sure the location is the directory with the annotation files
         if not dirnames:
             components = os.path.normpath(dirpath).split(os.path.sep)
             dirs_and_files = {
@@ -73,7 +74,7 @@ def _partition_annotations(
     # Splits annotations into the specified number of partitions
     partition_dict = np.array_split(annotations_all, num_partitions)
 
-    # Check if
+    # Check if there are duplicates in the sample or MAG ids
     sample_mag_ids = [entry["path_component_1"] for entry in annotations_all]
     duplicates = True if len(sample_mag_ids) != len(set(sample_mag_ids)) else False
 
