@@ -20,11 +20,13 @@ class TestPartition(TestPluginBase):
 
     def test_partition_mags_annotations_duplicated(self):
         # Test partitioning mags annotations with duplicated mag ids
-        self._partition_mags_annotations(duplicated=True, keys=[1, 2], bins=["1", "1"])
+        self._test_partition_mags_annotations(
+            duplicated=True, keys=[1, 2], bins=["1", "1"]
+        )
 
     def test_partition_mags_annotations(self):
         # Test partitioning mags annotations with unique mag ids
-        self._partition_mags_annotations(
+        self._test_partition_mags_annotations(
             duplicated=False, keys=["bin2", "bin1"], bins=["2", "1"]
         )
 
@@ -39,7 +41,7 @@ class TestPartition(TestPluginBase):
         ):
             partition_mags_annotations(annotations=annotations, num_partitions=5)
 
-    def _partition_mags_annotations(self, duplicated, keys, bins):
+    def _test_partition_mags_annotations(self, duplicated, keys, bins):
         # Set up for annotations
         annotations = self.setup_annotations(
             dir_name="annotate_mags_output", format=CARDAnnotationDirectoryFormat
@@ -71,7 +73,7 @@ class TestPartition(TestPluginBase):
         return annotations
 
     def test_partition_reads_allele_annotations(self):
-        self._partition_reads_annotations(
+        self._test_partition_reads_annotations(
             dir="annotate_reads_allele_output",
             files=["allele_mapping_data.txt", "overall_mapping_stats.txt"],
             format=CARDAlleleAnnotationDirectoryFormat,
@@ -79,14 +81,14 @@ class TestPartition(TestPluginBase):
         )
 
     def test_partition_reads_gene_annotations(self):
-        self._partition_reads_annotations(
+        self._test_partition_reads_annotations(
             dir="annotate_reads_gene_output",
             files=["gene_mapping_data.txt", "overall_mapping_stats.txt"],
             format=CARDGeneAnnotationDirectoryFormat,
             function=partition_reads_gene_annotations,
         )
 
-    def _partition_reads_annotations(self, dir, files, format, function):
+    def _test_partition_reads_annotations(self, dir, files, format, function):
         # Set up for annotations
         annotations = self.setup_annotations(dir, format)
 
