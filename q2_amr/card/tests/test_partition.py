@@ -34,7 +34,8 @@ class TestPartition(TestPluginBase):
         # Test warning message when partitioning mags annotations with num partitions
         # higher than the number of mags annotations
         annotations = self.setup_annotations(
-            dir_name="annotate_mags_output", format=CARDAnnotationDirectoryFormat
+            dir_name="collated/annotate_mags_output",
+            format=CARDAnnotationDirectoryFormat,
         )
         with self.assertWarnsRegex(
             UserWarning, "You have requested a number of.*5.*2.*2"
@@ -44,7 +45,8 @@ class TestPartition(TestPluginBase):
     def _test_partition_mags_annotations(self, duplicated, keys, bins):
         # Set up for annotations
         annotations = self.setup_annotations(
-            dir_name="annotate_mags_output", format=CARDAnnotationDirectoryFormat
+            dir_name="collated/annotate_mags_output",
+            format=CARDAnnotationDirectoryFormat,
         )
         # Change name of mag id so they are not duplicated
         if not duplicated:
@@ -74,7 +76,7 @@ class TestPartition(TestPluginBase):
 
     def test_partition_reads_allele_annotations(self):
         self._test_partition_reads_annotations(
-            dir="annotate_reads_allele_output",
+            dir="collated/annotate_reads_allele_output",
             files=["allele_mapping_data.txt", "overall_mapping_stats.txt"],
             format=CARDAlleleAnnotationDirectoryFormat,
             function=partition_reads_allele_annotations,
@@ -82,7 +84,7 @@ class TestPartition(TestPluginBase):
 
     def test_partition_reads_gene_annotations(self):
         self._test_partition_reads_annotations(
-            dir="annotate_reads_gene_output",
+            dir="collated/annotate_reads_gene_output",
             files=["gene_mapping_data.txt", "overall_mapping_stats.txt"],
             format=CARDGeneAnnotationDirectoryFormat,
             function=partition_reads_gene_annotations,

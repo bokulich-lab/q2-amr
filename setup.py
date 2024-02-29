@@ -34,9 +34,10 @@ setup(
             "data/annotate_reads_output/*/*",
         ],
         "q2_amr.card.tests": [
-            "data/*" "data/annotate_mags_output/*/*/*",
-            "data/annotate_reads_allele_output/*/*",
-            "data/annotate_reads_gene_output/*/*",
+            "data/*",
+            "data/collated/annotate_mags_output/*/*/*",
+            "data/collated/annotate_reads_allele_output/*/*",
+            "data/collated/annotate_reads_gene_output/*/*",
         ],
     },
     zip_safe=False,
