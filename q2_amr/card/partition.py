@@ -28,13 +28,13 @@ def collate_reads_gene_annotations(
 
 
 def _collate_annotations(annotations):
-    collated_annotations = type(annotations)()
+    collated_annotations = type(annotations[0])()
     # For every partition
     for annotation in annotations:
         # For every sample
         for sample in annotation.path.iterdir():
             # If annotations are from MAGs
-            if type(annotations) is CARDAnnotationDirectoryFormat:
+            if type(annotations[0]) is CARDAnnotationDirectoryFormat:
                 # For every MAG
                 for mag in sample.iterdir():
                     # Create directories in collate
@@ -55,7 +55,7 @@ def _collate_annotations(annotations):
 
             # If annotations are from reads
             else:
-                # Create directories in collate
+                # Create directories in collate object
                 os.makedirs(collated_annotations.path / sample.name, exist_ok=True)
 
                 # For every mag in the sample
