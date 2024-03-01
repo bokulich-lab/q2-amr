@@ -232,6 +232,9 @@ plugin.register_semantic_types(
     CARDAnnotation,
     CARDAlleleAnnotation,
     CARDGeneAnnotation,
+    CARDReadsGeneKmerAnalysis,
+    CARDReadsAlleleKmerAnalysis,
+    CARDMAGsKmerAnalysis,
 )
 
 plugin.register_semantic_type_to_format(
