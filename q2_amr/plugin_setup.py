@@ -227,8 +227,8 @@ plugin.methods.register_function(
     input_descriptions={
         "annotations": "A collection of annotations from MAGs to be " "collated."
     },
-    name="Collate mags annotations",
-    description="Takes a collection of SampleData[CARDAnnotation]'s "
+    name="Collate mags annotations.",
+    description="Takes a collection of SampleData[CARDAnnotation] "
     "and collates them into a single artifact.",
 )
 
@@ -241,8 +241,8 @@ plugin.methods.register_function(
         "annotations": "A collection of annotations from reads at "
         "allele level to be collated."
     },
-    name="Collate reads allele annotations",
-    description="Takes a collection of SampleData[CARDAlleleAnnotation]'s "
+    name="Collate reads allele annotations.",
+    description="Takes a collection of SampleData[CARDAlleleAnnotation] "
     "and collates them into a single artifact.",
 )
 
@@ -255,8 +255,8 @@ plugin.methods.register_function(
         "annotations": "A collection of annotations from reads at "
         "gene level to be collated."
     },
-    name="Collate reads gene annotations",
-    description="Takes a collection of SampleData[CARDGeneAnnotation]'s "
+    name="Collate reads gene annotations.",
+    description="Takes a collection of SampleData[CARDGeneAnnotation] "
     "and collates them into a single artifact.",
 )
 # Registrations
