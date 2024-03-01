@@ -19,6 +19,7 @@ from qiime2.core.type import (
     Choices,
     Collection,
     Int,
+    List,
     Properties,
     Range,
     Str,
@@ -32,6 +33,9 @@ from q2_amr.card.heatmap import heatmap
 from q2_amr.card.kmer import kmer_query_mags_card, kmer_query_reads_card
 from q2_amr.card.mags import annotate_mags_card
 from q2_amr.card.partition import (
+    collate_mags_annotations,
+    collate_reads_allele_annotations,
+    collate_reads_gene_annotations,
     partition_mags_annotations,
     partition_reads_allele_annotations,
     partition_reads_gene_annotations,
@@ -363,6 +367,46 @@ plugin.methods.register_function(
     " individual artifacts or the number of partitions specified.",
 )
 
+plugin.methods.register_function(
+    function=collate_mags_annotations,
+    inputs={"annotations": List[SampleData[CARDAnnotation]]},
+    parameters={},
+    outputs={"collated_annotations": SampleData[CARDAnnotation]},
+    input_descriptions={
+        "annotations": "A collection of annotations from MAGs to be " "collated."
+    },
+    name="Collate mags annotations.",
+    description="Takes a collection of SampleData[CARDAnnotation] "
+    "and collates them into a single artifact.",
+)
+
+plugin.methods.register_function(
+    function=collate_reads_allele_annotations,
+    inputs={"annotations": List[SampleData[CARDAlleleAnnotation]]},
+    parameters={},
+    outputs={"collated_annotations": SampleData[CARDAlleleAnnotation]},
+    input_descriptions={
+        "annotations": "A collection of annotations from reads at "
+        "allele level to be collated."
+    },
+    name="Collate reads allele annotations.",
+    description="Takes a collection of SampleData[CARDAlleleAnnotation] "
+    "and collates them into a single artifact.",
+)
+
+plugin.methods.register_function(
+    function=collate_reads_gene_annotations,
+    inputs={"annotations": List[SampleData[CARDGeneAnnotation]]},
+    parameters={},
+    outputs={"collated_annotations": SampleData[CARDGeneAnnotation]},
+    input_descriptions={
+        "annotations": "A collection of annotations from reads at "
+        "gene level to be collated."
+    },
+    name="Collate reads gene annotations.",
+    description="Takes a collection of SampleData[CARDGeneAnnotation] "
+    "and collates them into a single artifact.",
+)
 # Registrations
 plugin.register_semantic_types(
     CARDDatabase,
