@@ -34,8 +34,11 @@ from q2_amr.card.kmer import kmer_query_mags_card, kmer_query_reads_card
 from q2_amr.card.mags import annotate_mags_card
 from q2_amr.card.partition import (
     collate_mags_annotations,
+    collate_mags_kmer_analyses,
     collate_reads_allele_annotations,
+    collate_reads_allele_kmer_analyses,
     collate_reads_gene_annotations,
+    collate_reads_gene_kmer_analyses,
     partition_mags_annotations,
     partition_reads_allele_annotations,
     partition_reads_gene_annotations,
@@ -405,6 +408,47 @@ plugin.methods.register_function(
     },
     name="Collate reads gene annotations.",
     description="Takes a collection of SampleData[CARDGeneAnnotation] "
+    "and collates them into a single artifact.",
+)
+
+plugin.methods.register_function(
+    function=collate_mags_kmer_analyses,
+    inputs={"kmer_analyses": List[SampleData[CARDMAGsKmerAnalysis]]},
+    parameters={},
+    outputs={"collated_kmer_analyses": SampleData[CARDMAGsKmerAnalysis]},
+    input_descriptions={
+        "kmer_analyses": "A collection of k-mer analyses from MAG annotations."
+    },
+    name="Collate k-mer analyses from MAG annotations.",
+    description="Takes a collection of SampleData[CARDMAGsKmerAnalysis] "
+    "and collates them into a single artifact.",
+)
+
+plugin.methods.register_function(
+    function=collate_reads_allele_kmer_analyses,
+    inputs={"kmer_analyses": List[SampleData[CARDReadsAlleleKmerAnalysis]]},
+    parameters={},
+    outputs={"collated_kmer_analyses": SampleData[CARDReadsAlleleKmerAnalysis]},
+    input_descriptions={
+        "kmer_analyses": "A collection of k-mer analyses from reads annotations at "
+        "allele level."
+    },
+    name="Collate k-mer analyses from reads annotations at allele level.",
+    description="Takes a collection of SampleData[CARDReadsAlleleKmerAnalysis] "
+    "and collates them into a single artifact.",
+)
+
+plugin.methods.register_function(
+    function=collate_reads_gene_kmer_analyses,
+    inputs={"kmer_analyses": List[SampleData[CARDReadsGeneKmerAnalysis]]},
+    parameters={},
+    outputs={"collated_kmer_analyses": SampleData[CARDReadsGeneKmerAnalysis]},
+    input_descriptions={
+        "kmer_analyses": "A collection of k-mer analyses from reads annotations at "
+        "gene level."
+    },
+    name="Collate k-mer analyses from reads annotations at gene level.",
+    description="Takes a collection of SampleData[CARDReadsGeneKmerAnalysis] "
     "and collates them into a single artifact.",
 )
 # Registrations
