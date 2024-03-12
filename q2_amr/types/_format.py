@@ -473,18 +473,19 @@ class CARDMAGsKmerAnalysisJSONFormat(model.TextFileFormat):
             "genomic_info",
         ]
         with open(str(self)) as json_file:
-            dict = json.load(json_file)
+            json_dict = json.load(json_file)
 
-        keys_obs = list(next(iter(dict.values())).keys())
+        if json_dict:
+            keys_obs = list(next(iter(json_dict.values())).keys())
 
-        if keys_obs != keys_exp:
-            raise ValidationError(
-                "Keys do not match CARDMAGsKmerAnalysisJSONFormat format. Must consist "
-                "of the following values: "
-                + ", ".join(keys_exp)
-                + ".\n\nFound instead: "
-                + ", ".join(keys_obs)
-            )
+            if not set(keys_exp).issubset(set(keys_obs)):
+                raise ValidationError(
+                    "Keys do not match CARDMAGsKmerAnalysisJSONFormat format. Must "
+                    "consist of the following values: "
+                    + ", ".join(keys_exp)
+                    + ".\n\nFound instead: "
+                    + ", ".join(keys_obs)
+                )
 
     def _validate_(self, level):
         self._validate()
@@ -593,18 +594,19 @@ class CARDReadsKmerAnalysisJSONFormat(model.TextFileFormat):
             "genomic_info",
         ]
         with open(str(self)) as json_file:
-            dict = json.load(json_file)
+            json_dict = json.load(json_file)
 
-        keys_obs = list(next(iter(dict.values())).keys())
+        if json_dict:
+            keys_obs = list(next(iter(json_dict.values())).keys())
 
-        if keys_obs != keys_exp:
-            raise ValidationError(
-                "Keys do not match CARDReadsKmerAnalysisJSONFormat format. Must consist"
-                " of the following values: "
-                + ", ".join(keys_exp)
-                + ".\n\nFound instead: "
-                + ", ".join(keys_obs)
-            )
+            if not set(keys_exp).issubset(set(keys_obs)):
+                raise ValidationError(
+                    "Keys do not match CARDReadsKmerAnalysisJSONFormat format. Must "
+                    "consist of the following values: "
+                    + ", ".join(keys_exp)
+                    + ".\n\nFound instead: "
+                    + ", ".join(keys_obs)
+                )
 
     def _validate_(self, level):
         self._validate()
