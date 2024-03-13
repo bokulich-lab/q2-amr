@@ -30,7 +30,12 @@ from qiime2.plugin import Citations, Plugin
 from q2_amr import __version__
 from q2_amr.card.database import fetch_card_db
 from q2_amr.card.heatmap import heatmap
-from q2_amr.card.kmer import kmer_query_mags_card, kmer_query_reads_card
+from q2_amr.card.kmer import (
+    _kmer_query_mags,
+    _kmer_query_reads,
+    kmer_query_mags_card,
+    kmer_query_reads_card,
+)
 from q2_amr.card.mags import annotate_mags_card
 from q2_amr.card.partition import (
     collate_mags_annotations,
@@ -246,8 +251,47 @@ plugin.visualizers.register_function(
     description="Create heatmap from annotate-mags-card output.",
     citations=[citations["alcock_card_2023"]],
 )
-plugin.methods.register_function(
+
+plugin.pipelines.register_function(
     function=kmer_query_mags_card,
+    inputs={
+        "amr_annotations": SampleData[CARDAnnotation],
+        "card_db": CARDDatabase,
+        "kmer_db": CARDKmerDatabase,
+    },
+    parameters={
+        "minimum": Int % Range(0, None, inclusive_start=False),
+        "threads": Int % Range(0, None, inclusive_start=False),
+        "num_partitions": Int % Range(0, None, inclusive_start=False),
+    },
+    outputs=[
+        ("mags_kmer_analysis", SampleData[CARDMAGsKmerAnalysis]),
+    ],
+    input_descriptions={
+        "amr_annotations": "AMR annotations created with annotate-mags-card.",
+        "card_db": "CARD and WildCARD database of resistance genes, their products and "
+        "associated phenotypes.",
+        "kmer_db": "Database of k-mers that are uniquely found within AMR alleles of "
+        "individual pathogen species, pathogen genera, pathogen-restricted "
+        "plasmids, or promiscuous plasmids.",
+    },
+    parameter_descriptions={
+        "minimum": "Minimum number of kmers in the called category for the "
+        "classification to be made.",
+        "threads": "Number of threads (CPUs) to use.",
+        "num_partitions": "Number of partitions that should run in parallel.",
+    },
+    output_descriptions={
+        "mags_kmer_analysis": "K-mer analysis as JSON file and TXT summary.",
+    },
+    name="Pathogen-of-origin prediction for ARGs in MAGs",
+    description="CARD's k-mer classifiers can be used to predict pathogen-of-origin for"
+    " ARGs found by annotate-mags-card.",
+    citations=[citations["alcock_card_2023"]],
+)
+
+plugin.methods.register_function(
+    function=_kmer_query_mags,
     inputs={
         "amr_annotations": SampleData[CARDAnnotation],
         "card_db": CARDDatabase,
@@ -282,8 +326,50 @@ plugin.methods.register_function(
     citations=[citations["alcock_card_2023"]],
 )
 
-plugin.methods.register_function(
+plugin.pipelines.register_function(
     function=kmer_query_reads_card,
+    inputs={
+        "amr_annotations": SampleData[CARDAlleleAnnotation],
+        "card_db": CARDDatabase,
+        "kmer_db": CARDKmerDatabase,
+    },
+    parameters={
+        "minimum": Int % Range(0, None, inclusive_start=False),
+        "threads": Int % Range(0, None, inclusive_start=False),
+        "num_partitions": Int % Range(0, None, inclusive_start=False),
+    },
+    outputs=[
+        ("reads_allele_kmer_analysis", SampleData[CARDReadsAlleleKmerAnalysis]),
+        ("reads_gene_kmer_analysis", SampleData[CARDReadsGeneKmerAnalysis]),
+    ],
+    input_descriptions={
+        "amr_annotations": "AMR annotations created with annotate-reads-card.",
+        "card_db": "CARD and WildCARD database of resistance genes, their products and "
+        "associated phenotypes.",
+        "kmer_db": "Database of k-mers that are uniquely found within AMR alleles of "
+        "individual pathogen species, pathogen genera, pathogen-restricted "
+        "plasmids, or promiscuous plasmids.",
+    },
+    parameter_descriptions={
+        "minimum": "Minimum number of kmers in the called category for the "
+        "classification to be made.",
+        "threads": "Number of threads (CPUs) to use.",
+        "num_partitions": "Number of partitions that should run in parallel.",
+    },
+    output_descriptions={
+        "reads_allele_kmer_analysis": "K-mer analysis for mapped alleles as JSON file "
+        "and TXT summary.",
+        "reads_gene_kmer_analysis": "K-mer analysis for mapped alleles as JSON file "
+        "and TXT summary.",
+    },
+    name="Pathogen-of-origin prediction for ARGs in reads",
+    description="CARD's k-mer classifiers can be used to predict pathogen-of-origin for"
+    " ARGs found by annotate-reads-card.",
+    citations=[citations["alcock_card_2023"]],
+)
+
+plugin.methods.register_function(
+    function=_kmer_query_reads,
     inputs={
         "amr_annotations": SampleData[CARDAlleleAnnotation],
         "card_db": CARDDatabase,

@@ -2,20 +2,15 @@ import os
 import shutil
 from unittest.mock import MagicMock, patch
 
+import pytest
 from qiime2.plugin.testing import TestPluginBase
 
-from q2_amr.card.kmer import (
-    kmer_query_mags_card,
-    kmer_query_reads_card,
-    run_rgi_kmer_query,
-)
+from q2_amr.card.kmer import _kmer_query_mags, _kmer_query_reads, run_rgi_kmer_query
 from q2_amr.types import (
+    CARDAlleleAnnotationDirectoryFormat,
     CARDAnnotationDirectoryFormat,
     CARDDatabaseDirectoryFormat,
     CARDKmerDatabaseDirectoryFormat,
-)
-from q2_amr.types._format import (
-    CARDAlleleAnnotationDirectoryFormat,
     CARDMAGsKmerAnalysisDirectoryFormat,
     CARDReadsAlleleKmerAnalysisDirectoryFormat,
     CARDReadsGeneKmerAnalysisDirectoryFormat,
@@ -43,20 +38,22 @@ class TestKmer(TestPluginBase):
     ):
         files = self.files_mags if input_type == "rgi" else self.files_reads
         for file in files:
-            open(os.path.join(tmp, file), "w").close()
+            with open(os.path.join(tmp, file), "w") as f:
+                f.write("{}")
 
     def _run_kmer_query_test(self, annotation_format, output_format, query_function):
         mock_run_rgi_kmer_query = MagicMock(side_effect=self.copy_analysis_file)
         amr_annotations = annotation_format()
         card_db = CARDDatabaseDirectoryFormat()
         kmer_db = CARDKmerDatabaseDirectoryFormat()
-        if query_function == kmer_query_reads_card:
+        if query_function == _kmer_query_reads:
             annotation_dir = os.path.join(amr_annotations.path, "sample1")
             os.makedirs(annotation_dir)
             des_path = os.path.join(annotation_dir, "sorted.length_100.bam")
             src_path = self.get_data_path("output.sorted.length_100.bam")
             shutil.copy(src_path, des_path)
             files = self.files_reads
+            warning = r"No taxonomic prediction could be made for sample1"
 
         else:
             annotation_dir = os.path.join(amr_annotations.path, "sample1", "bin1")
@@ -64,16 +61,16 @@ class TestKmer(TestPluginBase):
             des_path = os.path.join(annotation_dir, "amr_annotation.json")
             src_path = self.get_data_path("rgi_output.json")
             shutil.copy(src_path, des_path)
-
             files = self.files_mags
+            warning = r"No taxonomic prediction could be made for bin1"
 
-        with patch(
+        with pytest.warns(UserWarning, match=warning), patch(
             "q2_amr.card.kmer.run_rgi_kmer_query", side_effect=mock_run_rgi_kmer_query
         ), patch("q2_amr.card.kmer.load_card_db", return_value="61"):
             result = query_function(
                 amr_annotations=amr_annotations, card_db=card_db, kmer_db=kmer_db
             )
-            if query_function == kmer_query_reads_card:
+            if query_function == _kmer_query_reads:
                 self.assertIsInstance(result[0], output_format[0])
                 self.assertIsInstance(result[1], output_format[1])
                 paths = [
@@ -90,21 +87,21 @@ class TestKmer(TestPluginBase):
                     path = os.path.join(str(result), "sample1", "bin1", file[7:])
                     self.assertTrue(os.path.exists(path))
 
-    def test_kmer_query_mags_card(self):
+    def test__kmer_query_mags_card(self):
         self._run_kmer_query_test(
             annotation_format=CARDAnnotationDirectoryFormat,
             output_format=CARDMAGsKmerAnalysisDirectoryFormat,
-            query_function=kmer_query_mags_card,
+            query_function=_kmer_query_mags,
         )
 
-    def test_kmer_query_reads_card(self):
+    def test__kmer_query_reads_card(self):
         self._run_kmer_query_test(
             annotation_format=CARDAlleleAnnotationDirectoryFormat,
             output_format=(
                 CARDReadsAlleleKmerAnalysisDirectoryFormat,
                 CARDReadsGeneKmerAnalysisDirectoryFormat,
             ),
-            query_function=kmer_query_reads_card,
+            query_function=_kmer_query_reads,
         )
 
     def test_run_rgi_kmer_query(self):
