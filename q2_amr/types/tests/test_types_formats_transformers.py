@@ -364,6 +364,16 @@ class TestKmerTypesAndFormats(AMRTypesTestPluginBase):
         format = CARDReadsKmerAnalysisJSONFormat(filepath, mode="r")
         format.validate()
 
+    def test_kmer_reads_analysis_json_format_validate_empty(self):
+        filepath = self.get_data_path("empty_dict.json")
+        format = CARDReadsKmerAnalysisJSONFormat(filepath, mode="r")
+        format.validate()
+
+    def test_kmer_mags_analysis_json_format_validate_empty(self):
+        filepath = self.get_data_path("empty_dict.json")
+        format = CARDMAGsKmerAnalysisJSONFormat(filepath, mode="r")
+        format.validate()
+
     def test_card_reads_gene_kmer_analysis_directory_format_validate_positive(self):
         sample_dir = os.path.join(self.temp_dir.name, "sample1")
         os.mkdir(sample_dir)
