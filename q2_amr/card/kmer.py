@@ -7,12 +7,10 @@ import warnings
 
 from q2_amr.card.utils import load_card_db, run_command
 from q2_amr.types import (
+    CARDAlleleAnnotationDirectoryFormat,
     CARDAnnotationDirectoryFormat,
     CARDDatabaseDirectoryFormat,
     CARDKmerDatabaseDirectoryFormat,
-)
-from q2_amr.types._format import (
-    CARDAlleleAnnotationDirectoryFormat,
     CARDMAGsKmerAnalysisDirectoryFormat,
     CARDReadsAlleleKmerAnalysisDirectoryFormat,
     CARDReadsGeneKmerAnalysisDirectoryFormat,
@@ -34,7 +32,7 @@ def kmer_query_mags_card(
 
     # Run _kmer_query_mags for every partition
     for partition in partitioned_annotations.values():
-        kmer_analysis = kmer_query(
+        (kmer_analysis,) = kmer_query(
             card_db=card_db,
             kmer_db=kmer_db,
             amr_annotations=partition,
@@ -43,7 +41,7 @@ def kmer_query_mags_card(
         )
 
         # Append resulting kmer analysis artifacts to lists
-        kmer_analyses.append(kmer_analysis.mags_kmer_analysis)
+        kmer_analyses.append(kmer_analysis)
 
     # Collate kmer analysis artifacts
     (collated_kmer_analyses,) = collate_method(kmer_analyses)
@@ -113,12 +111,15 @@ def _kmer_query_helper(card_db, kmer_db, amr_annotations, minimum, threads):
     if type(amr_annotations) is CARDAlleleAnnotationDirectoryFormat:
         annotation_file = "sorted.length_100.bam"
         input_type = "bwt"
+
         reads_allele_kmer_analysis = CARDReadsAlleleKmerAnalysisDirectoryFormat()
         reads_gene_kmer_analysis = CARDReadsGeneKmerAnalysisDirectoryFormat()
         kmer_analysis = (reads_allele_kmer_analysis, reads_gene_kmer_analysis)
+
     else:
         annotation_file = "amr_annotation.json"
         input_type = "rgi"
+
         mags_kmer_analysis = CARDMAGsKmerAnalysisDirectoryFormat()
         kmer_analysis = mags_kmer_analysis
 
@@ -132,7 +133,7 @@ def _kmer_query_helper(card_db, kmer_db, amr_annotations, minimum, threads):
                 input_path = os.path.join(root, annotation_file)
 
                 # Run kmer_query
-                run_rgi_kmer_query(
+                _run_rgi_kmer_query(
                     tmp=tmp,
                     input_file=input_path,
                     input_type=input_type,
@@ -149,6 +150,7 @@ def _kmer_query_helper(card_db, kmer_db, amr_annotations, minimum, threads):
                 # warning
                 with open(path_json) as json_file:
                     json_dict = json.load(json_file)
+
                 if not json_dict:
                     warnings.warn(
                         f"No taxonomic prediction could be made for "
@@ -192,7 +194,7 @@ def _kmer_query_helper(card_db, kmer_db, amr_annotations, minimum, threads):
     return kmer_analysis
 
 
-def run_rgi_kmer_query(tmp, input_file, input_type, kmer_size, minimum, threads):
+def _run_rgi_kmer_query(tmp, input_file, input_type, kmer_size, minimum, threads):
     cmd = [
         "rgi",
         "kmer_query",
