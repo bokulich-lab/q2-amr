@@ -248,25 +248,25 @@ plugin.methods.register_function(
 
 T_allele_annotation_collate_in, T_allele_annotation_collate_out = TypeMap(
     {
-        List[
-            SampleData[CARDAlleleAnnotation % Properties("kma", "bowtie2", "bwa")]
+        SampleData[
+            CARDAlleleAnnotation % Properties("kma", "bowtie2", "bwa")
         ]: SampleData[CARDAlleleAnnotation % Properties("kma", "bowtie2", "bwa")],
-        List[
-            SampleData[CARDAlleleAnnotation % Properties("kma", "bowtie2")]
-        ]: SampleData[CARDAlleleAnnotation % Properties("kma", "bowtie2")],
-        List[SampleData[CARDAlleleAnnotation % Properties("kma", "bwa")]]: SampleData[
+        SampleData[CARDAlleleAnnotation % Properties("kma", "bowtie2")]: SampleData[
+            CARDAlleleAnnotation % Properties("kma", "bowtie2")
+        ],
+        SampleData[CARDAlleleAnnotation % Properties("kma", "bwa")]: SampleData[
             CARDAlleleAnnotation % Properties("kma", "bwa")
         ],
-        List[
-            SampleData[CARDAlleleAnnotation % Properties("bowtie2", "bwa")]
-        ]: SampleData[CARDAlleleAnnotation % Properties("bowtie2", "bwa")],
-        List[SampleData[CARDAlleleAnnotation % Properties("kma")]]: SampleData[
+        SampleData[CARDAlleleAnnotation % Properties("bowtie2", "bwa")]: SampleData[
+            CARDAlleleAnnotation % Properties("bowtie2", "bwa")
+        ],
+        SampleData[CARDAlleleAnnotation % Properties("kma")]: SampleData[
             CARDAlleleAnnotation % Properties("kma")
         ],
-        List[SampleData[CARDAlleleAnnotation % Properties("bowtie2")]]: SampleData[
+        SampleData[CARDAlleleAnnotation % Properties("bowtie2")]: SampleData[
             CARDAlleleAnnotation % Properties("bowtie2")
         ],
-        List[SampleData[CARDAlleleAnnotation % Properties("bwa")]]: SampleData[
+        SampleData[CARDAlleleAnnotation % Properties("bwa")]: SampleData[
             CARDAlleleAnnotation % Properties("bwa")
         ],
     }
@@ -274,7 +274,7 @@ T_allele_annotation_collate_in, T_allele_annotation_collate_out = TypeMap(
 
 plugin.methods.register_function(
     function=collate_reads_allele_annotations,
-    inputs={"annotations": T_allele_annotation_collate_in},
+    inputs={"annotations": List[T_allele_annotation_collate_in]},
     parameters={},
     outputs={"collated_annotations": T_allele_annotation_collate_out},
     input_descriptions={
