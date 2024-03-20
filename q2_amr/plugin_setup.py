@@ -53,6 +53,14 @@ from q2_amr.types._format import (
     CARDKmerDatabaseDirectoryFormat,
     CARDKmerJSONFormat,
     CARDKmerTXTFormat,
+    CARDMAGsKmerAnalysisDirectoryFormat,
+    CARDMAGsKmerAnalysisFormat,
+    CARDMAGsKmerAnalysisJSONFormat,
+    CARDReadsAlleleKmerAnalysisDirectoryFormat,
+    CARDReadsAlleleKmerAnalysisFormat,
+    CARDReadsGeneKmerAnalysisDirectoryFormat,
+    CARDReadsGeneKmerAnalysisFormat,
+    CARDReadsKmerAnalysisJSONFormat,
     CARDWildcardIndexFormat,
     GapDNAFASTAFormat,
 )
@@ -61,6 +69,9 @@ from q2_amr.types._type import (
     CARDAnnotation,
     CARDGeneAnnotation,
     CARDKmerDatabase,
+    CARDMAGsKmerAnalysis,
+    CARDReadsAlleleKmerAnalysis,
+    CARDReadsGeneKmerAnalysis,
 )
 
 citations = Citations.load("citations.bib", package="q2_amr")
@@ -284,6 +295,9 @@ plugin.register_semantic_types(
     CARDAnnotation,
     CARDAlleleAnnotation,
     CARDGeneAnnotation,
+    CARDReadsGeneKmerAnalysis,
+    CARDReadsAlleleKmerAnalysis,
+    CARDMAGsKmerAnalysis,
 )
 
 plugin.register_semantic_type_to_format(
@@ -302,11 +316,23 @@ plugin.register_semantic_type_to_format(
 plugin.register_semantic_type_to_format(
     SampleData[CARDGeneAnnotation], artifact_format=CARDGeneAnnotationDirectoryFormat
 )
-
+plugin.register_semantic_type_to_format(
+    SampleData[CARDReadsGeneKmerAnalysis],
+    artifact_format=CARDReadsGeneKmerAnalysisDirectoryFormat,
+)
+plugin.register_semantic_type_to_format(
+    SampleData[CARDReadsAlleleKmerAnalysis],
+    artifact_format=CARDReadsAlleleKmerAnalysisDirectoryFormat,
+)
+plugin.register_semantic_type_to_format(
+    SampleData[CARDMAGsKmerAnalysis],
+    artifact_format=CARDMAGsKmerAnalysisDirectoryFormat,
+)
 plugin.register_formats(
     CARDKmerDatabaseDirectoryFormat,
     CARDKmerJSONFormat,
     CARDKmerTXTFormat,
+    CARDMAGsKmerAnalysisDirectoryFormat,
     GapDNAFASTAFormat,
     CARDWildcardIndexFormat,
     CARDAnnotationTXTFormat,
@@ -319,6 +345,13 @@ plugin.register_formats(
     CARDAnnotationStatsFormat,
     CARDAlleleAnnotationDirectoryFormat,
     CARDGeneAnnotationDirectoryFormat,
+    CARDMAGsKmerAnalysisFormat,
+    CARDMAGsKmerAnalysisJSONFormat,
+    CARDReadsAlleleKmerAnalysisFormat,
+    CARDReadsGeneKmerAnalysisFormat,
+    CARDReadsKmerAnalysisJSONFormat,
+    CARDReadsGeneKmerAnalysisDirectoryFormat,
+    CARDReadsAlleleKmerAnalysisDirectoryFormat,
 )
 
 importlib.import_module("q2_amr.types._transformer")
