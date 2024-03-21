@@ -315,6 +315,27 @@ class TestCARDMagsAnnotationTypesAndFormats(AMRTypesTestPluginBase):
         metadata_obt = transformer(annotation)
         self.assertIsInstance(metadata_obt, qiime2.Metadata)
 
+    def test_card_annotation_directory_format_sample_dict(self):
+        dirpath = self.get_data_path("annotate_mags_output")
+        annotations = CARDAnnotationDirectoryFormat(dirpath, mode="r")
+
+        obs = annotations.sample_dict()
+        exp = {
+            "sample1": {
+                "bin1": [
+                    os.path.join(dirpath, "sample1", "bin1", "amr_annotation.json"),
+                    os.path.join(dirpath, "sample1", "bin1", "amr_annotation.txt"),
+                ]
+            },
+            "sample2": {
+                "bin1": [
+                    os.path.join(dirpath, "sample2", "bin1", "amr_annotation.json"),
+                    os.path.join(dirpath, "sample2", "bin1", "amr_annotation.txt"),
+                ]
+            },
+        }
+        self.assertEqual(obs, exp)
+
 
 class TestCARDReadsAnnotationTypesAndFormats(AMRTypesTestPluginBase):
     def test_CARDGeneAnnotationDirectoryFormat_to_qiime2_Metadata_transformer(self):
@@ -322,20 +343,49 @@ class TestCARDReadsAnnotationTypesAndFormats(AMRTypesTestPluginBase):
             CARDGeneAnnotationDirectoryFormat, qiime2.Metadata
         )
         annotation = CARDGeneAnnotationDirectoryFormat(
-            self.get_data_path("annotate_reads_output"), "r"
+            self.get_data_path("card_gene_annotation"), "r"
         )
         metadata_obt = transformer(annotation)
         self.assertIsInstance(metadata_obt, qiime2.Metadata)
 
     def test_CARDAlleleAnnotationDirectoryFormat_to_qiime2_Metadata_transformer(self):
         transformer = self.get_transformer(
-            CARDGeneAnnotationDirectoryFormat, qiime2.Metadata
+            CARDAlleleAnnotationDirectoryFormat, qiime2.Metadata
         )
         annotation = CARDAlleleAnnotationDirectoryFormat(
-            self.get_data_path("annotate_reads_output"), "r"
+            self.get_data_path("card_allele_annotation"), "r"
         )
         metadata_obt = transformer(annotation)
         self.assertIsInstance(metadata_obt, qiime2.Metadata)
+
+    def test_card_allele_annotation_directory_format_sample_dict(self):
+        dirpath = self.get_data_path("card_allele_annotation")
+        annotations = CARDAlleleAnnotationDirectoryFormat(dirpath, mode="r")
+
+        obs = annotations.sample_dict()
+        exp = {
+            sample: [
+                os.path.join(dirpath, sample, file)
+                for file in [
+                    "allele_mapping_data.txt",
+                    "overall_mapping_stats.txt",
+                    "sorted.length_100.bam",
+                ]
+            ]
+            for sample in ["sample1", "sample2"]
+        }
+        self.assertEqual(obs, exp)
+
+    def test_card_gene_annotation_directory_format_sample_dict(self):
+        dirpath = self.get_data_path("card_gene_annotation")
+        annotations = CARDGeneAnnotationDirectoryFormat(dirpath, mode="r")
+
+        obs = annotations.sample_dict()
+        exp = {
+            "sample1": list(os.path.join(dirpath, "sample1", "gene_mapping_data.txt")),
+            "sample2": list(os.path.join(dirpath, "sample2", "gene_mapping_data.txt")),
+        }
+        self.assertEqual(obs, exp)
 
 
 class TestKmerTypesAndFormats(AMRTypesTestPluginBase):
