@@ -382,8 +382,8 @@ class TestCARDReadsAnnotationTypesAndFormats(AMRTypesTestPluginBase):
 
         obs = annotations.sample_dict()
         exp = {
-            "sample1": list(os.path.join(dirpath, "sample1", "gene_mapping_data.txt")),
-            "sample2": list(os.path.join(dirpath, "sample2", "gene_mapping_data.txt")),
+            "sample1": [os.path.join(dirpath, "sample1", "gene_mapping_data.txt"),],
+            "sample2": [os.path.join(dirpath, "sample2", "gene_mapping_data.txt"),],
         }
         self.assertEqual(obs, exp)
 
