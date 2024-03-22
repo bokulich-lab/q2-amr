@@ -285,7 +285,8 @@ class CARDAnnotationDirectoryFormat(MultiDirValidationMixin, model.DirectoryForm
                 sample_dict[sample.name] = {
                     mag.name: [
                         os.path.join(mag, "amr_annotation.json"),
-                        os.path.join(mag, "amr_annotation.txt")
+                        os.path.join(mag, "amr_annotation.txt"),
+                    ]
                 }
         return sample_dict
 
@@ -436,15 +437,11 @@ class CARDAlleleAnnotationDirectoryFormat(
     def sample_dict(self):
         sample_dict = {}
         for sample in self.path.iterdir():
-            files = [
-                os.path.join(sample, file)
-                for file in [
-                    "allele_mapping_data.txt",
-                    "overall_mapping_stats.txt",
-                    "sorted.length_100.bam",
-                ]
+            sample_dict[sample.name] = [
+                os.path.join(sample, "allele_mapping_data.txt"),
+                os.path.join(sample, "overall_mapping_stats.txt"),
+                os.path.join(sample, "sorted.length_100.bam"),
             ]
-            sample_dict[sample.name] = files
         return sample_dict
 
 
@@ -460,8 +457,7 @@ class CARDGeneAnnotationDirectoryFormat(MultiDirValidationMixin, model.Directory
     def sample_dict(self):
         sample_dict = {}
         for sample in self.path.iterdir():
-            file = list(os.path.join(sample, "gene_mapping_data.txt"))
-            sample_dict[sample.name] = file
+            sample_dict[sample.name] = [os.path.join(sample, "gene_mapping_data.txt")]
         return sample_dict
 
 

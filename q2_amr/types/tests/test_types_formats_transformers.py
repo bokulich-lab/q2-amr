@@ -364,15 +364,16 @@ class TestCARDReadsAnnotationTypesAndFormats(AMRTypesTestPluginBase):
 
         obs = annotations.sample_dict()
         exp = {
-            sample: [
-                os.path.join(dirpath, sample, file)
-                for file in [
-                    "allele_mapping_data.txt",
-                    "overall_mapping_stats.txt",
-                    "sorted.length_100.bam",
-                ]
-            ]
-            for sample in ["sample1", "sample2"]
+            "sample1": [
+                os.path.join(dirpath, "sample1", "allele_mapping_data.txt"),
+                os.path.join(dirpath, "sample1", "overall_mapping_stats.txt"),
+                os.path.join(dirpath, "sample1", "sorted.length_100.bam"),
+            ],
+            "sample2": [
+                os.path.join(dirpath, "sample2", "allele_mapping_data.txt"),
+                os.path.join(dirpath, "sample2", "overall_mapping_stats.txt"),
+                os.path.join(dirpath, "sample2", "sorted.length_100.bam"),
+            ],
         }
         self.assertEqual(obs, exp)
 
@@ -382,8 +383,8 @@ class TestCARDReadsAnnotationTypesAndFormats(AMRTypesTestPluginBase):
 
         obs = annotations.sample_dict()
         exp = {
-            "sample1": [os.path.join(dirpath, "sample1", "gene_mapping_data.txt"),],
-            "sample2": [os.path.join(dirpath, "sample2", "gene_mapping_data.txt"),],
+            "sample1": [os.path.join(dirpath, "sample1", "gene_mapping_data.txt")],
+            "sample2": [os.path.join(dirpath, "sample2", "gene_mapping_data.txt")],
         }
         self.assertEqual(obs, exp)
 
