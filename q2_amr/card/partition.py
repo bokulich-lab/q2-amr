@@ -1,9 +1,9 @@
 import os
-import shutil
 import warnings
 from typing import Union
 
 import numpy as np
+from qiime2.util import duplicate
 
 from q2_amr.types import (
     CARDAlleleAnnotationDirectoryFormat,
@@ -39,26 +39,26 @@ def _partition_annotations(
     num_partitions: int = None,
 ):
     partitioned_annotations = {}
-    # Save all dir paths and file names of the annotations as dictionaries in a list
     annotations_all = []
 
-    for dirpath, dirnames, filenames in os.walk(annotations.path):
-        # This makes sure the location is the directory with the annotation files
-        if not dirnames:
-            components = os.path.normpath(dirpath).split(os.path.sep)
-            dirs_and_files = {
-                "dir_path": dirpath,
-                "path_component_1": components[-1],
-                "path_component_2": components[-2],
-                "files": filenames,
-            }
-            annotations_all.append(dirs_and_files)
+    # Add one tuple with sample id MAG id and full paths to annotation files to
+    # annotations_all per annotation file
+    if isinstance(annotations, CARDAnnotationDirectoryFormat):
+        for sample_id, mag in annotations.sample_dict().items():
+            for mag_id, annotation_fp_list in mag.items():
+                for annotation_fp in annotation_fp_list:
+                    annotations_all.append((sample_id, mag_id, annotation_fp))
 
-    # Retrieve the number of MAGs or reads annotations
-    num_annotations = len(annotations_all)
+    else:
+        for sample_id, annotation_fp_list in annotations.sample_dict().items():
+            for annotation_fp in annotation_fp_list:
+                annotations_all.append((sample_id, annotation_fp))
+
+    # Retrieve the number of annotations
+    num_annotations = len({tup[-2] for tup in annotations_all})
 
     # If no number of partitions is specified or the number is higher than the number
-    # of annotations, all annotations get partitioned into the number of annotations
+    # of annotations, all annotations get partitioned by annotation
     if num_partitions is None:
         num_partitions = num_annotations
     elif num_partitions > num_annotations:
@@ -72,43 +72,43 @@ def _partition_annotations(
         num_partitions = num_annotations
 
     # Splits annotations into the specified number of partitions
-    partition_dict = np.array_split(annotations_all, num_partitions)
+    arrays = np.array_split(annotations_all, num_partitions)
 
-    # Check if there are duplicates in the sample or MAG ids
-    sample_mag_ids = [entry["path_component_1"] for entry in annotations_all]
-    duplicates = True if len(sample_mag_ids) != len(set(sample_mag_ids)) else False
-
-    for i, _partition_dict in enumerate(partition_dict, 1):
+    for i, annotation_tuple in enumerate(arrays, 1):
         # Creates directory with same format as input
         partitioned_annotation = type(annotations)()
 
-        # Constructs paths to all annotation files and move them to the new partitioned
+        # Constructs paths to all annotation files and move them to the new partition
         # directories
-        for dirs_and_files in _partition_dict:
-            if type(annotations) is CARDAnnotationDirectoryFormat:
-                result_dir = os.path.join(
+        if isinstance(annotations, CARDAnnotationDirectoryFormat):
+            for sample_id, mag_id, annotation_fp in annotation_tuple:
+                annotation_des_fp = os.path.join(
                     partitioned_annotation.path,
-                    dirs_and_files["path_component_2"],
-                    dirs_and_files["path_component_1"],
+                    sample_id,
+                    mag_id,
+                    os.path.basename(annotation_fp),
                 )
-            else:
-                result_dir = os.path.join(
-                    partitioned_annotation.path, dirs_and_files["path_component_1"]
-                )
-            os.makedirs(result_dir)
+                os.makedirs(os.path.dirname(annotation_des_fp), exist_ok=True)
+                duplicate(annotation_fp, annotation_des_fp)
 
-            for file in dirs_and_files["files"]:
-                shutil.copy(
-                    os.path.join(dirs_and_files["dir_path"], file),
-                    os.path.join(result_dir, file),
-                )
+                partitioned_annotation_key = mag_id
 
-            # Adds the partitioned object to the collection
-            if num_partitions == num_annotations and not duplicates:
-                partitioned_annotations[
-                    dirs_and_files["path_component_1"]
-                ] = partitioned_annotation
-            else:
-                partitioned_annotations[i] = partitioned_annotation
+        else:
+            for sample_id, annotation_fp in annotation_tuple:
+                annotation_des_fp = os.path.join(
+                    partitioned_annotation.path,
+                    sample_id,
+                    os.path.basename(annotation_fp),
+                )
+                os.makedirs(os.path.dirname(annotation_des_fp), exist_ok=True)
+                duplicate(annotation_fp, annotation_des_fp)
+
+                partitioned_annotation_key = sample_id
+
+        # Add the partitioned object to the collection
+        if num_partitions == num_annotations:  # and not duplicates:
+            partitioned_annotations[partitioned_annotation_key] = partitioned_annotation
+        else:
+            partitioned_annotations[i] = partitioned_annotation
 
     return partitioned_annotations
