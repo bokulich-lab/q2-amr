@@ -6,6 +6,7 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 import json
+import os
 import re
 from copy import copy
 
@@ -277,6 +278,18 @@ class CARDAnnotationDirectoryFormat(MultiDirValidationMixin, model.DirectoryForm
     def txt_path_maker(self, sample_id, bin_id):
         return f"{sample_id}/{bin_id}/amr_annotation.txt"
 
+    def sample_dict(self):
+        sample_dict = {}
+        for sample in self.path.iterdir():
+            for mag in sample.iterdir():
+                sample_dict[sample.name] = {
+                    mag.name: [
+                        os.path.join(mag, "amr_annotation.json"),
+                        os.path.join(mag, "amr_annotation.txt"),
+                    ]
+                }
+        return sample_dict
+
 
 class CARDAlleleAnnotationFormat(model.TextFileFormat):
     def _validate(self, n_records=None):
@@ -421,6 +434,16 @@ class CARDAlleleAnnotationDirectoryFormat(
     def bam_path_maker(self, sample_id):
         return "%s/sorted.length_100.bam" % sample_id
 
+    def sample_dict(self):
+        sample_dict = {}
+        for sample in self.path.iterdir():
+            sample_dict[sample.name] = [
+                os.path.join(sample, "allele_mapping_data.txt"),
+                os.path.join(sample, "overall_mapping_stats.txt"),
+                os.path.join(sample, "sorted.length_100.bam"),
+            ]
+        return sample_dict
+
 
 class CARDGeneAnnotationDirectoryFormat(MultiDirValidationMixin, model.DirectoryFormat):
     gene = model.FileCollection(
@@ -430,6 +453,12 @@ class CARDGeneAnnotationDirectoryFormat(MultiDirValidationMixin, model.Directory
     @gene.set_path_maker
     def gene_path_maker(self, sample_id):
         return "%s/gene_mapping_data.txt" % sample_id
+
+    def sample_dict(self):
+        sample_dict = {}
+        for sample in self.path.iterdir():
+            sample_dict[sample.name] = [os.path.join(sample, "gene_mapping_data.txt")]
+        return sample_dict
 
 
 class CARDMAGsKmerAnalysisFormat(model.TextFileFormat):
