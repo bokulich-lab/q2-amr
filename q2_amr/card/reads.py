@@ -6,9 +6,12 @@ from typing import Union
 
 import pandas as pd
 from q2_types.per_sample_sequences import (
+    PairedEndSequencesWithQuality,
+    SequencesWithQuality,
     SingleLanePerSamplePairedEndFastqDirFmt,
     SingleLanePerSampleSingleEndFastqDirFmt,
 )
+from q2_types.sample_data import SampleData
 
 from q2_amr.card.utils import create_count_table, load_card_db, read_in_txt, run_command
 from q2_amr.types import (
@@ -19,6 +22,58 @@ from q2_amr.types import (
 
 
 def annotate_reads_card(
+    ctx,
+    reads,
+    card_db,
+    aligner="kma",
+    threads=1,
+    include_wildcard=False,
+    include_other_models=False,
+    num_partitions=None,
+):
+    annotate = ctx.get_action("amr", "_annotate_reads_card")
+    collate_allele_annotations = ctx.get_action(
+        "amr", "collate_reads_allele_annotations"
+    )
+    collate_gene_annotations = ctx.get_action("amr", "collate_reads_gene_annotations")
+    merge_tables = ctx.get_action("feature-table", "merge")
+
+    if reads.type <= SampleData[SequencesWithQuality]:
+        partition_method = ctx.get_action("demux", "partition_samples_single")
+    elif reads.type <= SampleData[PairedEndSequencesWithQuality]:
+        partition_method = ctx.get_action("demux", "partition_samples_paired")
+
+    (partitioned_seqs,) = partition_method(reads, num_partitions)
+
+    allele_annotations = []
+    gene_annotations = []
+    allele_tables = []
+    gene_tables = []
+
+    for read in partitioned_seqs.values():
+        (allele_annotation, gene_annotation, allele_table, gene_table) = annotate(
+            read, card_db, aligner, threads, include_wildcard, include_other_models
+        )
+
+        allele_annotations.append(allele_annotation)
+        gene_annotations.append(gene_annotation)
+        allele_tables.append(allele_table)
+        gene_tables.append(gene_table)
+
+    (collated_allele_annotations,) = collate_allele_annotations(allele_annotations)
+    (collated_gene_annotations,) = collate_gene_annotations(gene_annotations)
+    (collated_allele_tables,) = merge_tables(allele_tables)
+    (collated_gene_tables,) = merge_tables(gene_tables)
+
+    return (
+        collated_allele_annotations,
+        collated_gene_annotations,
+        collated_allele_tables,
+        collated_gene_tables,
+    )
+
+
+def _annotate_reads_card(
     reads: Union[
         SingleLanePerSamplePairedEndFastqDirFmt, SingleLanePerSampleSingleEndFastqDirFmt
     ],

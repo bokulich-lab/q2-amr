@@ -9,7 +9,7 @@ from q2_types.per_sample_sequences import (
 )
 from qiime2.plugin.testing import TestPluginBase
 
-from q2_amr.card.reads import annotate_reads_card, run_rgi_bwt
+from q2_amr.card.reads import _annotate_reads_card, run_rgi_bwt
 from q2_amr.types import (
     CARDAlleleAnnotationDirectoryFormat,
     CARDDatabaseDirectoryFormat,
@@ -78,8 +78,8 @@ class TestAnnotateReadsCARD(TestPluginBase):
         ), patch("q2_amr.card.reads.read_in_txt", mock_read_in_txt), patch(
             "q2_amr.card.reads.create_count_table", mock_create_count_table
         ):
-            # Run annotate_reads_card function
-            result = annotate_reads_card(reads, card_db)
+            # Run _annotate_reads_card function
+            result = _annotate_reads_card(reads, card_db)
 
             # Retrieve the path to cwd directory from mock_run_rgi_bwt arguments
             first_call_args = mock_run_rgi_bwt.call_args_list[0]
