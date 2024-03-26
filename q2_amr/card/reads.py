@@ -31,18 +31,21 @@ def annotate_reads_card(
     include_other_models=False,
     num_partitions=None,
 ):
+    # Define all actions used by the pipeline
+    if reads.type <= SampleData[SequencesWithQuality]:
+        partition_method = ctx.get_action("demux", "partition_samples_single")
+    elif reads.type <= SampleData[PairedEndSequencesWithQuality]:
+        partition_method = ctx.get_action("demux", "partition_samples_paired")
+
     annotate = ctx.get_action("amr", "_annotate_reads_card")
+
     collate_allele_annotations = ctx.get_action(
         "amr", "collate_reads_allele_annotations"
     )
     collate_gene_annotations = ctx.get_action("amr", "collate_reads_gene_annotations")
     merge_tables = ctx.get_action("feature-table", "merge")
 
-    if reads.type <= SampleData[SequencesWithQuality]:
-        partition_method = ctx.get_action("demux", "partition_samples_single")
-    elif reads.type <= SampleData[PairedEndSequencesWithQuality]:
-        partition_method = ctx.get_action("demux", "partition_samples_paired")
-
+    # Partition the reads
     (partitioned_seqs,) = partition_method(reads, num_partitions)
 
     allele_annotations = []
@@ -50,16 +53,19 @@ def annotate_reads_card(
     allele_tables = []
     gene_tables = []
 
+    # Run _annotate_reads_card for every partition
     for read in partitioned_seqs.values():
         (allele_annotation, gene_annotation, allele_table, gene_table) = annotate(
             read, card_db, aligner, threads, include_wildcard, include_other_models
         )
 
+        # Append output artifacts to lists
         allele_annotations.append(allele_annotation)
         gene_annotations.append(gene_annotation)
         allele_tables.append(allele_table)
         gene_tables.append(gene_table)
 
+    # Collate annotation and feature table artifacts
     (collated_allele_annotations,) = collate_allele_annotations(allele_annotations)
     (collated_gene_annotations,) = collate_gene_annotations(gene_annotations)
     (collated_allele_tables,) = merge_tables(allele_tables)
