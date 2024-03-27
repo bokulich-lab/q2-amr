@@ -14,13 +14,21 @@ from q2_types.per_sample_sequences import (
     SequencesWithQuality,
 )
 from q2_types.sample_data import SampleData
-from qiime2.core.type import Bool, Choices, Int, Properties, Range, Str, TypeMap
+from qiime2.core.type import Bool, Choices, Int, List, Properties, Range, Str, TypeMap
 from qiime2.plugin import Citations, Plugin
 
 from q2_amr import __version__
 from q2_amr.card.database import fetch_card_db
 from q2_amr.card.heatmap import heatmap
-from q2_amr.card.mags import annotate_mags_card
+from q2_amr.card.mags import _annotate_mags_card, annotate_mags_card
+from q2_amr.card.partition import (
+    collate_mags_annotations,
+    collate_mags_kmer_analyses,
+    collate_reads_allele_annotations,
+    collate_reads_allele_kmer_analyses,
+    collate_reads_gene_annotations,
+    collate_reads_gene_kmer_analyses,
+)
 from q2_amr.card.reads import annotate_reads_card
 from q2_amr.types import (
     CARDAnnotationJSONFormat,
@@ -92,9 +100,48 @@ plugin.methods.register_function(
     citations=[citations["alcock_card_2023"]],
 )
 
-plugin.methods.register_function(
+plugin.pipelines.register_function(
     function=annotate_mags_card,
-    inputs={"mag": SampleData[MAGs], "card_db": CARDDatabase},
+    inputs={"mags": SampleData[MAGs], "card_db": CARDDatabase},
+    parameters={
+        "alignment_tool": Str % Choices(["BLAST", "DIAMOND"]),
+        "split_prodigal_jobs": Bool,
+        "include_loose": Bool,
+        "include_nudge": Bool,
+        "low_quality": Bool,
+        "threads": Int % Range(0, None, inclusive_start=False),
+        "num_partitions": Int % Range(0, None, inclusive_start=False),
+    },
+    outputs=[
+        ("amr_annotations", SampleData[CARDAnnotation]),
+        ("feature_table", FeatureTable[Frequency]),
+    ],
+    input_descriptions={
+        "mags": "MAGs to be annotated with CARD.",
+        "card_db": "CARD Database.",
+    },
+    parameter_descriptions={
+        "alignment_tool": "Specify alignment tool BLAST or DIAMOND.",
+        "split_prodigal_jobs": "Run multiple prodigal jobs simultaneously for contigs"
+        " in one sample",
+        "include_loose": "Include loose hits in addition to strict and perfect hits.",
+        "include_nudge": "Include hits nudged from loose to strict hits.",
+        "low_quality": "Use for short contigs to predict partial genes.",
+        "threads": "Number of threads (CPUs) to use in the BLAST search.",
+        "num_partitions": "Number of partitions that should run in parallel.",
+    },
+    output_descriptions={
+        "amr_annotations": "AMR annotation as .txt and .json file.",
+        "feature_table": "Frequency table of ARGs in all samples.",
+    },
+    name="Annotate MAGs with antimicrobial resistance genes from CARD.",
+    description="Annotate MAGs with antimicrobial resistance genes from CARD.",
+    citations=[citations["alcock_card_2023"]],
+)
+
+plugin.methods.register_function(
+    function=_annotate_mags_card,
+    inputs={"mags": SampleData[MAGs], "card_db": CARDDatabase},
     parameters={
         "alignment_tool": Str % Choices(["BLAST", "DIAMOND"]),
         "split_prodigal_jobs": Bool,
@@ -108,7 +155,7 @@ plugin.methods.register_function(
         ("feature_table", FeatureTable[Frequency]),
     ],
     input_descriptions={
-        "mag": "MAGs to be annotated with CARD.",
+        "mags": "MAGs to be annotated with CARD.",
         "card_db": "CARD Database.",
     },
     parameter_descriptions={
@@ -225,6 +272,113 @@ plugin.visualizers.register_function(
     citations=[citations["alcock_card_2023"]],
 )
 
+plugin.methods.register_function(
+    function=collate_mags_annotations,
+    inputs={"annotations": List[SampleData[CARDAnnotation]]},
+    parameters={},
+    outputs={"collated_annotations": SampleData[CARDAnnotation]},
+    input_descriptions={
+        "annotations": "A collection of annotations from MAGs to be " "collated."
+    },
+    name="Collate mags annotations.",
+    description="Takes a collection of SampleData[CARDAnnotation] "
+    "and collates them into a single artifact.",
+)
+
+T_allele_annotation_collate_in, T_allele_annotation_collate_out = TypeMap(
+    {
+        SampleData[
+            CARDAlleleAnnotation % Properties("kma", "bowtie2", "bwa")
+        ]: SampleData[CARDAlleleAnnotation % Properties("kma", "bowtie2", "bwa")],
+        SampleData[CARDAlleleAnnotation % Properties("kma", "bowtie2")]: SampleData[
+            CARDAlleleAnnotation % Properties("kma", "bowtie2")
+        ],
+        SampleData[CARDAlleleAnnotation % Properties("kma", "bwa")]: SampleData[
+            CARDAlleleAnnotation % Properties("kma", "bwa")
+        ],
+        SampleData[CARDAlleleAnnotation % Properties("bowtie2", "bwa")]: SampleData[
+            CARDAlleleAnnotation % Properties("bowtie2", "bwa")
+        ],
+        SampleData[CARDAlleleAnnotation % Properties("kma")]: SampleData[
+            CARDAlleleAnnotation % Properties("kma")
+        ],
+        SampleData[CARDAlleleAnnotation % Properties("bowtie2")]: SampleData[
+            CARDAlleleAnnotation % Properties("bowtie2")
+        ],
+        SampleData[CARDAlleleAnnotation % Properties("bwa")]: SampleData[
+            CARDAlleleAnnotation % Properties("bwa")
+        ],
+    }
+)
+
+plugin.methods.register_function(
+    function=collate_reads_allele_annotations,
+    inputs={"annotations": List[T_allele_annotation_collate_in]},
+    parameters={},
+    outputs={"collated_annotations": T_allele_annotation_collate_out},
+    input_descriptions={
+        "annotations": "A collection of annotations from reads at "
+        "allele level to be collated."
+    },
+    name="Collate reads allele annotations.",
+    description="Takes a collection of SampleData[CARDAlleleAnnotation] "
+    "and collates them into a single artifact.",
+)
+
+plugin.methods.register_function(
+    function=collate_reads_gene_annotations,
+    inputs={"annotations": List[SampleData[CARDGeneAnnotation]]},
+    parameters={},
+    outputs={"collated_annotations": SampleData[CARDGeneAnnotation]},
+    input_descriptions={
+        "annotations": "A collection of annotations from reads at "
+        "gene level to be collated."
+    },
+    name="Collate reads gene annotations.",
+    description="Takes a collection of SampleData[CARDGeneAnnotation] "
+    "and collates them into a single artifact.",
+)
+
+plugin.methods.register_function(
+    function=collate_mags_kmer_analyses,
+    inputs={"kmer_analyses": List[SampleData[CARDMAGsKmerAnalysis]]},
+    parameters={},
+    outputs={"collated_kmer_analyses": SampleData[CARDMAGsKmerAnalysis]},
+    input_descriptions={
+        "kmer_analyses": "A collection of k-mer analyses from MAG annotations."
+    },
+    name="Collate k-mer analyses from MAG annotations.",
+    description="Takes a collection of SampleData[CARDMAGsKmerAnalysis] "
+    "and collates them into a single artifact.",
+)
+
+plugin.methods.register_function(
+    function=collate_reads_allele_kmer_analyses,
+    inputs={"kmer_analyses": List[SampleData[CARDReadsAlleleKmerAnalysis]]},
+    parameters={},
+    outputs={"collated_kmer_analyses": SampleData[CARDReadsAlleleKmerAnalysis]},
+    input_descriptions={
+        "kmer_analyses": "A collection of k-mer analyses from reads annotations at "
+        "allele level."
+    },
+    name="Collate k-mer analyses from reads annotations at allele level.",
+    description="Takes a collection of SampleData[CARDReadsAlleleKmerAnalysis] "
+    "and collates them into a single artifact.",
+)
+
+plugin.methods.register_function(
+    function=collate_reads_gene_kmer_analyses,
+    inputs={"kmer_analyses": List[SampleData[CARDReadsGeneKmerAnalysis]]},
+    parameters={},
+    outputs={"collated_kmer_analyses": SampleData[CARDReadsGeneKmerAnalysis]},
+    input_descriptions={
+        "kmer_analyses": "A collection of k-mer analyses from reads annotations at "
+        "gene level."
+    },
+    name="Collate k-mer analyses from reads annotations at gene level.",
+    description="Takes a collection of SampleData[CARDReadsGeneKmerAnalysis] "
+    "and collates them into a single artifact.",
+)
 # Registrations
 plugin.register_semantic_types(
     CARDDatabase,
