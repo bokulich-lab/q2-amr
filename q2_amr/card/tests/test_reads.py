@@ -201,21 +201,21 @@ class TestAnnotateReadsCARD(TestPluginBase):
             run_rgi_bwt()
             self.assertEqual(str(cm.exception), expected_message)
 
-    def test_kmer_query_reads_card_paired(self):
+    def test_annotate_reads_card_pipeline_paired(self):
         reads_path = self.get_data_path("reads_paired")
         reads = SingleLanePerSamplePairedEndFastqDirFmt(reads_path, "r")
         reads_artifact = Artifact.import_data(
             "SampleData[PairedEndSequencesWithQuality]", reads
         )
-        self._test_kmer_query_reads_card(reads_artifact)
+        self._test_annotate_reads_card_pipeline(reads_artifact)
 
-    def test_kmer_query_reads_card_single(self):
+    def test_annotate_reads_card_pipeline_single(self):
         reads_path = self.get_data_path("reads_single")
         reads = SingleLanePerSampleSingleEndFastqDirFmt(reads_path, "r")
         reads_artifact = Artifact.import_data("SampleData[SequencesWithQuality]", reads)
-        self._test_kmer_query_reads_card(reads_artifact)
+        self._test_annotate_reads_card_pipeline(reads_artifact)
 
-    def _test_kmer_query_reads_card(self, reads):
+    def _test_annotate_reads_card_pipeline(self, reads):
         # Mock the get_action method to return MagicMock objects
         mock_ctx = MagicMock()
         mock_ctx.get_action.side_effect = [
