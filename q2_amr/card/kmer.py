@@ -262,7 +262,7 @@ def run_rgi_kmer_build(
         "--card",
         card_fasta,
         "-k",
-        kmer_size,
+        str(kmer_size),
         "--threads",
         str(threads),
         "--batch_size",
