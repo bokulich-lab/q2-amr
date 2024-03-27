@@ -264,9 +264,9 @@ def run_rgi_kmer_build(
         "-k",
         kmer_size,
         "--threads",
-        threads,
+        str(threads),
         "--batch_size",
-        batch_size,
+        str(batch_size),
     ]
 
     try:
