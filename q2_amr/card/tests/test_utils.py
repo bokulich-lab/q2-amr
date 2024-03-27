@@ -73,7 +73,7 @@ class TestAnnotateReadsCARD(TestPluginBase):
         with patch("q2_amr.card.utils.run_command") as mock_run_command:
             # Run load_card_db two times with include_other_models set to True and False
             for parameters in [False, True]:
-                load_card_db(
+                kmer_size = load_card_db(
                     tmp="path_tmp",
                     card_db=card_db,
                     kmer_db=kmer_db,
@@ -117,6 +117,9 @@ class TestAnnotateReadsCARD(TestPluginBase):
                 )
                 for flag, parameter in zip(flags, parameters)
             ]
+
+            # Assert if the kmer_size is "61"
+            assert kmer_size == "61"
 
             # Assert if function was called with expected calls
             mock_run_command.assert_has_calls(expected_calls, any_order=False)
