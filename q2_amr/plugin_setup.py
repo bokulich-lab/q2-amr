@@ -33,6 +33,7 @@ from q2_amr.card.heatmap import heatmap
 from q2_amr.card.kmer import (
     _kmer_query_mags,
     _kmer_query_reads,
+    kmer_build_card,
     kmer_query_mags_card,
     kmer_query_reads_card,
 )
@@ -405,6 +406,37 @@ plugin.methods.register_function(
     name="Pathogen-of-origin prediction for ARGs in reads",
     description="CARD's k-mer classifiers can be used to predict pathogen-of-origin for"
     " ARGs found by annotate-reads-card.",
+    citations=[citations["alcock_card_2023"]],
+)
+
+plugin.methods.register_function(
+    function=kmer_build_card,
+    inputs={
+        "card_db": CARDDatabase,
+    },
+    parameters={
+        "kmer_size": Int % Range(0, None, inclusive_start=False),
+        "threads": Int % Range(0, None, inclusive_start=False),
+        "batch_size": Int % Range(0, None, inclusive_start=False),
+    },
+    outputs=[
+        ("kmer_db", CARDKmerDatabase),
+    ],
+    input_descriptions={
+        "card_db": "CARD Database",
+    },
+    parameter_descriptions={
+        "kmer_size": "Length of k-mers in base pairs.",
+        "threads": "Number of threads (CPUs) to use.",
+        "batch_size": "Number of k-mers to query at a time using pyahocorasick--the "
+        "greater the number the more memory usage.",
+    },
+    output_descriptions={
+        "kmer_db": "K-mer database with custom k-mer size.",
+    },
+    name="K-mer build",
+    description="With kmer_build_card a kmer database can be built with a custom kmer"
+    " size",
     citations=[citations["alcock_card_2023"]],
 )
 

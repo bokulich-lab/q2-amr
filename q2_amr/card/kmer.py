@@ -1,3 +1,4 @@
+import glob
 import json
 import os
 import shutil
@@ -210,6 +211,62 @@ def _run_rgi_kmer_query(tmp, input_file, input_type, kmer_size, minimum, threads
         "--output",
         "output",
         "--local",
+    ]
+
+    try:
+        run_command(cmd, tmp, verbose=True)
+    except subprocess.CalledProcessError as e:
+        raise Exception(
+            "An error was encountered while running rgi, "
+            f"(return code {e.returncode}), please inspect "
+            "stdout and stderr to learn more."
+        )
+
+
+def kmer_build_card(
+    card_db: CARDDatabaseDirectoryFormat,
+    kmer_size: int,
+    threads: int = 1,
+    batch_size: int = 100000,
+) -> CARDKmerDatabaseDirectoryFormat:
+    kmer_db = CARDKmerDatabaseDirectoryFormat()
+
+    with tempfile.TemporaryDirectory() as tmp:
+        load_card_db(tmp=tmp, card_db=card_db)
+
+        card_fasta = glob.glob(os.path.join(str(card_db), "card_database_v*.fasta"))[0]
+
+        run_rgi_kmer_build(
+            tmp=tmp,
+            input_directory=str(card_db),
+            card_fasta=card_fasta,
+            kmer_size=kmer_size,
+            threads=threads,
+            batch_size=batch_size,
+        )
+
+        shutil.move(os.path.join(tmp, f"{kmer_size}_kmer_db.json"), str(kmer_db))
+        shutil.move(os.path.join(tmp, f"all_amr_{kmer_size}mers.txt"), str(kmer_db))
+
+    return kmer_db
+
+
+def run_rgi_kmer_build(
+    tmp, input_directory, card_fasta, kmer_size, threads, batch_size
+):
+    cmd = [
+        "rgi",
+        "kmer_build",
+        "--input_directory",
+        input_directory,
+        "--card",
+        card_fasta,
+        "-k",
+        kmer_size,
+        "--threads",
+        threads,
+        "--batch_size",
+        batch_size,
     ]
 
     try:
