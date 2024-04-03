@@ -34,7 +34,12 @@ setup(
             "data/card_allele_annotation/*/*",
             "data/card_gene_annotation/*/*",
         ],
-        "q2_amr.card.tests": ["data/*", "data/*/*", "data/*/*/*", "data/*/*/*/*"],
+        "q2_amr.card.tests": [
+            "data/*",
+            "data/*/*",
+            "data/*/*/*/*",
+            "data/*/*/*/*/*",
+        ],
     },
     zip_safe=False,
 )
