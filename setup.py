@@ -33,7 +33,11 @@ setup(
             "data/annotate_mags_output/*/*/*",
             "data/annotate_reads_output/*/*",
         ],
-        "q2_amr.card.tests": ["data/*", "data/*/*/*/*", "data/*/*/*"],
+        "q2_amr.card.tests": [
+            "data/*",
+            "data/partitioned/*/*/*",
+            "data/partitioned/*/*",
+        ],
     },
     zip_safe=False,
 )
