@@ -35,8 +35,8 @@ setup(
         ],
         "q2_amr.card.tests": [
             "data/*",
-            "data/partitioned/*/*/*",
-            "data/partitioned/*/*",
+            "data/*/*/*/*",
+            "data/*/*/*/*/*",
         ],
     },
     zip_safe=False,
