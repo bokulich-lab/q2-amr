@@ -126,7 +126,6 @@ def run_rgi_bwt(
         f"{cwd}/{samp}/output",
         "-n",
         str(threads),
-        "--local",
         "--clean",
         "--aligner",
         aligner,
