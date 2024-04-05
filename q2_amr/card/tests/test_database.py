@@ -39,6 +39,12 @@ class TestAnnotateMagsCard(TestPluginBase):
         mock_response_card = MagicMock(raw=f_card)
         mock_response_wildcard = MagicMock(raw=f_wildcard)
 
+        # Add values to mocked responses for progressbar
+        mock_response_card.headers = {"content-length": 1024}
+        mock_response_card.iter_content.return_value = [b"test"] * 1024
+        mock_response_wildcard.headers = {"content-length": 1024}
+        mock_response_wildcard.iter_content.return_value = [b"test"] * 1024
+
         # Patch requests.get,
         with patch("requests.get") as mock_requests, patch(
             "q2_amr.card.database.preprocess", side_effect=self.mock_preprocess
@@ -85,7 +91,8 @@ class TestAnnotateMagsCard(TestPluginBase):
         with patch(
             "requests.get", side_effect=requests.ConnectionError
         ), self.assertRaisesRegex(
-            requests.ConnectionError, "Network connectivity problems."
+            requests.ConnectionError,
+            "Unable to connect to the CARD server. Please try again later.",
         ):
             fetch_card_db()
 
