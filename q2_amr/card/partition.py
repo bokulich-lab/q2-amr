@@ -51,21 +51,25 @@ def collate_reads_gene_kmer_analyses(
 def _collate(partition_list):
     collated_partitions = type(partition_list[0])()
     # For every partition
-    for annotation in partition_list:
+    for partition in partition_list:
         # For every sample
-        for sample in annotation.path.iterdir():
-            # If formats are annotations or kmer analyses from MAGs
+        for sample in partition.path.iterdir():
+            # If artifacts are annotations or kmer analyses from MAGs
             if isinstance(
                 partition_list[0],
                 (CARDAnnotationDirectoryFormat, CARDMAGsKmerAnalysisDirectoryFormat),
             ):
                 # For every MAG
                 for mag in sample.iterdir():
-                    # Create directories in collate
-                    os.makedirs(
-                        collated_partitions.path / sample.name / mag.name,
-                        exist_ok=True,
-                    )
+                    # Create directories in collate. If dir already exists raise error
+                    try:
+                        os.makedirs(collated_partitions.path / sample.name / mag.name)
+                    except FileExistsError as e:
+                        raise FileExistsError(
+                            f"The directory already exists: {e.filename}. MAG IDs must"
+                            f" be unique across all artifacts. Each artifact in the"
+                            f" list must be unique and cannot be repeated."
+                        )
 
                     # Copy every file in the MAG directory to the collated directory
                     for file in mag.iterdir():
@@ -77,12 +81,19 @@ def _collate(partition_list):
                             / file.name,
                         )
 
-            # If annotations or kmer analyses are from reads
+            # If artifacts are annotations or kmer analyses are from reads
             else:
-                # Create directories in collate object
-                os.makedirs(collated_partitions.path / sample.name, exist_ok=True)
+                # Create directories in collate. If dir already exists raise error
+                try:
+                    os.makedirs(collated_partitions.path / sample.name)
+                except FileExistsError as e:
+                    raise FileExistsError(
+                        f"The directory already exists: {e.filename}. Sample IDs must"
+                        f" be unique across all artifacts. Each artifact in the"
+                        f" list must be unique and cannot be repeated."
+                    )
 
-                # For every mag in the sample
+                # Copy every file in the sample directory to the collated directory
                 for file in sample.iterdir():
                     duplicate(file, collated_partitions.path / sample.name / file.name)
 
