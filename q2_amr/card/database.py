@@ -26,11 +26,15 @@ def fetch_card_db() -> (CARDDatabaseDirectoryFormat, CARDKmerDatabaseDirectoryFo
                 "https://card.mcmaster.ca/latest/variants", stream=True
             )
 
-            # Get content length to calculate progress
+            # Get content length to calculate progress bar length
             tot_size_card = int(response_card.headers.get("content-length", 0))
             tot_size_wildcard = int(response_wildcard.headers.get("content-length", 0))
 
-            # Initialize progress bars
+            # Paths for database tar archives
+            card_path = os.path.join(tmp_dir, "card_tar")
+            wildcard_path = os.path.join(tmp_dir, "wildcard_tar")
+
+            # Initialize CARD progress bar and download database
             progress_bar_card = tqdm(
                 total=tot_size_card,
                 unit="B",
@@ -38,24 +42,20 @@ def fetch_card_db() -> (CARDDatabaseDirectoryFormat, CARDKmerDatabaseDirectoryFo
                 desc="Downloading CARD database",
             )
 
-            progress_bar_wildcard = tqdm(
-                total=tot_size_wildcard,
-                unit="B",
-                unit_scale=True,
-                desc="Downloading WildCARD database",
-            )
-
-            # Paths for database tar archives
-            card_path = os.path.join(tmp_dir, "card_tar")
-            wildcard_path = os.path.join(tmp_dir, "wildcard_tar")
-
-            # Download database tar archives and update progress bars
             with open(card_path, "wb") as file:
                 for chunk in response_card.iter_content(chunk_size=8192):
                     file.write(chunk) if chunk else False
                     if tot_size_card > 0:
                         progress_bar_card.update(len(chunk))
                 progress_bar_card.close() if tot_size_card > 0 else False
+
+            # Initialize WildCARD progress bar and download database
+            progress_bar_wildcard = tqdm(
+                total=tot_size_wildcard,
+                unit="B",
+                unit_scale=True,
+                desc="Downloading WildCARD database",
+            )
 
             with open(wildcard_path, "wb") as file:
                 for chunk in response_wildcard.iter_content(chunk_size=8192):
