@@ -232,10 +232,11 @@ def kmer_build_card(
     kmer_db = CARDKmerDatabaseDirectoryFormat()
 
     with tempfile.TemporaryDirectory() as tmp:
+        # Load card_db and get data path to card_db fasta file
         load_card_db(tmp=tmp, card_db=card_db)
-
         card_fasta = glob.glob(os.path.join(str(card_db), "card_database_v*.fasta"))[0]
 
+        # Run RGI kmer-build
         run_rgi_kmer_build(
             tmp=tmp,
             input_directory=str(card_db),
@@ -245,6 +246,7 @@ def kmer_build_card(
             batch_size=batch_size,
         )
 
+        # Move kmer db files into kmer_db directory
         shutil.move(os.path.join(tmp, f"{kmer_size}_kmer_db.json"), str(kmer_db))
         shutil.move(os.path.join(tmp, f"all_amr_{kmer_size}mers.txt"), str(kmer_db))
 
