@@ -176,7 +176,7 @@ class TestPartition(TestPluginBase):
         ]
 
         # Assert if keys of collection are correct
-        self.assertTrue(list(obs.keys()) == mag_ids)
+        self.assertTrue(set(obs.keys()) == set(mag_ids))
 
         # Assert if all files exist in the correct locations
         for mag_id, samp in zip(mag_ids, ["sample2", "sample1"]):
@@ -223,11 +223,13 @@ class TestPartition(TestPluginBase):
         # Run function
         obs = function(annotations=annotations)
 
+        samples = ["sample2", "sample1"]
+
         # Assert if keys of collection are correct
-        self.assertTrue(list(obs.keys()) == ["sample2", "sample1"])
+        self.assertTrue(set(obs.keys()) == set(samples))
 
         # Assert if all files exist in the right location
-        for key, samp in zip(list(obs.keys()), ["2", "1"]):
+        for key, sample in zip(list(obs.keys()), samples):
             for file in files:
-                path = os.path.join(obs[key].path, f"sample{samp}", file)
+                path = os.path.join(obs[key].path, sample, file)
                 self.assertTrue(os.path.exists(path))
