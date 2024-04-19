@@ -316,30 +316,23 @@ class TestCARDMagsAnnotationTypesAndFormats(AMRTypesTestPluginBase):
         self.assertIsInstance(metadata_obt, qiime2.Metadata)
 
     def test_card_annotation_directory_format_sample_dict(self):
-        annotations = CARDAnnotationDirectoryFormat()
-        anno_path = annotations.path
-        dir_path = self.get_data_path("annotate_mags_output")
-        shutil.copytree(dir_path, anno_path, dirs_exist_ok=True)
-
-        src = os.path.join(anno_path, "sample2", "bin1")
-        des = os.path.join(anno_path, "sample2", "bin2")
-
-        shutil.copytree(src, des)
+        dirpath = self.get_data_path("annotate_mags_output")
+        annotations = CARDAnnotationDirectoryFormat(dirpath, mode="r")
 
         obs = annotations.sample_dict()
         exp = {
-            "sample1/bin1": [
-                os.path.join(anno_path, "sample1", "bin1", "amr_annotation.json"),
-                os.path.join(anno_path, "sample1", "bin1", "amr_annotation.txt"),
-            ],
-            "sample2/bin1": [
-                os.path.join(anno_path, "sample2", "bin1", "amr_annotation.json"),
-                os.path.join(anno_path, "sample2", "bin1", "amr_annotation.txt"),
-            ],
-            "sample2/bin2": [
-                os.path.join(anno_path, "sample2", "bin2", "amr_annotation.json"),
-                os.path.join(anno_path, "sample2", "bin2", "amr_annotation.txt"),
-            ],
+            "sample1": {
+                "bin1": [
+                    os.path.join(dirpath, "sample1", "bin1", "amr_annotation.json"),
+                    os.path.join(dirpath, "sample1", "bin1", "amr_annotation.txt"),
+                ]
+            },
+            "sample2": {
+                "bin1": [
+                    os.path.join(dirpath, "sample2", "bin1", "amr_annotation.json"),
+                    os.path.join(dirpath, "sample2", "bin1", "amr_annotation.txt"),
+                ]
+            },
         }
         self.assertEqual(obs, exp)
 
