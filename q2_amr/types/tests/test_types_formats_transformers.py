@@ -278,62 +278,120 @@ class TestCARDMagsAnnotationTypesAndFormats(AMRTypesTestPluginBase):
         self.assertEqual(dna_contents_obs, dna_contents_exp)
 
     def test_CARDAnnotationDirectoryFormat_to_GenesDirectoryFormat_transformer(self):
-        filepath = self.get_data_path("annotate_mags_output")
+        filepath = self.get_data_path("card_annotation")
         transformer = self.get_transformer(
             CARDAnnotationDirectoryFormat, GenesDirectoryFormat
         )
         obs = transformer(filepath)
         self.assertIsInstance(obs, GenesDirectoryFormat)
-        self.assertTrue(
-            os.path.exists(os.path.join(str(obs), "sample1", "bin1_genes.fasta"))
-        )
-        self.assertTrue(
-            os.path.exists(os.path.join(str(obs), "sample2", "bin1_genes.fasta"))
-        )
+
+        paths = [
+            os.path.join(
+                str(obs), "sample1", "e026af61-d911-4de3-a957-7e8bf837f30d_genes.fasta"
+            ),
+            os.path.join(
+                str(obs), "sample2", "aa447c99-ecd9-4c4a-a53b-4df6999815dd_genes.fasta"
+            ),
+            os.path.join(
+                str(obs), "sample2", "f5a16381-ea80-49f9-875e-620f333a9293_genes.fasta"
+            ),
+        ]
+        for path in paths:
+            self.assertTrue(os.path.exists(path))
 
     def test_CARDAnnotationDirectoryFormat_to_ProteinsDirectoryFormat_transformer(self):
-        filepath = self.get_data_path("annotate_mags_output")
+        filepath = self.get_data_path("card_annotation")
         transformer = self.get_transformer(
             CARDAnnotationDirectoryFormat, ProteinsDirectoryFormat
         )
         obs = transformer(filepath)
         self.assertIsInstance(obs, ProteinsDirectoryFormat)
-        self.assertTrue(
-            os.path.exists(os.path.join(str(obs), "sample1", "bin1_proteins.fasta"))
-        )
-        self.assertTrue(
-            os.path.exists(os.path.join(str(obs), "sample2", "bin1_proteins.fasta"))
-        )
+
+        paths = [
+            os.path.join(
+                str(obs),
+                "sample1",
+                "e026af61-d911-4de3-a957-7e8bf837f30d_proteins.fasta",
+            ),
+            os.path.join(
+                str(obs),
+                "sample2",
+                "aa447c99-ecd9-4c4a-a53b-4df6999815dd_proteins.fasta",
+            ),
+            os.path.join(
+                str(obs),
+                "sample2",
+                "f5a16381-ea80-49f9-875e-620f333a9293_proteins.fasta",
+            ),
+        ]
+        for path in paths:
+            self.assertTrue(os.path.exists(path))
 
     def test_CARDAnnotationDirectoryFormat_to_qiime2_Metadata_transformer(self):
         transformer = self.get_transformer(
             CARDAnnotationDirectoryFormat, qiime2.Metadata
         )
         annotation = CARDAnnotationDirectoryFormat(
-            self.get_data_path("annotate_mags_output"), "r"
+            self.get_data_path("card_annotation"), "r"
         )
         metadata_obt = transformer(annotation)
         self.assertIsInstance(metadata_obt, qiime2.Metadata)
 
     def test_card_annotation_directory_format_sample_dict(self):
-        dirpath = self.get_data_path("annotate_mags_output")
-        annotations = CARDAnnotationDirectoryFormat(dirpath, mode="r")
+        annotations = CARDAnnotationDirectoryFormat(
+            self.get_data_path("card_annotation"), "r"
+        )
 
         obs = annotations.sample_dict()
         exp = {
             "sample1": {
-                "bin1": [
-                    os.path.join(dirpath, "sample1", "bin1", "amr_annotation.json"),
-                    os.path.join(dirpath, "sample1", "bin1", "amr_annotation.txt"),
+                "e026af61-d911-4de3-a957-7e8bf837f30d": [
+                    os.path.join(
+                        annotations.path,
+                        "sample1",
+                        "e026af61-d911-4de3-a957-7e8bf837f30d",
+                        "amr_annotation.json",
+                    ),
+                    os.path.join(
+                        annotations.path,
+                        "sample1",
+                        "e026af61-d911-4de3-a957-7e8bf837f30d",
+                        "amr_annotation.txt",
+                    ),
                 ]
             },
             "sample2": {
-                "bin1": [
-                    os.path.join(dirpath, "sample2", "bin1", "amr_annotation.json"),
-                    os.path.join(dirpath, "sample2", "bin1", "amr_annotation.txt"),
-                ]
+                "aa447c99-ecd9-4c4a-a53b-4df6999815dd": [
+                    os.path.join(
+                        annotations.path,
+                        "sample2",
+                        "aa447c99-ecd9-4c4a-a53b-4df6999815dd",
+                        "amr_annotation.json",
+                    ),
+                    os.path.join(
+                        annotations.path,
+                        "sample2",
+                        "aa447c99-ecd9-4c4a-a53b-4df6999815dd",
+                        "amr_annotation.txt",
+                    ),
+                ],
+                "f5a16381-ea80-49f9-875e-620f333a9293": [
+                    os.path.join(
+                        annotations.path,
+                        "sample2",
+                        "f5a16381-ea80-49f9-875e-620f333a9293",
+                        "amr_annotation.json",
+                    ),
+                    os.path.join(
+                        annotations.path,
+                        "sample2",
+                        "f5a16381-ea80-49f9-875e-620f333a9293",
+                        "amr_annotation.txt",
+                    ),
+                ],
             },
         }
+
         self.assertEqual(obs, exp)
 
 
