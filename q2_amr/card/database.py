@@ -19,50 +19,21 @@ from q2_amr.types._format import (
 def fetch_card_db() -> (CARDDatabaseDirectoryFormat, CARDKmerDatabaseDirectoryFormat):
     with tempfile.TemporaryDirectory() as tmp_dir:
         try:
-            response_card = requests.get(
-                "https://card.mcmaster.ca/latest/data", stream=True
-            )
-            response_wildcard = requests.get(
-                "https://card.mcmaster.ca/latest/variants", stream=True
-            )
+            card_tar_path = os.path.join(tmp_dir, "card_tar")
+            wildcard_tar_path = os.path.join(tmp_dir, "wildcard_tar")
 
-            # Get content length to calculate progress bar length
-            tot_size_card = int(response_card.headers.get("content-length", 0))
-            tot_size_wildcard = int(response_wildcard.headers.get("content-length", 0))
-
-            # Paths for database tar archives
-            card_path = os.path.join(tmp_dir, "card_tar")
-            wildcard_path = os.path.join(tmp_dir, "wildcard_tar")
-
-            # Initialize CARD progress bar and download database
-            progress_bar_card = tqdm(
-                total=tot_size_card,
-                unit="B",
-                unit_scale=True,
-                desc="Downloading CARD database",
+            # Download CARD and WildCARD tar database archives with progressbars
+            download_with_progressbar(
+                url="https://card.mcmaster.ca/latest/data",
+                progressbar_desc="Downloading CARD database",
+                tar_path=card_tar_path,
             )
 
-            with open(card_path, "wb") as file:
-                for chunk in response_card.iter_content(chunk_size=8192):
-                    file.write(chunk) if chunk else False
-                    if tot_size_card > 0:
-                        progress_bar_card.update(len(chunk))
-                progress_bar_card.close() if tot_size_card > 0 else False
-
-            # Initialize WildCARD progress bar and download database
-            progress_bar_wildcard = tqdm(
-                total=tot_size_wildcard,
-                unit="B",
-                unit_scale=True,
-                desc="Downloading WildCARD database",
+            download_with_progressbar(
+                url="https://card.mcmaster.ca/latest/variants",
+                progressbar_desc="Downloading WildCARD database",
+                tar_path=wildcard_tar_path,
             )
-
-            with open(wildcard_path, "wb") as file:
-                for chunk in response_wildcard.iter_content(chunk_size=8192):
-                    file.write(chunk) if chunk else False
-                    if tot_size_wildcard > 0:
-                        progress_bar_wildcard.update(len(chunk))
-                progress_bar_wildcard.close() if tot_size_wildcard > 0 else False
 
         except requests.ConnectionError as e:
             error_msg = "Unable to connect to the CARD server. Please try again later."
@@ -77,10 +48,10 @@ def fetch_card_db() -> (CARDDatabaseDirectoryFormat, CARDKmerDatabaseDirectoryFo
 
         # Extract tar.bz2 archives and store files in dirs "card" and "wildcard_zip"
         try:
-            with tarfile.open(card_path, mode="r:bz2") as c_tar:
+            with tarfile.open(card_tar_path, mode="r:bz2") as c_tar:
                 c_tar.extractall(path=os.path.join(tmp_dir, "card"))
 
-            with tarfile.open(wildcard_path, mode="r|bz2") as wc_tar:
+            with tarfile.open(wildcard_tar_path, mode="r|bz2") as wc_tar:
                 wc_tar.extractall(path=os.path.join(tmp_dir, "wildcard_zip"))
 
         except tarfile.ReadError as a:
@@ -160,6 +131,28 @@ def fetch_card_db() -> (CARDDatabaseDirectoryFormat, CARDKmerDatabaseDirectoryFo
                 )
 
         return card_db, kmer_db
+
+
+def download_with_progressbar(url, progressbar_desc, tar_path):
+    response = requests.get(url=url, stream=True)
+
+    # Get content length to calculate progress bar length
+    tot_size = int(response.headers.get("content-length", 0))
+
+    # Initialize CARD progress bar and download database
+    progress_bar_card = tqdm(
+        total=tot_size,
+        unit="B",
+        unit_scale=True,
+        desc=progressbar_desc,
+    )
+
+    with open(tar_path, "wb") as file:
+        for chunk in response.iter_content(chunk_size=8192):
+            file.write(chunk) if chunk else False
+            if tot_size > 0:
+                progress_bar_card.update(len(chunk))
+        progress_bar_card.close() if tot_size > 0 else False
 
 
 def preprocess(dir, operation):
