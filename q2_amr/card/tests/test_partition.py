@@ -215,25 +215,25 @@ class TestPartition(TestPluginBase):
         # Assert if all files exist in the correct locations
         paths = [
             os.path.join(
-                obs[2].path,
+                obs[1].path,
                 "sample1",
                 "e026af61-d911-4de3-a957-7e8bf837f30d",
                 "amr_annotation.txt",
             ),
             os.path.join(
-                obs[2].path,
+                obs[1].path,
                 "sample1",
                 "e026af61-d911-4de3-a957-7e8bf837f30d",
                 "amr_annotation.json",
             ),
             os.path.join(
-                obs[1].path,
+                obs[2].path,
                 "sample2",
                 "aa447c99-ecd9-4c4a-a53b-4df6999815dd",
                 "amr_annotation.txt",
             ),
             os.path.join(
-                obs[1].path,
+                obs[2].path,
                 "sample2",
                 "aa447c99-ecd9-4c4a-a53b-4df6999815dd",
                 "amr_annotation.json",

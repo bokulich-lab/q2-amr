@@ -141,6 +141,9 @@ def _partition_annotations(
         for sample_id, file_path_list in annotations.sample_dict().items():
             annotations_all.append((sample_id, file_path_list))
 
+    # Sort annotations_all for consistent splitting behaviour in local and CI
+    annotations_all.sort()
+
     # Retrieve the number of annotations
     num_annotations = len(annotations_all)
 
