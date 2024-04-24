@@ -277,6 +277,7 @@ def tabulate_data(data_path, data_type):
 
     # Combine all dataframes
     df_combined = pd.concat(df_list, axis=0)
+    df_combined.sort_values(by="Sample Name", inplace=True)
     df_combined.reset_index(inplace=True, drop=True)
     df_combined.index.name = "id"
     df_combined.index = df_combined.index.astype(str)
@@ -285,6 +286,4 @@ def tabulate_data(data_path, data_type):
         df_combined["Nudged"] = df_combined["Nudged"].astype(str)
         df_combined.rename(columns={"ID": "HSP_Identifier"}, inplace=True)
 
-    assert df_combined == pd.DataFrame([1, 2]), f"Error: {df_combined} does not equal 0"
-    print(df_combined)
     return qiime2.Metadata(df_combined)
