@@ -1,5 +1,4 @@
 import os
-import shutil
 
 from qiime2.plugin.testing import TestPluginBase
 
@@ -13,6 +12,7 @@ from q2_amr.card.partition import (
     partition_mags_annotations,
     partition_reads_allele_annotations,
     partition_reads_gene_annotations,
+    split_list,
 )
 from q2_amr.types import (
     CARDAlleleAnnotationDirectoryFormat,
@@ -30,83 +30,78 @@ class TestPartition(TestPluginBase):
     def test_collate_mags_annotations(self):
         # Test collate for mags annotations
         self._test_collate(
-            data_dir="annotate_mags_output",
+            data_dir="partitioned/annotate_mags_output",
             files_to_assert=["amr_annotation.json", "amr_annotation.txt"],
             samples=["sample1/bin1", "sample2/bin2"],
-            format=CARDAnnotationDirectoryFormat,
+            dir_format=CARDAnnotationDirectoryFormat,
             function=collate_mags_annotations,
         )
 
     def test_collate_reads_allele_annotations(self):
         # Test collate for reads allele annotations
         self._test_collate(
-            data_dir="annotate_reads_allele_output",
+            data_dir="partitioned/annotate_reads_allele_output",
             files_to_assert=[
                 "allele_mapping_data.txt",
                 "overall_mapping_stats.txt",
                 "sorted.length_100.bam",
             ],
             samples=["sample1", "sample2"],
-            format=CARDAlleleAnnotationDirectoryFormat,
+            dir_format=CARDAlleleAnnotationDirectoryFormat,
             function=collate_reads_allele_annotations,
         )
 
     def test_collate_reads_gene_annotations(self):
         # Test collate for reads gene annotations
         self._test_collate(
-            data_dir="annotate_reads_gene_output",
+            data_dir="partitioned/annotate_reads_gene_output",
             files_to_assert=["gene_mapping_data.txt"],
             samples=["sample1", "sample2"],
-            format=CARDGeneAnnotationDirectoryFormat,
+            dir_format=CARDGeneAnnotationDirectoryFormat,
             function=collate_reads_gene_annotations,
         )
 
     def test_collate_mags_kmer_analysis(self):
         # Test collate for MAGs k-mer analysis
         self._test_collate(
-            data_dir="kmer_analysis_mags",
+            data_dir="partitioned/kmer_analysis_mags",
             files_to_assert=["61mer_analysis.json", "61mer_analysis_rgi_summary.txt"],
             samples=["sample1/bin1", "sample2/bin2"],
-            format=CARDMAGsKmerAnalysisDirectoryFormat,
+            dir_format=CARDMAGsKmerAnalysisDirectoryFormat,
             function=collate_mags_kmer_analyses,
         )
 
     def test_collate_reads_allele_kmer_analysis(self):
         # Test collate for MAGs k-mer analysis
         self._test_collate(
-            data_dir="kmer_analysis_reads_allele",
+            data_dir="partitioned/kmer_analysis_reads_allele",
             files_to_assert=["61mer_analysis.json", "61mer_analysis.allele.txt"],
             samples=["sample1", "sample2"],
-            format=CARDReadsAlleleKmerAnalysisDirectoryFormat,
+            dir_format=CARDReadsAlleleKmerAnalysisDirectoryFormat,
             function=collate_reads_allele_kmer_analyses,
         )
 
     def test_collate_reads_gene_kmer_analysis(self):
         # Test collate for MAGs k-mer analysis
         self._test_collate(
-            data_dir="kmer_analysis_reads_gene",
+            data_dir="partitioned/kmer_analysis_reads_gene",
             files_to_assert=["61mer_analysis.json", "61mer_analysis.gene.txt"],
             samples=["sample1", "sample2"],
-            format=CARDReadsGeneKmerAnalysisDirectoryFormat,
+            dir_format=CARDReadsGeneKmerAnalysisDirectoryFormat,
             function=collate_reads_gene_kmer_analyses,
         )
 
-    def _test_collate(self, data_dir, files_to_assert, samples, format, function):
+    def _test_collate(self, data_dir, files_to_assert, samples, dir_format, function):
         # Set up the list with annotations objects to collate
-        artifact_1 = self.setup_annotations(
-            dir_name=f"partitioned/{data_dir}_1", format=format
-        )
-        artifact_2 = self.setup_annotations(
-            dir_name=f"partitioned/{data_dir}_2", format=format
-        )
-
+        artifact_1 = dir_format(path=self.get_data_path(f"{data_dir}_1"), mode="r")
+        artifact_2 = dir_format(path=self.get_data_path(f"{data_dir}_2"), mode="r")
         artifacts = [artifact_1, artifact_2]
 
         # Run collate functions on the annotations
         collate = function(artifacts)
 
         # Assert if collated artifact has the correct format
-        self.assertTrue(isinstance(collate, format))
+        self.assertTrue(isinstance(collate, dir_format))
 
         # Assert if all the files have been moved to the collated object
         for sample in samples:
@@ -117,11 +112,8 @@ class TestPartition(TestPluginBase):
 
     def test_mags_file_exists_error(self):
         # Set up the list with duplicated artifacts
-        artifact = self.setup_annotations(
-            dir_name="partitioned/kmer_analysis_reads_allele_1",
-            format=CARDReadsAlleleKmerAnalysisDirectoryFormat,
-        )
-
+        path = self.get_data_path("partitioned/kmer_analysis_reads_allele_1")
+        artifact = CARDReadsAlleleKmerAnalysisDirectoryFormat(path=path, mode="r")
         artifacts = [artifact, artifact]
 
         pattern = (
@@ -136,11 +128,8 @@ class TestPartition(TestPluginBase):
 
     def test_reads_file_exists_error(self):
         # Set up the list with duplicated artifacts
-        artifact = self.setup_annotations(
-            dir_name="partitioned/annotate_mags_output_1",
-            format=CARDAnnotationDirectoryFormat,
-        )
-
+        path = self.get_data_path("partitioned/annotate_mags_output_1")
+        artifact = CARDAnnotationDirectoryFormat(path=path, mode="r")
         artifacts = [artifact, artifact]
 
         pattern = (
@@ -153,72 +142,153 @@ class TestPartition(TestPluginBase):
         with self.assertRaisesRegex(FileExistsError, pattern):
             collate_reads_allele_kmer_analyses(artifacts)
 
-    def setup_annotations(self, dir_name, format):
-        # Setup of the directory with dummy files and the needed directory format
-        annotations = format()
-        files = self.get_data_path(dir_name)
-        shutil.copytree(files, annotations.path, dirs_exist_ok=True)
-        return annotations
-
     def test_partition_mags_annotations(self):
         # Set up for annotations
-        annotations = self.setup_annotations(
-            dir_name="collated/annotate_mags_output",
-            format=CARDAnnotationDirectoryFormat,
-        )
+        path = self.get_data_path("collated/card_annotation")
+        annotations = CARDAnnotationDirectoryFormat(path=path, mode="r")
 
         # Run partition_mags_annotations
-        obs = partition_mags_annotations(annotations=annotations, num_partitions=2)
+        obs = partition_mags_annotations(annotations=annotations, num_partitions=3)
 
         mag_ids = [
-            "f5a16381-ea80-49f9-875e-620f333a9293",
             "e026af61-d911-4de3-a957-7e8bf837f30d",
+            "aa447c99-ecd9-4c4a-a53b-4df6999815dd",
+            "f5a16381-ea80-49f9-875e-620f333a9293",
         ]
 
         # Assert if keys of collection are correct
         self.assertTrue(set(obs.keys()) == set(mag_ids))
 
         # Assert if all files exist in the correct locations
-        for mag_id, samp in zip(mag_ids, ["sample2", "sample1"]):
-            for file in ["amr_annotation.json", "amr_annotation.txt"]:
-                path = os.path.join(obs[mag_id].path, samp, mag_id, file)
-                self.assertTrue(os.path.exists(path))
+        paths = [
+            os.path.join(
+                obs["e026af61-d911-4de3-a957-7e8bf837f30d"].path,
+                "sample1",
+                "e026af61-d911-4de3-a957-7e8bf837f30d",
+                "amr_annotation.txt",
+            ),
+            os.path.join(
+                obs["e026af61-d911-4de3-a957-7e8bf837f30d"].path,
+                "sample1",
+                "e026af61-d911-4de3-a957-7e8bf837f30d",
+                "amr_annotation.json",
+            ),
+            os.path.join(
+                obs["aa447c99-ecd9-4c4a-a53b-4df6999815dd"].path,
+                "sample2",
+                "aa447c99-ecd9-4c4a-a53b-4df6999815dd",
+                "amr_annotation.txt",
+            ),
+            os.path.join(
+                obs["aa447c99-ecd9-4c4a-a53b-4df6999815dd"].path,
+                "sample2",
+                "aa447c99-ecd9-4c4a-a53b-4df6999815dd",
+                "amr_annotation.json",
+            ),
+            os.path.join(
+                obs["f5a16381-ea80-49f9-875e-620f333a9293"].path,
+                "sample2",
+                "f5a16381-ea80-49f9-875e-620f333a9293",
+                "amr_annotation.json",
+            ),
+            os.path.join(
+                obs["f5a16381-ea80-49f9-875e-620f333a9293"].path,
+                "sample2",
+                "f5a16381-ea80-49f9-875e-620f333a9293",
+                "amr_annotation.txt",
+            ),
+        ]
+        for path in paths:
+            self.assertTrue(os.path.exists(path))
+
+    def test_partition_mags_annotations_uneven(self):
+        # Set up for annotations
+        path = self.get_data_path("collated/card_annotation")
+        annotations = CARDAnnotationDirectoryFormat(path=path, mode="r")
+
+        # Run partition_mags_annotations
+        obs = partition_mags_annotations(annotations=annotations, num_partitions=2)
+
+        # Assert if keys of collection are correct
+        self.assertTrue(set(obs.keys()) == {1, 2})
+
+        # Assert if all files exist in the correct locations
+        paths = [
+            os.path.join(
+                obs[2].path,
+                "sample1",
+                "e026af61-d911-4de3-a957-7e8bf837f30d",
+                "amr_annotation.txt",
+            ),
+            os.path.join(
+                obs[2].path,
+                "sample1",
+                "e026af61-d911-4de3-a957-7e8bf837f30d",
+                "amr_annotation.json",
+            ),
+            os.path.join(
+                obs[1].path,
+                "sample2",
+                "aa447c99-ecd9-4c4a-a53b-4df6999815dd",
+                "amr_annotation.txt",
+            ),
+            os.path.join(
+                obs[1].path,
+                "sample2",
+                "aa447c99-ecd9-4c4a-a53b-4df6999815dd",
+                "amr_annotation.json",
+            ),
+            os.path.join(
+                obs[2].path,
+                "sample2",
+                "f5a16381-ea80-49f9-875e-620f333a9293",
+                "amr_annotation.json",
+            ),
+            os.path.join(
+                obs[2].path,
+                "sample2",
+                "f5a16381-ea80-49f9-875e-620f333a9293",
+                "amr_annotation.txt",
+            ),
+        ]
+        for path in paths:
+            self.assertTrue(os.path.exists(path))
 
     def test_partition_mags_warning_message(self):
         # Test warning message when partitioning MAG annotations with num partitions
         # higher than the number of annotations
-        annotations = self.setup_annotations(
-            dir_name="collated/annotate_mags_output",
-            format=CARDAnnotationDirectoryFormat,
-        )
+        path = self.get_data_path("collated/card_annotation")
+        annotations = CARDAnnotationDirectoryFormat(path=path, mode="r")
+
         with self.assertWarnsRegex(
-            UserWarning, "You have requested a number of.*5.*2.*2"
+            UserWarning, "You have requested a number of.*5.*3.*3"
         ):
             partition_mags_annotations(annotations=annotations, num_partitions=5)
 
     def test_partition_reads_allele_annotations(self):
         self._test_partition_reads_annotations(
-            dir="collated/annotate_reads_allele_output",
+            dir_name="collated/card_allele_annotation",
             files=[
                 "allele_mapping_data.txt",
                 "overall_mapping_stats.txt",
                 "sorted.length_100.bam",
             ],
-            format=CARDAlleleAnnotationDirectoryFormat,
+            dir_format=CARDAlleleAnnotationDirectoryFormat,
             function=partition_reads_allele_annotations,
         )
 
     def test_partition_reads_gene_annotations(self):
         self._test_partition_reads_annotations(
-            dir="collated/annotate_reads_gene_output",
+            dir_name="collated/card_gene_annotation",
             files=["gene_mapping_data.txt"],
-            format=CARDGeneAnnotationDirectoryFormat,
+            dir_format=CARDGeneAnnotationDirectoryFormat,
             function=partition_reads_gene_annotations,
         )
 
-    def _test_partition_reads_annotations(self, dir, files, format, function):
+    def _test_partition_reads_annotations(self, dir_name, files, dir_format, function):
         # Set up for annotations
-        annotations = self.setup_annotations(dir, format)
+        path = self.get_data_path(dir_name)
+        annotations = dir_format(path=self.get_data_path(dir_name), mode="r")
 
         # Run function
         obs = function(annotations=annotations)
@@ -233,3 +303,15 @@ class TestPartition(TestPluginBase):
             for file in files:
                 path = os.path.join(obs[key].path, sample, file)
                 self.assertTrue(os.path.exists(path))
+
+    def test_split_list(self):
+        test_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+        expected_output = [[1, 2, 3], [4, 5, 6], [7, 8, 9, 10]]
+        self.assertEqual(split_list(test_list, 3), expected_output)
+
+        expected_output = [[1], [2], [3], [4], [5], [6], [7], [8], [9], [10]]
+        self.assertEqual(split_list(test_list, 10), expected_output)
+
+        expected_output = [[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]]
+        self.assertEqual(split_list(test_list, 1), expected_output)
