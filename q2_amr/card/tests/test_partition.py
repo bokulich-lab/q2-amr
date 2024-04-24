@@ -265,43 +265,48 @@ class TestPartition(TestPluginBase):
         ):
             partition_mags_annotations(annotations=annotations, num_partitions=5)
 
-    def test_partition_reads_allele_annotations(self):
-        self._test_partition_reads_annotations(
-            dir_name="collated/card_allele_annotation",
-            files=[
-                "allele_mapping_data.txt",
-                "overall_mapping_stats.txt",
-                "sorted.length_100.bam",
-            ],
-            dir_format=CARDAlleleAnnotationDirectoryFormat,
-            function=partition_reads_allele_annotations,
-        )
-
     def test_partition_reads_gene_annotations(self):
-        self._test_partition_reads_annotations(
-            dir_name="collated/card_gene_annotation",
-            files=["gene_mapping_data.txt"],
-            dir_format=CARDGeneAnnotationDirectoryFormat,
-            function=partition_reads_gene_annotations,
-        )
-
-    def _test_partition_reads_annotations(self, dir_name, files, dir_format, function):
         # Set up for annotations
-        annotations = dir_format(path=self.get_data_path(dir_name), mode="r")
+        path = self.get_data_path("collated/card_gene_annotation")
+        annotations = CARDGeneAnnotationDirectoryFormat(path=path, mode="r")
 
         # Run function
-        obs = function(annotations=annotations)
-
-        samples = ["sample2", "sample1"]
+        obs = partition_reads_gene_annotations(annotations=annotations)
 
         # Assert if keys of collection are correct
-        self.assertTrue(set(obs.keys()) == set(samples))
+        self.assertTrue(set(obs.keys()) == {"sample2", "sample1"})
+
+        file_paths = [
+            os.path.join(obs["sample1"].path, "sample1", "gene_mapping_data.txt"),
+            os.path.join(obs["sample2"].path, "sample2", "gene_mapping_data.txt"),
+        ]
+        # Assert if all files exist in the right location
+        for file_path in file_paths:
+            self.assertTrue(os.path.exists(file_path))
+
+    def test_partition_reads_allele_annotations(self):
+        # Set up for annotations
+        path = self.get_data_path("collated/card_allele_annotation")
+        annotations = CARDAlleleAnnotationDirectoryFormat(path=path, mode="r")
+
+        # Run function
+        obs = partition_reads_allele_annotations(annotations=annotations)
+
+        # Assert if keys of collection are correct
+        self.assertTrue(set(obs.keys()) == {"sample2", "sample1"})
+
+        file_paths = [
+            os.path.join(obs["sample1"].path, "sample1", "allele_mapping_data.txt"),
+            os.path.join(obs["sample1"].path, "sample1", "overall_mapping_stats.txt"),
+            os.path.join(obs["sample1"].path, "sample1", "sorted.length_100.bam"),
+            os.path.join(obs["sample2"].path, "sample2", "allele_mapping_data.txt"),
+            os.path.join(obs["sample2"].path, "sample2", "overall_mapping_stats.txt"),
+            os.path.join(obs["sample2"].path, "sample2", "sorted.length_100.bam"),
+        ]
 
         # Assert if all files exist in the right location
-        for key, sample in zip(list(obs.keys()), samples):
-            for file in files:
-                path = os.path.join(obs[key].path, sample, file)
-                self.assertTrue(os.path.exists(path))
+        for file_path in file_paths:
+            self.assertTrue(os.path.exists(file_path))
 
     def test_split_list(self):
         test_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
