@@ -551,7 +551,7 @@ class TestKmerTypesAndFormats(AMRTypesTestPluginBase):
         )
         exp.index = exp.index.astype(str)
         exp["Nudged"] = exp["Nudged"].astype(str)
-        obs = tabulate_data(self.get_data_path("annotate_mags_output"), "mags")
+        obs = tabulate_data(self.get_data_path("card_annotation"), "mags")
         self.assertEqual(qiime2.Metadata(exp), obs)
 
     def test_tabulate_data_allele(self):

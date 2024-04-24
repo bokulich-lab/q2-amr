@@ -284,5 +284,4 @@ def tabulate_data(data_path, data_type):
     if data_type == "mags":
         df_combined["Nudged"] = df_combined["Nudged"].astype(str)
         df_combined.rename(columns={"ID": "HSP_Identifier"}, inplace=True)
-
     return qiime2.Metadata(df_combined)
