@@ -268,6 +268,8 @@ def tabulate_data(data_path, data_type):
                 df = pd.read_csv(file_path, sep="\t")
                 df.insert(0, "Sample Name", f"{samp}/{bin}")
                 df_list.append(df)
+                assert bin == 0, f"Error: {bin} does not equal 0"
+                print(bin)
 
         if data_type in ["allele", "gene", "kmer_allele", "kmer_gene"]:
             file_path = glob.glob(rf"{str(data_path)}/{samp}/{filename}")[0]
@@ -284,4 +286,7 @@ def tabulate_data(data_path, data_type):
     if data_type == "mags":
         df_combined["Nudged"] = df_combined["Nudged"].astype(str)
         df_combined.rename(columns={"ID": "HSP_Identifier"}, inplace=True)
+
+    assert df_combined == 0, f"Error: {df_combined} does not equal 0"
+    print(df_combined)
     return qiime2.Metadata(df_combined)
