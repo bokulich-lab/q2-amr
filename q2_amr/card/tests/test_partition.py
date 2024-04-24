@@ -287,7 +287,6 @@ class TestPartition(TestPluginBase):
 
     def _test_partition_reads_annotations(self, dir_name, files, dir_format, function):
         # Set up for annotations
-        path = self.get_data_path(dir_name)
         annotations = dir_format(path=self.get_data_path(dir_name), mode="r")
 
         # Run function
