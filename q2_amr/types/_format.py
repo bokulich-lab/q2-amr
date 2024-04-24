@@ -281,13 +281,13 @@ class CARDAnnotationDirectoryFormat(MultiDirValidationMixin, model.DirectoryForm
     def sample_dict(self):
         sample_dict = {}
         for sample in self.path.iterdir():
+            mag_dict = {}
             for mag in sample.iterdir():
-                sample_dict[sample.name] = {
-                    mag.name: [
-                        os.path.join(mag, "amr_annotation.json"),
-                        os.path.join(mag, "amr_annotation.txt"),
-                    ]
-                }
+                mag_dict[mag.name] = [
+                    os.path.join(mag, "amr_annotation.json"),
+                    os.path.join(mag, "amr_annotation.txt"),
+                ]
+            sample_dict[sample.name] = mag_dict
         return sample_dict
 
 
