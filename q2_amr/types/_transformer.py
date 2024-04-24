@@ -287,6 +287,6 @@ def tabulate_data(data_path, data_type):
         df_combined["Nudged"] = df_combined["Nudged"].astype(str)
         df_combined.rename(columns={"ID": "HSP_Identifier"}, inplace=True)
 
-    assert df_combined == 0, f"Error: {df_combined} does not equal 0"
+    assert df_combined == pd.DataFrame([1, 2]), f"Error: {df_combined} does not equal 0"
     print(df_combined)
     return qiime2.Metadata(df_combined)
