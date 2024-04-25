@@ -30,11 +30,14 @@ setup(
         ],
         "q2_amr.types.tests": [
             "data/*",
-            "data/annotate_mags_output/*/*/*",
-            "data/card_allele_annotation/*/*",
-            "data/card_gene_annotation/*/*",
+            "data/*/*/*",
+            "data/*/*/*/*",
         ],
-        "q2_amr.card.tests": ["data/*"],
+        "q2_amr.card.tests": [
+            "data/*",
+            "data/*/*/*/*",
+            "data/*/*/*/*/*",
+        ],
     },
     zip_safe=False,
 )
