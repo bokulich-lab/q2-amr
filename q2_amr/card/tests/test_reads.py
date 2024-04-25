@@ -174,7 +174,6 @@ class TestAnnotateReadsCARD(TestPluginBase):
                     "path_tmp/sample1/output",
                     "-n",
                     "8",
-                    "--local",
                     "--clean",
                     "--aligner",
                     "bowtie2",

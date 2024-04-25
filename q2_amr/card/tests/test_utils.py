@@ -94,7 +94,6 @@ class TestAnnotateReadsCARD(TestPluginBase):
                         "load",
                         "--card_json",
                         os.path.join(str(card_db), "card.json"),
-                        "--local",
                         f"--card_annotation{flag}",
                         os.path.join(
                             str(card_db), f"card_database_v3.2.5{parameter}.fasta"
