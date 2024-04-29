@@ -9,7 +9,7 @@ import tempfile
 import requests
 from tqdm import tqdm
 
-from q2_amr.card.utils import run_command
+from q2_amr.card.utils import colorify, run_command
 from q2_amr.types._format import (
     CARDDatabaseDirectoryFormat,
     CARDKmerDatabaseDirectoryFormat,
@@ -39,7 +39,7 @@ def fetch_card_db() -> (CARDDatabaseDirectoryFormat, CARDKmerDatabaseDirectoryFo
             error_msg = "Unable to connect to the CARD server. Please try again later."
             raise requests.ConnectionError(error_msg) from e
 
-        print("Extracting database files...", flush=True)
+        print(colorify("Extracting database files..."), flush=True)
 
         # Create directories to store zipped and unzipped database files
         os.mkdir(os.path.join(tmp_dir, "card"))
@@ -77,14 +77,14 @@ def fetch_card_db() -> (CARDDatabaseDirectoryFormat, CARDKmerDatabaseDirectoryFo
             ) as f_out:
                 f_out.write(f_in.read())
 
-        print("Preprocessing database files...", flush=True)
+        print(colorify("Preprocessing database files..."), flush=True)
 
         # Preprocess data for CARD and WildCARD
         # This creates additional fasta files in the temp directory
         preprocess(dir=tmp_dir, operation="card")
         preprocess(dir=tmp_dir, operation="wildcard")
 
-        print("Creating database artifacts...", flush=True)
+        print(colorify("Creating database artifacts..."), flush=True)
 
         # Create CARD and Kmer database artifacts
         card_db = CARDDatabaseDirectoryFormat()
