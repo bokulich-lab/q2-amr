@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 import requests
 from qiime2.plugin.testing import TestPluginBase
 
-from q2_amr.card.database import download_with_progressbar, fetch_card_db, preprocess
+from q2_amr.card.database import download_with_progress_bar, fetch_card_db, preprocess
 from q2_amr.types import CARDDatabaseDirectoryFormat, CARDKmerDatabaseDirectoryFormat
 
 
@@ -36,7 +36,7 @@ class TestAnnotateMagsCard(TestPluginBase):
         wildcard_tar = self.get_data_path("wildcard_data.tar.bz2")
 
         # Patch requests.get,
-        with patch("q2_amr.card.database.download_with_progressbar"), patch(
+        with patch("q2_amr.card.database.download_with_progress_bar"), patch(
             "q2_amr.card.database.preprocess", side_effect=self.mock_preprocess
         ), patch(
             "tarfile.open",
@@ -73,17 +73,19 @@ class TestAnnotateMagsCard(TestPluginBase):
 
     def test_connection_error(self):
         # Simulate a ConnectionError during requests.get
-        regex = "Unable to connect to the CARD server. Please try again later."
         with patch(
-            "q2_amr.card.database.download_with_progressbar",
+            "q2_amr.card.database.download_with_progress_bar",
             side_effect=requests.ConnectionError,
-        ), self.assertRaisesRegex(requests.ConnectionError, regex):
+        ), self.assertRaisesRegex(
+            requests.ConnectionError,
+            "Unable to connect to the CARD server. " "Please try again later.",
+        ):
             fetch_card_db()
 
     def test_tarfile_read_error(self):
         # Simulate a tarfile.ReadError during tarfile.open
         with patch("tarfile.open", side_effect=tarfile.ReadError), patch(
-            "q2_amr.card.database.download_with_progressbar"
+            "q2_amr.card.database.download_with_progress_bar"
         ), self.assertRaisesRegex(tarfile.ReadError, "Tarfile is invalid."):
             fetch_card_db()
 
@@ -150,7 +152,7 @@ class TestAnnotateMagsCard(TestPluginBase):
             mock_open.return_value.__enter__.return_value = MagicMock()
 
             # Call the function
-            download_with_progressbar(url, progressbar_desc, tar_path)
+            download_with_progress_bar(url, progressbar_desc, tar_path)
 
             # Assertions
             mock_get.assert_called_once_with(url=url, stream=True)

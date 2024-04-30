@@ -23,21 +23,22 @@ def fetch_card_db() -> (CARDDatabaseDirectoryFormat, CARDKmerDatabaseDirectoryFo
             wildcard_tar_path = os.path.join(tmp_dir, "wildcard_tar")
 
             # Download CARD and WildCARD tar database archives with progressbars
-            download_with_progressbar(
+            download_with_progress_bar(
                 url="https://card.mcmaster.ca/latest/data",
-                progressbar_desc="Downloading CARD database",
+                description="Downloading CARD database",
                 tar_path=card_tar_path,
             )
 
-            download_with_progressbar(
+            download_with_progress_bar(
                 url="https://card.mcmaster.ca/latest/variants",
-                progressbar_desc="Downloading WildCARD database",
+                description="Downloading WildCARD database",
                 tar_path=wildcard_tar_path,
             )
 
         except requests.ConnectionError as e:
-            error_msg = "Unable to connect to the CARD server. Please try again later."
-            raise requests.ConnectionError(error_msg) from e
+            raise requests.ConnectionError(
+                "Unable to connect to the CARD server. Please try again later."
+            ) from e
 
         print(colorify("Extracting database files..."), flush=True)
 
@@ -133,7 +134,7 @@ def fetch_card_db() -> (CARDDatabaseDirectoryFormat, CARDKmerDatabaseDirectoryFo
         return card_db, kmer_db
 
 
-def download_with_progressbar(url, progressbar_desc, tar_path):
+def download_with_progress_bar(url, description, tar_path):
     response = requests.get(url=url, stream=True)
 
     # Get content length to calculate progress bar length
@@ -144,7 +145,7 @@ def download_with_progressbar(url, progressbar_desc, tar_path):
         total=tot_size,
         unit="B",
         unit_scale=True,
-        desc=progressbar_desc,
+        desc=description,
     )
 
     with open(tar_path, "wb") as file:
