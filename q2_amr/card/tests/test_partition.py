@@ -12,7 +12,6 @@ from q2_amr.card.partition import (
     partition_mags_annotations,
     partition_reads_allele_annotations,
     partition_reads_gene_annotations,
-    split_list,
 )
 from q2_amr.types import (
     CARDAlleleAnnotationDirectoryFormat,
@@ -227,13 +226,13 @@ class TestPartition(TestPluginBase):
                 "amr_annotation.json",
             ),
             os.path.join(
-                obs[2].path,
+                obs[1].path,
                 "sample2",
                 "aa447c99-ecd9-4c4a-a53b-4df6999815dd",
                 "amr_annotation.txt",
             ),
             os.path.join(
-                obs[2].path,
+                obs[1].path,
                 "sample2",
                 "aa447c99-ecd9-4c4a-a53b-4df6999815dd",
                 "amr_annotation.json",
@@ -307,15 +306,3 @@ class TestPartition(TestPluginBase):
         # Assert if all files exist in the right location
         for file_path in file_paths:
             self.assertTrue(os.path.exists(file_path))
-
-    def test_split_list(self):
-        test_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-
-        expected_output = [[1, 2, 3], [4, 5, 6], [7, 8, 9, 10]]
-        self.assertEqual(split_list(test_list, 3), expected_output)
-
-        expected_output = [[1], [2], [3], [4], [5], [6], [7], [8], [9], [10]]
-        self.assertEqual(split_list(test_list, 10), expected_output)
-
-        expected_output = [[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]]
-        self.assertEqual(split_list(test_list, 1), expected_output)

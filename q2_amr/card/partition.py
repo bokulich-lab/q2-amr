@@ -2,6 +2,7 @@ import os
 import warnings
 from typing import Union
 
+import numpy as np
 from qiime2.util import duplicate
 
 from q2_amr.types import (
@@ -141,7 +142,7 @@ def _partition_annotations(
         for sample_id, file_path_list in annotations.sample_dict().items():
             annotations_all.append((sample_id, file_path_list))
 
-    # Sort annotations_all for consistent splitting behaviour in local and CI
+    # Sort annotations_all for consistent splitting behaviour
     annotations_all.sort()
 
     # Retrieve the number of annotations
@@ -161,43 +162,31 @@ def _partition_annotations(
         )
         num_partitions = num_annotations
 
-    # Splits annotations into the specified number of sublists
-    annotations_all_split = split_list(annotations_all, num_partitions)
+    # Splits annotations into the specified number of arrays
+    arrays = np.array_split(np.array(annotations_all, dtype=object), num_partitions)
 
-    for i, annotation_tuple in enumerate(annotations_all_split, 1):
+    for i, annotation_tuple in enumerate(arrays, 1):
         # Creates directory with same format as input
         partitioned_annotation = type(annotations)()
+
+        mag_id = None
 
         # Constructs paths to all annotation files and moves them to the new partition
         # directories
         if isinstance(annotations, CARDAnnotationDirectoryFormat):
             for sample_id, mag_id, file_path_list in annotation_tuple:
-                for file_path in file_path_list:
-                    file_path_des = os.path.join(
-                        partitioned_annotation.path,
-                        sample_id,
-                        mag_id,
-                        os.path.basename(file_path),
-                    )
-                    os.makedirs(os.path.dirname(file_path_des), exist_ok=True)
-                    duplicate(file_path, file_path_des)
-
-                partitioned_annotation_key = mag_id
+                copy_files(
+                    file_path_list, partitioned_annotation.path, sample_id, mag_id
+                )
 
         else:
             for sample_id, file_path_list in annotation_tuple:
-                for file_path in file_path_list:
-                    file_path_des = os.path.join(
-                        partitioned_annotation.path,
-                        sample_id,
-                        os.path.basename(file_path),
-                    )
-                    os.makedirs(os.path.dirname(file_path_des), exist_ok=True)
-                    duplicate(file_path, file_path_des)
+                copy_files(file_path_list, partitioned_annotation.path, sample_id)
 
-                partitioned_annotation_key = sample_id
+        # Set key for partitioned_annotations dict to mag_id or sample_id
+        partitioned_annotation_key = mag_id if mag_id else sample_id
 
-        # Add the partitioned object to the collection
+        # Add the partitioned object to the collection dict
         if num_partitions == num_annotations:
             partitioned_annotations[partitioned_annotation_key] = partitioned_annotation
         else:
@@ -206,8 +195,8 @@ def _partition_annotations(
     return partitioned_annotations
 
 
-def split_list(input_list, num_sublists):
-    # Splits list into a number of sublists of roughly equal size
-    avg = len(input_list) / float(num_sublists)
-    out = [input_list[int(avg * i) : int(avg * (i + 1))] for i in range(num_sublists)]
-    return out
+def copy_files(file_path_list, *path_comp):
+    for file_path in file_path_list:
+        file_path_des = os.path.join(*path_comp, os.path.basename(file_path))
+        os.makedirs(os.path.dirname(file_path_des), exist_ok=True)
+        duplicate(file_path, file_path_des)
