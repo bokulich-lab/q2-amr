@@ -51,6 +51,7 @@ from q2_amr.types._transformer import (
     _read_from_card_file,
     card_annotation_df_to_fasta,
     extract_sequence,
+    tabulate_data,
 )
 
 
@@ -513,3 +514,50 @@ class TestKmerTypesAndFormats(AMRTypesTestPluginBase):
         )
         format = CARDMAGsKmerAnalysisDirectoryFormat(self.temp_dir.name, mode="r")
         format.validate()
+
+    def test_CARDMAGsKmerAnalysisDirectoryFormat_to_qiime2_Metadata_transformer(self):
+        transformer = self.get_transformer(
+            CARDMAGsKmerAnalysisDirectoryFormat, qiime2.Metadata
+        )
+        kmer_analysis = CARDMAGsKmerAnalysisDirectoryFormat(
+            self.get_data_path("card_kmer_analysis_mags"), "r"
+        )
+        metadata_obt = transformer(kmer_analysis)
+        self.assertIsInstance(metadata_obt, qiime2.Metadata)
+
+    def test_CARDReadsAlleleKmerAnalysisDirectoryFormat_to_Metadata_transformer(self):
+        transformer = self.get_transformer(
+            CARDReadsAlleleKmerAnalysisDirectoryFormat, qiime2.Metadata
+        )
+        kmer_analysis = CARDReadsAlleleKmerAnalysisDirectoryFormat(
+            self.get_data_path("card_reads_allele_kmer_analysis"), "r"
+        )
+        metadata_obt = transformer(kmer_analysis)
+        self.assertIsInstance(metadata_obt, qiime2.Metadata)
+
+    def test_CARDReadsGeneKmerAnalysisDirectoryFormat_to_Metadata_transformer(self):
+        transformer = self.get_transformer(
+            CARDReadsGeneKmerAnalysisDirectoryFormat, qiime2.Metadata
+        )
+        kmer_analysis = CARDReadsGeneKmerAnalysisDirectoryFormat(
+            self.get_data_path("card_reads_gene_kmer_analysis"), "r"
+        )
+        metadata_obt = transformer(kmer_analysis)
+        self.assertIsInstance(metadata_obt, qiime2.Metadata)
+
+    def test_tabulate_data_mags(self):
+        exp = pd.read_csv(
+            self.get_data_path("tabulated_df_mags.txt"), sep="\t", index_col=0
+        )
+        exp.index = exp.index.astype(str)
+        exp["Nudged"] = exp["Nudged"].astype(str)
+        obs = tabulate_data(self.get_data_path("card_annotation"), "mags")
+        self.assertEqual(qiime2.Metadata(exp), obs)
+
+    def test_tabulate_data_allele(self):
+        exp = pd.read_csv(
+            self.get_data_path("tabulated_df_allele.txt"), sep="\t", index_col=0
+        )
+        exp.index = exp.index.astype(str)
+        obs = tabulate_data(self.get_data_path("card_allele_annotation"), "allele")
+        self.assertEqual(qiime2.Metadata(exp), obs)
