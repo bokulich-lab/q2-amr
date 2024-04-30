@@ -93,9 +93,8 @@ class TestPartition(TestPluginBase):
     def _test_collate(self, data_dir, files_to_assert, samples, dir_format, function):
         """
         This function is used to test collation functions. A list with two artifacts
-        is created that is used as input for the collate function. After that
-        assertions are made if all expected annotation files are in the collated
-        directory.
+        is created that is used as input for the collate function. Assertions are made
+        if all expected annotation files are in the collated directory.
 
         Args:
             data_dir: Name of package data directory with the test files.
