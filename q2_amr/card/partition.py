@@ -135,12 +135,12 @@ def _partition_annotations(
     # annotations_all
     if isinstance(annotations, CARDAnnotationDirectoryFormat):
         for sample_id, mag in annotations.sample_dict().items():
-            for mag_id, file_path_list in mag.items():
-                annotations_all.append((sample_id, mag_id, file_path_list))
+            for mag_id, file_paths in mag.items():
+                annotations_all.append((sample_id, mag_id, file_paths))
 
     else:
-        for sample_id, file_path_list in annotations.sample_dict().items():
-            annotations_all.append((sample_id, file_path_list))
+        for sample_id, file_paths in annotations.sample_dict().items():
+            annotations_all.append((sample_id, file_paths))
 
     # Sort annotations_all for consistent splitting behaviour
     annotations_all.sort()
@@ -169,19 +169,16 @@ def _partition_annotations(
         # Creates directory with same format as input
         partitioned_annotation = type(annotations)()
 
-        mag_id = None
-
         # Constructs paths to all annotation files and moves them to the new partition
         # directories
         if isinstance(annotations, CARDAnnotationDirectoryFormat):
-            for sample_id, mag_id, file_path_list in annotation_tuple:
-                copy_files(
-                    file_path_list, partitioned_annotation.path, sample_id, mag_id
-                )
+            for sample_id, mag_id, file_paths in annotation_tuple:
+                copy_files(file_paths, partitioned_annotation.path, sample_id, mag_id)
 
         else:
-            for sample_id, file_path_list in annotation_tuple:
-                copy_files(file_path_list, partitioned_annotation.path, sample_id)
+            mag_id = None
+            for sample_id, file_paths in annotation_tuple:
+                copy_files(file_paths, partitioned_annotation.path, sample_id)
 
         # Set key for partitioned_annotations dict to mag_id or sample_id
         partitioned_annotation_key = mag_id if mag_id else sample_id
@@ -195,8 +192,24 @@ def _partition_annotations(
     return partitioned_annotations
 
 
-def copy_files(file_path_list, *path_comp):
-    for file_path in file_path_list:
-        file_path_des = os.path.join(*path_comp, os.path.basename(file_path))
-        os.makedirs(os.path.dirname(file_path_des), exist_ok=True)
-        duplicate(file_path, file_path_des)
+def copy_files(file_paths: list, *dst_path_components):
+    """
+    Creates a destination file path out of the *dst_path_components. Then creates
+    the directory for the destination file path if it doesn't exist already and
+    finally copies the file from source path to destination path.
+
+    Args:
+        file_paths (list): A list of source file paths to be copied.
+        *dst_path_components: Variable number of arguments representing destination
+        path components that will be joined together to form the destination file
+        path.
+    """
+    for src in file_paths:
+        # Construct destination file path with destination file path components
+        dst = os.path.join(*dst_path_components, os.path.basename(src))
+
+        # Create destination directory if it not already exists
+        os.makedirs(os.path.dirname(dst), exist_ok=True)
+
+        # Copy file from source to destination
+        duplicate(src, dst)

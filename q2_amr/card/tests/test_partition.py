@@ -91,6 +91,21 @@ class TestPartition(TestPluginBase):
         )
 
     def _test_collate(self, data_dir, files_to_assert, samples, dir_format, function):
+        """
+        This function is used to test collation functions. A list with two artifacts
+        is created that is used as input for the collate function. After that
+        assertions are made if all expected annotation files are in the collated
+        directory.
+
+        Args:
+            data_dir: Name of package data directory with the test files.
+            files_to_assert (list): A list of filenames that have to be present in
+            the collated directory.
+            samples (list): A list of sample names used to construct the file paths
+            to the files listed in files_to_assert.
+            dir_format: Name of QIIME2 directory format.
+            function: Collate function that should be tested.
+        """
         # Set up the list with annotations objects to collate
         artifact_1 = dir_format(path=self.get_data_path(f"{data_dir}_1"), mode="r")
         artifact_2 = dir_format(path=self.get_data_path(f"{data_dir}_2"), mode="r")
