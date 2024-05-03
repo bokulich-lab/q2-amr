@@ -78,6 +78,7 @@ class TestAnnotateMagsCard(TestPluginBase):
                     "DIAMOND",
                     "--input_type",
                     "contig",
+                    "--local",
                     "--include_loose",
                     "--include_nudge",
                     "--low_quality",

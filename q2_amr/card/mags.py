@@ -79,6 +79,7 @@ def run_rgi_main(
         alignment_tool,
         "--input_type",
         "contig",
+        "--local",
     ]
     if include_loose:
         cmd.append("--include_loose")

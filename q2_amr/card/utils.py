@@ -35,8 +35,8 @@ def load_card_db(
     # Get path to card.json
     path_card_json = os.path.join(str(card_db.path), "card.json")
 
-    # Base command that only loads card.json
-    cmd = ["rgi", "load", "--card_json", path_card_json]
+    # Base command that only loads card.json into the local database
+    cmd = ["rgi", "load", "--card_json", path_card_json, "--local"]
 
     # Define suffixes for card fasta file
     models = ("_all", "_all_models") if include_other_models is True else ("", "")
