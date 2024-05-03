@@ -5,6 +5,7 @@ from typing import Union
 import numpy as np
 from qiime2.util import duplicate
 
+from q2_amr.card.utils import copy_files
 from q2_amr.types import (
     CARDAlleleAnnotationDirectoryFormat,
     CARDAnnotationDirectoryFormat,
@@ -190,26 +191,3 @@ def _partition_annotations(
             partitioned_annotations[i] = partitioned_annotation
 
     return partitioned_annotations
-
-
-def copy_files(file_paths: list, *dst_path_components):
-    """
-    Creates a destination file path out of the *dst_path_components. Then creates
-    the directory for the destination file path if it doesn't exist already and
-    finally copies the file from source path to destination path.
-
-    Args:
-        file_paths (list): A list of source file paths to be copied.
-        *dst_path_components: Variable number of arguments representing destination
-        path components that will be joined together to form the destination file
-        path.
-    """
-    for src in file_paths:
-        # Construct destination file path with destination file path components
-        dst = os.path.join(*dst_path_components, os.path.basename(src))
-
-        # Create destination directory if it not already exists
-        os.makedirs(os.path.dirname(dst), exist_ok=True)
-
-        # Copy file from source to destination
-        duplicate(src, dst)
