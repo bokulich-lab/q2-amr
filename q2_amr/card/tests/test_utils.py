@@ -6,7 +6,7 @@ from unittest.mock import call, patch
 import pandas as pd
 from qiime2.plugin.testing import TestPluginBase
 
-from q2_amr.card.utils import create_count_table, load_card_db, read_in_txt
+from q2_amr.card.utils import colorify, create_count_table, load_card_db, read_in_txt
 from q2_amr.types import CARDDatabaseDirectoryFormat, CARDKmerDatabaseDirectoryFormat
 
 
@@ -190,3 +190,10 @@ class TestAnnotateReadsCARD(TestPluginBase):
     def test_create_count_table_value_error(self):
         # Assert if ValueError is called when empy list is passed
         self.assertRaises(ValueError, create_count_table, [])
+
+    def test_colorify(self):
+        # Test if colorify function correctly adds color codes
+        string = "Hello, world!"
+        colored_string = colorify(string)
+        expected_output = "\033[1;32mHello, world!\033[0m"
+        self.assertEqual(colored_string, expected_output)
