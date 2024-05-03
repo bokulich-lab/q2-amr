@@ -12,7 +12,6 @@ from q2_amr.card.partition import (
     partition_mags_annotations,
     partition_reads_allele_annotations,
     partition_reads_gene_annotations,
-    split_list,
 )
 from q2_amr.types import (
     CARDAlleleAnnotationDirectoryFormat,
@@ -92,6 +91,20 @@ class TestPartition(TestPluginBase):
         )
 
     def _test_collate(self, data_dir, files_to_assert, samples, dir_format, function):
+        """
+        This function is used to test collation functions. A list with two artifacts
+        is created that is used as input for the collate function. Assertions are made
+        if all expected annotation files are in the collated directory.
+
+        Args:
+            data_dir: Name of package data directory with the test files.
+            files_to_assert (list): A list of filenames that have to be present in
+            the collated directory.
+            samples (list): A list of sample names used to construct the file paths
+            to the files listed in files_to_assert.
+            dir_format: Name of QIIME2 directory format.
+            function: Collate function that should be tested.
+        """
         # Set up the list with annotations objects to collate
         artifact_1 = dir_format(path=self.get_data_path(f"{data_dir}_1"), mode="r")
         artifact_2 = dir_format(path=self.get_data_path(f"{data_dir}_2"), mode="r")
@@ -227,13 +240,13 @@ class TestPartition(TestPluginBase):
                 "amr_annotation.json",
             ),
             os.path.join(
-                obs[2].path,
+                obs[1].path,
                 "sample2",
                 "aa447c99-ecd9-4c4a-a53b-4df6999815dd",
                 "amr_annotation.txt",
             ),
             os.path.join(
-                obs[2].path,
+                obs[1].path,
                 "sample2",
                 "aa447c99-ecd9-4c4a-a53b-4df6999815dd",
                 "amr_annotation.json",
@@ -307,15 +320,3 @@ class TestPartition(TestPluginBase):
         # Assert if all files exist in the right location
         for file_path in file_paths:
             self.assertTrue(os.path.exists(file_path))
-
-    def test_split_list(self):
-        test_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-
-        expected_output = [[1, 2, 3], [4, 5, 6], [7, 8, 9, 10]]
-        self.assertEqual(split_list(test_list, 3), expected_output)
-
-        expected_output = [[1], [2], [3], [4], [5], [6], [7], [8], [9], [10]]
-        self.assertEqual(split_list(test_list, 10), expected_output)
-
-        expected_output = [[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]]
-        self.assertEqual(split_list(test_list, 1), expected_output)

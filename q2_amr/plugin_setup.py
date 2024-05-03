@@ -522,8 +522,8 @@ plugin.methods.register_function(
     outputs={"partitioned_annotations": Collection[SampleData[CARDAnnotation]]},
     input_descriptions={"annotations": "The annotations to partition."},
     parameter_descriptions={
-        "num_partitions": "The number of partitions to split the annotations"
-        " into. Defaults to partitioning into individual annotations."
+        "num_partitions": "The number of partitions to split the annotations "
+        "into. Defaults to partitioning into individual annotations."
     },
     output_descriptions={"partitioned_annotations": "partitioned annotations"},
     name="Partition annotations",
@@ -566,8 +566,8 @@ plugin.methods.register_function(
     outputs={"partitioned_annotations": T_allele_annotation_out},
     input_descriptions={"annotations": "The annotations to partition."},
     parameter_descriptions={
-        "num_partitions": "The number of partitions to split the annotations"
-        " into. Defaults to partitioning into individual annotations."
+        "num_partitions": "The number of partitions to split the annotations "
+        "into. Defaults to partitioning into individual annotations."
     },
     output_descriptions={"partitioned_annotations": "partitioned annotations"},
     name="Partition annotations",

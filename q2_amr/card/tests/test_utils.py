@@ -1,12 +1,19 @@
 import os
 import shutil
 import subprocess
+import tempfile
 from unittest.mock import call, patch
 
 import pandas as pd
 from qiime2.plugin.testing import TestPluginBase
 
-from q2_amr.card.utils import colorify, create_count_table, load_card_db, read_in_txt
+from q2_amr.card.utils import (
+    colorify,
+    copy_files,
+    create_count_table,
+    load_card_db,
+    read_in_txt,
+)
 from q2_amr.types import CARDDatabaseDirectoryFormat, CARDKmerDatabaseDirectoryFormat
 
 
@@ -201,3 +208,25 @@ class TestAnnotateReadsCARD(TestPluginBase):
         colored_string = colorify(string)
         expected_output = "\033[1;32mHello, world!\033[0m"
         self.assertEqual(colored_string, expected_output)
+
+    def test_copy_files(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            # Create source files
+            file_path_1 = os.path.join(tmp, "file1.txt")
+            file_path_2 = os.path.join(tmp, "file2.txt")
+
+            with open(file_path_1, "w"), open(file_path_2, "w"):
+                pass
+
+            # Call the function
+            file_paths = [file_path_1, file_path_2]
+            dst_path_components = [tmp, "dst_folder_1", "dst_folder_2"]
+
+            copy_files(file_paths, *dst_path_components)
+
+            # Assert if both files have been copied to the correct location
+            dst_path_1 = os.path.join(tmp, "dst_folder_1", "dst_folder_2", "file1.txt")
+            dst_path_2 = os.path.join(tmp, "dst_folder_1", "dst_folder_2", "file2.txt")
+
+            self.assertTrue(os.path.exists(dst_path_1))
+            self.assertTrue(os.path.exists(dst_path_2))
