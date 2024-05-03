@@ -138,3 +138,7 @@ def create_count_table(df_list: list) -> pd.DataFrame:
     df.columns.name = None
     df.index.name = "sample_id"
     return df
+
+
+def colorify(string: str):
+    return "%s%s%s" % ("\033[1;32m", string, "\033[0m")
