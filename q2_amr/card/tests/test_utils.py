@@ -1,7 +1,6 @@
 import os
 import shutil
 import subprocess
-import tempfile
 from unittest.mock import call, patch
 
 import pandas as pd
@@ -20,9 +19,13 @@ from q2_amr.types import CARDDatabaseDirectoryFormat, CARDKmerDatabaseDirectoryF
 class TestAnnotateReadsCARD(TestPluginBase):
     package = "q2_amr.card.tests"
 
-    @classmethod
-    def setUpClass(cls):
-        cls.allele_count_df = pd.DataFrame(
+    def setUp(self):
+        super().setUp()  # Call the parent class setUp method
+
+        # Create a temporary directory for the test
+        self.tmp = self.temp_dir.name
+
+        self.allele_count_df = pd.DataFrame(
             {
                 "Reference Sequence": [
                     "ARO:3000796|ID:121|Name:mdtF|NCBI:U00096.1",
@@ -34,21 +37,21 @@ class TestAnnotateReadsCARD(TestPluginBase):
             }
         )
 
-        cls.gene_count_df = pd.DataFrame(
+        self.gene_count_df = pd.DataFrame(
             {
                 "ARO Term": ["mdtF", "mgrA", "OprN", "mepA"],
                 "sample1": ["1", "1", "1", "1"],
             }
         )
 
-        cls.mag_count_df = pd.DataFrame(
+        self.mag_count_df = pd.DataFrame(
             {
                 "Best_Hit_ARO": ["mdtF", "OprN", "mepA"],
                 "sample1/bin1": ["2", "1", "1"],
             }
         )
 
-        cls.frequency_table = pd.DataFrame(
+        self.frequency_table = pd.DataFrame(
             {
                 "sample_id": ["sample1", "sample2"],
                 "mdtF": ["1", "0"],
@@ -58,7 +61,7 @@ class TestAnnotateReadsCARD(TestPluginBase):
                 "mdtE": ["0", "1"],
             }
         )
-        cls.frequency_table.set_index("sample_id", inplace=True)
+        self.frequency_table.set_index("sample_id", inplace=True)
 
     def test_load_card_db_fasta(self):
         # Create CARD and Kmer database objects
@@ -207,23 +210,26 @@ class TestAnnotateReadsCARD(TestPluginBase):
         self.assertEqual(colored_string, expected_output)
 
     def test_copy_files(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            # Create source files
-            file_path_1 = os.path.join(tmp, "file1.txt")
-            file_path_2 = os.path.join(tmp, "file2.txt")
+        # Copy source files
+        file_path_1 = os.path.join(self.tmp, "DNA_fasta.fasta")
+        file_path_2 = os.path.join(self.tmp, "DNA_fasta_-.fasta")
 
-            with open(file_path_1, "w"), open(file_path_2, "w"):
-                pass
+        shutil.copy(self.get_data_path("DNA_fasta.fasta"), self.tmp)
+        shutil.copy(self.get_data_path("DNA_fasta_-.fasta"), self.tmp)
 
-            # Call the function
-            file_paths = [file_path_1, file_path_2]
-            dst_path_components = [tmp, "dst_folder_1", "dst_folder_2"]
+        # Call the function
+        file_paths = [file_path_1, file_path_2]
+        dst_path_components = [self.tmp, "dst_folder_1", "dst_folder_2"]
 
-            copy_files(file_paths, *dst_path_components)
+        copy_files(file_paths, *dst_path_components)
 
-            # Assert if both files have been copied to the correct location
-            dst_path_1 = os.path.join(tmp, "dst_folder_1", "dst_folder_2", "file1.txt")
-            dst_path_2 = os.path.join(tmp, "dst_folder_1", "dst_folder_2", "file2.txt")
+        # Assert if both files have been copied to the correct location
+        dst_path_1 = os.path.join(
+            self.tmp, "dst_folder_1", "dst_folder_2", "DNA_fasta.fasta"
+        )
+        dst_path_2 = os.path.join(
+            self.tmp, "dst_folder_1", "dst_folder_2", "DNA_fasta_-.fasta"
+        )
 
-            self.assertTrue(os.path.exists(dst_path_1))
-            self.assertTrue(os.path.exists(dst_path_2))
+        self.assertTrue(os.path.exists(dst_path_1))
+        self.assertTrue(os.path.exists(dst_path_2))
