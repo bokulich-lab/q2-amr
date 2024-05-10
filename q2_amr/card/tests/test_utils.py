@@ -1,7 +1,6 @@
 import os
 import shutil
 import subprocess
-import tempfile
 from unittest.mock import call, patch
 
 import pandas as pd
@@ -207,23 +206,28 @@ class TestAnnotateReadsCARD(TestPluginBase):
         self.assertEqual(colored_string, expected_output)
 
     def test_copy_files(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            # Create source files
-            file_path_1 = os.path.join(tmp, "file1.txt")
-            file_path_2 = os.path.join(tmp, "file2.txt")
+        # Setup test files
+        self.tmp = self.temp_dir.name
 
-            with open(file_path_1, "w"), open(file_path_2, "w"):
-                pass
+        file_path_1 = os.path.join(self.tmp, "DNA_fasta.fasta")
+        file_path_2 = os.path.join(self.tmp, "DNA_fasta_-.fasta")
 
-            # Call the function
-            file_paths = [file_path_1, file_path_2]
-            dst_path_components = [tmp, "dst_folder_1", "dst_folder_2"]
+        shutil.copy(self.get_data_path("DNA_fasta.fasta"), self.tmp)
+        shutil.copy(self.get_data_path("DNA_fasta_-.fasta"), self.tmp)
 
-            copy_files(file_paths, *dst_path_components)
+        # Call the function
+        file_paths = [file_path_1, file_path_2]
+        dst_path_components = [self.tmp, "dst_folder_1", "dst_folder_2"]
 
-            # Assert if both files have been copied to the correct location
-            dst_path_1 = os.path.join(tmp, "dst_folder_1", "dst_folder_2", "file1.txt")
-            dst_path_2 = os.path.join(tmp, "dst_folder_1", "dst_folder_2", "file2.txt")
+        copy_files(file_paths, *dst_path_components)
 
-            self.assertTrue(os.path.exists(dst_path_1))
-            self.assertTrue(os.path.exists(dst_path_2))
+        # Assert if both files have been copied to the correct location
+        dst_path_1 = os.path.join(
+            self.tmp, "dst_folder_1", "dst_folder_2", "DNA_fasta.fasta"
+        )
+        dst_path_2 = os.path.join(
+            self.tmp, "dst_folder_1", "dst_folder_2", "DNA_fasta_-.fasta"
+        )
+
+        self.assertTrue(os.path.exists(dst_path_1))
+        self.assertTrue(os.path.exists(dst_path_2))
