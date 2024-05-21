@@ -1,11 +1,11 @@
 import os
-import shutil
 import warnings
 from typing import Union
 
 import numpy as np
 from qiime2.util import duplicate
 
+from q2_amr.card.utils import copy_files
 from q2_amr.types import (
     CARDAlleleAnnotationDirectoryFormat,
     CARDAnnotationDirectoryFormat,
@@ -14,108 +14,6 @@ from q2_amr.types import (
     CARDReadsAlleleKmerAnalysisDirectoryFormat,
     CARDReadsGeneKmerAnalysisDirectoryFormat,
 )
-
-
-def partition_mags_annotations(
-    annotations: CARDAnnotationDirectoryFormat, num_partitions: int = None
-) -> CARDAnnotationDirectoryFormat:
-    return _partition_annotations(annotations, num_partitions)
-
-
-def partition_reads_allele_annotations(
-    annotations: CARDAlleleAnnotationDirectoryFormat, num_partitions: int = None
-) -> CARDAlleleAnnotationDirectoryFormat:
-    return _partition_annotations(annotations, num_partitions)
-
-
-def partition_reads_gene_annotations(
-    annotations: CARDGeneAnnotationDirectoryFormat, num_partitions: int = None
-) -> CARDGeneAnnotationDirectoryFormat:
-    return _partition_annotations(annotations, num_partitions)
-
-
-def _partition_annotations(
-    annotations: Union[
-        CARDAnnotationDirectoryFormat,
-        CARDGeneAnnotationDirectoryFormat,
-        CARDAlleleAnnotationDirectoryFormat,
-    ],
-    num_partitions: int = None,
-):
-    partitioned_annotations = {}
-    # Save all dir paths and file names of the annotations as dictionaries in a list
-    annotations_all = []
-
-    for dirpath, dirnames, filenames in os.walk(annotations.path):
-        # This makes sure the location is the directory with the annotation files
-        if not dirnames:
-            components = os.path.normpath(dirpath).split(os.path.sep)
-            dirs_and_files = {
-                "dir_path": dirpath,
-                "path_component_1": components[-1],
-                "path_component_2": components[-2],
-                "files": filenames,
-            }
-            annotations_all.append(dirs_and_files)
-
-    # Retrieve the number of MAGs or reads annotations
-    num_annotations = len(annotations_all)
-
-    # If no number of partitions is specified or the number is higher than the number
-    # of annotations, all annotations get partitioned into the number of annotations
-    if num_partitions is None:
-        num_partitions = num_annotations
-    elif num_partitions > num_annotations:
-        warnings.warn(
-            "You have requested a number of partitions"
-            f" '{num_partitions}' that is greater than your number"
-            f" of annotations '{num_annotations}'. Your data will be"
-            f" partitioned by annotation into '{num_annotations}'"
-            " partitions."
-        )
-        num_partitions = num_annotations
-
-    # Splits annotations into the specified number of partitions
-    partition_dict = np.array_split(annotations_all, num_partitions)
-
-    # Check if there are duplicates in the sample or MAG ids
-    sample_mag_ids = [entry["path_component_1"] for entry in annotations_all]
-    duplicates = True if len(sample_mag_ids) != len(set(sample_mag_ids)) else False
-
-    for i, _partition_dict in enumerate(partition_dict, 1):
-        # Creates directory with same format as input
-        partitioned_annotation = type(annotations)()
-
-        # Constructs paths to all annotation files and move them to the new partitioned
-        # directories
-        for dirs_and_files in _partition_dict:
-            if type(annotations) is CARDAnnotationDirectoryFormat:
-                result_dir = os.path.join(
-                    partitioned_annotation.path,
-                    dirs_and_files["path_component_2"],
-                    dirs_and_files["path_component_1"],
-                )
-            else:
-                result_dir = os.path.join(
-                    partitioned_annotation.path, dirs_and_files["path_component_1"]
-                )
-            os.makedirs(result_dir)
-
-            for file in dirs_and_files["files"]:
-                shutil.copy(
-                    os.path.join(dirs_and_files["dir_path"], file),
-                    os.path.join(result_dir, file),
-                )
-
-            # Adds the partitioned object to the collection
-            if num_partitions == num_annotations and not duplicates:
-                partitioned_annotations[
-                    dirs_and_files["path_component_1"]
-                ] = partitioned_annotation
-            else:
-                partitioned_annotations[i] = partitioned_annotation
-
-    return partitioned_annotations
 
 
 def collate_mags_annotations(
@@ -157,21 +55,25 @@ def collate_reads_gene_kmer_analyses(
 def _collate(partition_list):
     collated_partitions = type(partition_list[0])()
     # For every partition
-    for annotation in partition_list:
+    for partition in partition_list:
         # For every sample
-        for sample in annotation.path.iterdir():
-            # If formats are annotations or kmer analyses from MAGs
+        for sample in partition.path.iterdir():
+            # If artifacts are annotations or kmer analyses from MAGs
             if isinstance(
                 partition_list[0],
                 (CARDAnnotationDirectoryFormat, CARDMAGsKmerAnalysisDirectoryFormat),
             ):
                 # For every MAG
                 for mag in sample.iterdir():
-                    # Create directories in collate
-                    os.makedirs(
-                        collated_partitions.path / sample.name / mag.name,
-                        exist_ok=True,
-                    )
+                    # Create directories in collate. If dir already exists raise error
+                    try:
+                        os.makedirs(collated_partitions.path / sample.name / mag.name)
+                    except FileExistsError as e:
+                        raise FileExistsError(
+                            f"The directory already exists: {e.filename}. MAG IDs must"
+                            f" be unique across all artifacts. Each artifact in the"
+                            f" list must be unique and cannot be repeated."
+                        )
 
                     # Copy every file in the MAG directory to the collated directory
                     for file in mag.iterdir():
@@ -183,13 +85,109 @@ def _collate(partition_list):
                             / file.name,
                         )
 
-            # If annotations or kmer analyses are from reads
+            # If artifacts are annotations or kmer analyses are from reads
             else:
-                # Create directories in collate object
-                os.makedirs(collated_partitions.path / sample.name, exist_ok=True)
+                # Create directories in collate. If dir already exists raise error
+                try:
+                    os.makedirs(collated_partitions.path / sample.name)
+                except FileExistsError as e:
+                    raise FileExistsError(
+                        f"The directory already exists: {e.filename}. Sample IDs must"
+                        f" be unique across all artifacts. Each artifact in the"
+                        f" list must be unique and cannot be repeated."
+                    )
 
-                # For every mag in the sample
+                # Copy every file in the sample directory to the collated directory
                 for file in sample.iterdir():
                     duplicate(file, collated_partitions.path / sample.name / file.name)
 
     return collated_partitions
+
+
+def partition_mags_annotations(
+    annotations: CARDAnnotationDirectoryFormat, num_partitions: int = None
+) -> CARDAnnotationDirectoryFormat:
+    return _partition_annotations(annotations, num_partitions)
+
+
+def partition_reads_allele_annotations(
+    annotations: CARDAlleleAnnotationDirectoryFormat, num_partitions: int = None
+) -> CARDAlleleAnnotationDirectoryFormat:
+    return _partition_annotations(annotations, num_partitions)
+
+
+def partition_reads_gene_annotations(
+    annotations: CARDGeneAnnotationDirectoryFormat, num_partitions: int = None
+) -> CARDGeneAnnotationDirectoryFormat:
+    return _partition_annotations(annotations, num_partitions)
+
+
+def _partition_annotations(
+    annotations: Union[
+        CARDAnnotationDirectoryFormat,
+        CARDGeneAnnotationDirectoryFormat,
+        CARDAlleleAnnotationDirectoryFormat,
+    ],
+    num_partitions: int = None,
+):
+    partitioned_annotations = {}
+    annotations_all = []
+    # Add one tuples with sample ID, MAG ID and full paths to annotation files to
+    # annotations_all
+    if isinstance(annotations, CARDAnnotationDirectoryFormat):
+        for sample_id, mag in annotations.sample_dict().items():
+            for mag_id, file_paths in mag.items():
+                annotations_all.append((sample_id, mag_id, file_paths))
+
+    else:
+        for sample_id, file_paths in annotations.sample_dict().items():
+            annotations_all.append((sample_id, file_paths))
+
+    # Sort annotations_all for consistent splitting behaviour
+    annotations_all.sort()
+
+    # Retrieve the number of annotations
+    num_annotations = len(annotations_all)
+
+    # If no number of partitions is specified or the number is higher than the number
+    # of annotations, all annotations get partitioned by annotation
+    if num_partitions is None:
+        num_partitions = num_annotations
+    elif num_partitions > num_annotations:
+        warnings.warn(
+            "You have requested a number of partitions"
+            f" '{num_partitions}' that is greater than your number"
+            f" of annotations '{num_annotations}'. Your data will be"
+            f" partitioned by annotation into '{num_annotations}'"
+            " partitions."
+        )
+        num_partitions = num_annotations
+
+    # Splits annotations into the specified number of arrays
+    arrays = np.array_split(np.array(annotations_all, dtype=object), num_partitions)
+
+    for i, annotation_tuple in enumerate(arrays, 1):
+        # Creates directory with same format as input
+        partitioned_annotation = type(annotations)()
+
+        # Constructs paths to all annotation files and moves them to the new partition
+        # directories
+        if isinstance(annotations, CARDAnnotationDirectoryFormat):
+            for sample_id, mag_id, file_paths in annotation_tuple:
+                copy_files(file_paths, partitioned_annotation.path, sample_id, mag_id)
+
+        else:
+            mag_id = None
+            for sample_id, file_paths in annotation_tuple:
+                copy_files(file_paths, partitioned_annotation.path, sample_id)
+
+        # Set key for partitioned_annotations dict to mag_id or sample_id
+        partitioned_annotation_key = mag_id if mag_id else sample_id
+
+        # Add the partitioned object to the collection dict
+        if num_partitions == num_annotations:
+            partitioned_annotations[partitioned_annotation_key] = partitioned_annotation
+        else:
+            partitioned_annotations[i] = partitioned_annotation
+
+    return partitioned_annotations
