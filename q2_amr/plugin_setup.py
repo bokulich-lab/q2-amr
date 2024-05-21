@@ -329,7 +329,10 @@ plugin.methods.register_function(
 plugin.pipelines.register_function(
     function=kmer_query_reads_card,
     inputs={
-        "amr_annotations": SampleData[CARDAlleleAnnotation],
+        "amr_annotations": SampleData[
+            CARDAlleleAnnotation % Properties("bwa")
+            | CARDAlleleAnnotation % Properties("bowtie2")
+        ],
         "card_db": CARDDatabase,
         "kmer_db": CARDKmerDatabase,
     },
