@@ -15,7 +15,7 @@ To install _q2-amr_, follow the steps described below.
 mamba create -yn q2-amr \
   -c https://packages.qiime2.org/qiime2/2024.2/shotgun/released/  \
   -c qiime2 -c conda-forge -c bioconda -c defaults \
-  qiime2 q2cli q2templates q2-types rgi
+  qiime2 q2cli q2templates q2-types rgi tqdm
 
 conda activate q2-amr
 
@@ -40,7 +40,7 @@ qiime info
 CONDA_SUBDIR=osx-64 mamba create -yn q2-amr \
   -c https://packages.qiime2.org/qiime2/2024.2/shotgun/released/ \
   -c qiime2 -c conda-forge -c bioconda -c defaults \
-  qiime2 q2cli q2templates q2-types rgi
+  qiime2 q2cli q2templates q2-types rgi tqdm
 
 conda activate q2-amr
 conda config --env --set subdir osx-64
