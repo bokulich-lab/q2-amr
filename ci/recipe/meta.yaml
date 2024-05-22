@@ -25,6 +25,7 @@ requirements:
     - q2templates {{ qiime2_epoch }}.*
     - q2cli {{ qiime2_epoch }}.*
     - rgi
+    - tqdm
 
 test:
   requires:

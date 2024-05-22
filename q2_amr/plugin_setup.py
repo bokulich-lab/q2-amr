@@ -14,7 +14,17 @@ from q2_types.per_sample_sequences import (
     SequencesWithQuality,
 )
 from q2_types.sample_data import SampleData
-from qiime2.core.type import Bool, Choices, Int, List, Properties, Range, Str, TypeMap
+from qiime2.core.type import (
+    Bool,
+    Choices,
+    Collection,
+    Int,
+    List,
+    Properties,
+    Range,
+    Str,
+    TypeMap,
+)
 from qiime2.plugin import Citations, Plugin
 
 from q2_amr import __version__
@@ -28,6 +38,9 @@ from q2_amr.card.partition import (
     collate_reads_allele_kmer_analyses,
     collate_reads_gene_annotations,
     collate_reads_gene_kmer_analyses,
+    partition_mags_annotations,
+    partition_reads_allele_annotations,
+    partition_reads_gene_annotations,
 )
 from q2_amr.card.reads import _annotate_reads_card, annotate_reads_card
 from q2_amr.types import (
@@ -385,6 +398,111 @@ plugin.methods.register_function(
     description="Takes a collection of SampleData[CARDReadsGeneKmerAnalysis] "
     "and collates them into a single artifact.",
 )
+plugin.methods.register_function(
+    function=partition_mags_annotations,
+    inputs={"annotations": SampleData[CARDAnnotation]},
+    parameters={"num_partitions": Int % Range(1, None)},
+    outputs={"partitioned_annotations": Collection[SampleData[CARDAnnotation]]},
+    input_descriptions={"annotations": "The annotations to partition."},
+    parameter_descriptions={
+        "num_partitions": "The number of partitions to split the annotations "
+        "into. Defaults to partitioning into individual annotations."
+    },
+    output_descriptions={"partitioned_annotations": "partitioned annotations"},
+    name="Partition annotations",
+    description="Partition amr annotations of MAGs into a collections of individual "
+    "artifacts or the number of partitions specified.",
+)
+
+T_allele_annotation_in, T_allele_annotation_out = TypeMap(
+    {
+        SampleData[
+            CARDAlleleAnnotation % Properties("kma", "bowtie2", "bwa")
+        ]: Collection[
+            SampleData[CARDAlleleAnnotation % Properties("kma", "bowtie2", "bwa")]
+        ],
+        SampleData[CARDAlleleAnnotation % Properties("kma", "bowtie2")]: Collection[
+            SampleData[CARDAlleleAnnotation % Properties("kma", "bowtie2")]
+        ],
+        SampleData[CARDAlleleAnnotation % Properties("kma", "bwa")]: Collection[
+            SampleData[CARDAlleleAnnotation % Properties("kma", "bwa")]
+        ],
+        SampleData[CARDAlleleAnnotation % Properties("bowtie2", "bwa")]: Collection[
+            SampleData[CARDAlleleAnnotation % Properties("bowtie2", "bwa")]
+        ],
+        SampleData[CARDAlleleAnnotation % Properties("kma")]: Collection[
+            SampleData[CARDAlleleAnnotation % Properties("kma")]
+        ],
+        SampleData[CARDAlleleAnnotation % Properties("bowtie2")]: Collection[
+            SampleData[CARDAlleleAnnotation % Properties("bowtie2")]
+        ],
+        SampleData[CARDAlleleAnnotation % Properties("bwa")]: Collection[
+            SampleData[CARDAlleleAnnotation % Properties("bwa")]
+        ],
+    }
+)
+
+plugin.methods.register_function(
+    function=partition_reads_allele_annotations,
+    inputs={"annotations": T_allele_annotation_in},
+    parameters={"num_partitions": Int % Range(1, None)},
+    outputs={"partitioned_annotations": T_allele_annotation_out},
+    input_descriptions={"annotations": "The annotations to partition."},
+    parameter_descriptions={
+        "num_partitions": "The number of partitions to split the annotations "
+        "into. Defaults to partitioning into individual annotations."
+    },
+    output_descriptions={"partitioned_annotations": "partitioned annotations"},
+    name="Partition annotations",
+    description="Partition amr annotations of reads at allele level into a collections "
+    "of individual artifacts or the number of partitions specified.",
+)
+
+T_gene_annotation_in, T_gene_annotation_out = TypeMap(
+    {
+        SampleData[
+            CARDGeneAnnotation % Properties("kma", "bowtie2", "bwa")
+        ]: Collection[
+            SampleData[CARDGeneAnnotation % Properties("kma", "bowtie2", "bwa")]
+        ],
+        SampleData[CARDGeneAnnotation % Properties("kma", "bowtie2")]: Collection[
+            SampleData[CARDGeneAnnotation % Properties("kma", "bowtie2")]
+        ],
+        SampleData[CARDGeneAnnotation % Properties("kma", "bwa")]: Collection[
+            SampleData[CARDGeneAnnotation % Properties("kma", "bwa")]
+        ],
+        SampleData[CARDGeneAnnotation % Properties("bowtie2", "bwa")]: Collection[
+            SampleData[CARDGeneAnnotation % Properties("bowtie2", "bwa")]
+        ],
+        SampleData[CARDGeneAnnotation % Properties("kma")]: Collection[
+            SampleData[CARDGeneAnnotation % Properties("kma")]
+        ],
+        SampleData[CARDGeneAnnotation % Properties("bowtie2")]: Collection[
+            SampleData[CARDGeneAnnotation % Properties("bowtie2")]
+        ],
+        SampleData[CARDGeneAnnotation % Properties("bwa")]: Collection[
+            SampleData[CARDGeneAnnotation % Properties("bwa")]
+        ],
+    }
+)
+
+plugin.methods.register_function(
+    function=partition_reads_gene_annotations,
+    inputs={"annotations": T_gene_annotation_in},
+    parameters={"num_partitions": Int % Range(1, None)},
+    outputs={"partitioned_annotations": T_gene_annotation_out},
+    input_descriptions={"annotations": "The annotations to partition."},
+    parameter_descriptions={
+        "num_partitions": "The number of partitions to split the annotations"
+        " into. Defaults to partitioning into individual annotations."
+    },
+    output_descriptions={"partitioned_annotations": "partitioned annotations"},
+    name="Partition annotations",
+    description="Partition amr annotations of reads at gene level into a collection of"
+    " individual artifacts or the number of partitions specified.",
+)
+
+
 # Registrations
 plugin.register_semantic_types(
     CARDDatabase,
