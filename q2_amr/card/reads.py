@@ -31,7 +31,7 @@ def annotate_reads_card(
     include_other_models=False,
     num_partitions=None,
 ):
-    # Define all actions used by the pipeline
+    # Get all actions used by the pipeline
     if reads.type <= SampleData[SequencesWithQuality]:
         partition_method = ctx.get_action("demux", "partition_samples_single")
     elif reads.type <= SampleData[PairedEndSequencesWithQuality]:
@@ -97,9 +97,12 @@ def _annotate_reads_card(
     paired = isinstance(reads, SingleLanePerSamplePairedEndFastqDirFmt)
     manifest = reads.manifest.view(pd.DataFrame)
     allele_frequency_list, gene_frequency_list = [], []
+
     amr_allele_annotation = CARDAlleleAnnotationDirectoryFormat()
     amr_gene_annotation = CARDGeneAnnotationDirectoryFormat()
+
     with tempfile.TemporaryDirectory() as tmp:
+        # Load CARD database files
         load_card_db(
             tmp=tmp,
             card_db=card_db,
@@ -108,14 +111,21 @@ def _annotate_reads_card(
             include_wildcard=include_wildcard,
         )
         for samp in list(manifest.index):
+            # Set paths for forward and reverse reads files
             fwd = manifest.loc[samp, "forward"]
             rev = manifest.loc[samp, "reverse"] if paired else None
+
+            # Create sample directories in the output directories
             samp_allele_dir = os.path.join(str(amr_allele_annotation), samp)
             samp_gene_dir = os.path.join(str(amr_gene_annotation), samp)
             os.makedirs(samp_allele_dir)
             os.makedirs(samp_gene_dir)
-            samp_input_dir = os.path.join(tmp, samp)
-            os.makedirs(samp_input_dir)
+
+            # Create sample directory in the tmp directory
+            samp_tmp_dir = os.path.join(tmp, samp)
+            os.makedirs(samp_tmp_dir)
+
+            # Run annotation
             run_rgi_bwt(
                 cwd=tmp,
                 samp=samp,
@@ -127,13 +137,13 @@ def _annotate_reads_card(
                 include_other_models=include_other_models,
             )
 
-            # Create a frequency table and add it to a list, for gene and allele
-            # mapping data
+            # Create a frequency table for gene and allele mapping data and add it to
+            # the frequency table lists
             for map_type, table_list in zip(
                 ["allele", "gene"], [allele_frequency_list, gene_frequency_list]
             ):
                 path_txt = os.path.join(
-                    samp_input_dir, f"output.{map_type}_mapping_data.txt"
+                    samp_tmp_dir, f"output.{map_type}_mapping_data.txt"
                 )
                 frequency_table = read_in_txt(
                     path=path_txt,
@@ -149,15 +159,16 @@ def _annotate_reads_card(
             ):
                 files = [f"{map_type}_mapping_data.txt"]
                 # mapping statistics only go to the allele directories
-                files.extend(
-                    ["overall_mapping_stats.txt", "sorted.length_100.bam"]
-                ) if map_type == "allele" else None
+                if map_type == "allele":
+                    files.extend(["overall_mapping_stats.txt", "sorted.length_100.bam"])
+
                 for file in files:
                     shutil.copy(
-                        os.path.join(samp_input_dir, "output." + file),
+                        os.path.join(samp_tmp_dir, "output." + file),
                         os.path.join(des_dir, file),
                     )
 
+    # Merge all frequency tables into one for alleles and genes separately
     allele_feature_table = create_count_table(allele_frequency_list)
     gene_feature_table = create_count_table(gene_frequency_list)
     return (
