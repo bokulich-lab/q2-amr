@@ -13,8 +13,8 @@ To install _q2-amr_, follow the steps described below.
 
 ```shell
 mamba create -yn q2-amr \
-  -c conda-forge -c bioconda -c defaults \
-  -c https://packages.qiime2.org/qiime2/2024.2/shotgun/released/ -c qiime2\
+  -c https://packages.qiime2.org/qiime2/2024.2/shotgun/released/  \
+  -c qiime2 -c conda-forge -c bioconda -c defaults \
   qiime2 q2cli q2templates q2-types q2-feature-table q2-moshpit rgi
 
 conda activate q2-amr
@@ -22,6 +22,8 @@ conda activate q2-amr
 pip install --no-deps --force-reinstall \
   git+https://github.com/misialq/rgi.git@py38-fix \
   git+https://github.com/bokulich-lab/q2-amr.git
+
+pip install git+https://github.com/qiime2/qiime2.git
 ```
 
 Refresh cache and check that everything worked:
@@ -36,8 +38,8 @@ qiime info
 
 ```shell
 CONDA_SUBDIR=osx-64 mamba create -yn q2-amr \
-  -c conda-forge -c bioconda -c defaults \
-  -c https://packages.qiime2.org/qiime2/2024.2/shotgun/released/ -c qiime2\
+  -c https://packages.qiime2.org/qiime2/2024.2/shotgun/released/ \
+  -c qiime2 -c conda-forge -c bioconda -c defaults \
   qiime2 q2cli q2templates q2-types q2-feature-table q2-moshpit rgi
 
 conda activate q2-amr
@@ -46,6 +48,8 @@ conda config --env --set subdir osx-64
 pip install --no-deps --force-reinstall \
   git+https://github.com/misialq/rgi.git@py38-fix \
   git+https://github.com/bokulich-lab/q2-amr.git
+
+pip install git+https://github.com/qiime2/qiime2.git
 ```
 
 Refresh cache and check that everything worked:

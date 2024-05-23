@@ -2,12 +2,12 @@ import os
 import shutil
 import subprocess
 import tarfile
-from unittest.mock import MagicMock, call, patch
+from unittest.mock import MagicMock, patch
 
 import requests
 from qiime2.plugin.testing import TestPluginBase
 
-from q2_amr.card.database import fetch_card_db, preprocess
+from q2_amr.card.database import download_with_progress_bar, fetch_card_db, preprocess
 from q2_amr.types import CARDDatabaseDirectoryFormat, CARDKmerDatabaseDirectoryFormat
 
 
@@ -32,19 +32,16 @@ class TestAnnotateMagsCard(TestPluginBase):
 
     def test_fetch_card_db(self):
         # Open dummy archives for CARD and WildCARD download
-        f_card = open(self.get_data_path("card.tar.bz2"), "rb")
-        f_wildcard = open(self.get_data_path("wildcard_data.tar.bz2"), "rb")
-
-        # Create MagicMock objects to simulate responses from requests.get
-        mock_response_card = MagicMock(raw=f_card)
-        mock_response_wildcard = MagicMock(raw=f_wildcard)
+        card_tar = self.get_data_path("card.tar.bz2")
+        wildcard_tar = self.get_data_path("wildcard_data.tar.bz2")
 
         # Patch requests.get,
-        with patch("requests.get") as mock_requests, patch(
+        with patch("q2_amr.card.database.download_with_progress_bar"), patch(
             "q2_amr.card.database.preprocess", side_effect=self.mock_preprocess
+        ), patch(
+            "tarfile.open",
+            side_effect=[tarfile.open(card_tar), tarfile.open(wildcard_tar)],
         ):
-            # Assign MagicMock objects as side effects and run the function
-            mock_requests.side_effect = [mock_response_card, mock_response_wildcard]
             obs = fetch_card_db()
 
         # Lists of filenames contained in CARD and Kmer database objects
@@ -60,6 +57,7 @@ class TestAnnotateMagsCard(TestPluginBase):
             "card_database_v3.2.7_all.fasta",
             "card.json",
         ]
+
         files_kmer_db = ["all_amr_61mers.txt", "61_kmer_db.json"]
 
         # Assert if all files are in the correct database object
@@ -73,26 +71,21 @@ class TestAnnotateMagsCard(TestPluginBase):
         self.assertIsInstance(obs[0], CARDDatabaseDirectoryFormat)
         self.assertIsInstance(obs[1], CARDKmerDatabaseDirectoryFormat)
 
-        # Assert if requests.get gets called with the correct URLs
-        expected_calls = [
-            call("https://card.mcmaster.ca/latest/data", stream=True),
-            call("https://card.mcmaster.ca/latest/variants", stream=True),
-        ]
-        mock_requests.assert_has_calls(expected_calls)
-
     def test_connection_error(self):
         # Simulate a ConnectionError during requests.get
         with patch(
-            "requests.get", side_effect=requests.ConnectionError
+            "q2_amr.card.database.download_with_progress_bar",
+            side_effect=requests.ConnectionError,
         ), self.assertRaisesRegex(
-            requests.ConnectionError, "Network connectivity problems."
+            requests.ConnectionError,
+            "Unable to connect to the CARD server. " "Please try again later.",
         ):
             fetch_card_db()
 
     def test_tarfile_read_error(self):
         # Simulate a tarfile.ReadError during tarfile.open
         with patch("tarfile.open", side_effect=tarfile.ReadError), patch(
-            "requests.get"
+            "q2_amr.card.database.download_with_progress_bar"
         ), self.assertRaisesRegex(tarfile.ReadError, "Tarfile is invalid."):
             fetch_card_db()
 
@@ -138,3 +131,33 @@ class TestAnnotateMagsCard(TestPluginBase):
                 "path_tmp",
                 verbose=True,
             )
+
+    def test_download_with_progressbar(self):
+        url = "http://example.com"
+        progressbar_desc = "Downloading"
+        tar_path = "/path/to/downloaded/file.tar"
+
+        with patch("requests.get") as mock_get, patch(
+            "q2_amr.card.database.tqdm"
+        ) as mock_tqdm, patch("builtins.open") as mock_open:
+            # Mock response object
+            response_mock = MagicMock()
+            response_mock.headers = {"content-length": "1024"}
+            response_mock.iter_content.return_value = [b"data"]
+
+            # Patch the requests.get to return our response_mock
+            mock_get.return_value = response_mock
+
+            # Mock the open function to avoid creating files
+            mock_open.return_value.__enter__.return_value = MagicMock()
+
+            # Call the function
+            download_with_progress_bar(url, progressbar_desc, tar_path)
+
+            # Assertions
+            mock_get.assert_called_once_with(url=url, stream=True)
+            mock_tqdm.assert_called_once_with(
+                total=1024, unit="B", unit_scale=True, desc=progressbar_desc
+            )
+            mock_open.assert_called_once_with(tar_path, "wb")
+            response_mock.iter_content.assert_called_once_with(chunk_size=8192)
