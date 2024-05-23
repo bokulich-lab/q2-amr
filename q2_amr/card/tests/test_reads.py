@@ -105,7 +105,6 @@ class TestAnnotateReadsCARD(TestPluginBase):
             # Expected call object for mock_run_rgi_load
             exp_calls_mock_load = [
                 call(
-                    tmp=tmp_dir,
                     card_db=ANY,
                     fasta=True,
                     include_other_models=False,

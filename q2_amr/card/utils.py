@@ -25,7 +25,6 @@ def run_command(cmd, cwd, verbose=True):
 
 
 def load_card_db(
-    tmp,
     card_db,
     kmer_db=None,
     kmer: bool = False,
@@ -83,7 +82,7 @@ def load_card_db(
 
     # Run command
     try:
-        run_command(cmd, tmp, verbose=True)
+        run_command(cmd=cmd, cwd=None, verbose=True)
     except subprocess.CalledProcessError as e:
         raise Exception(
             f"An error was encountered while running rgi, "

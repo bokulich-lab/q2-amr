@@ -80,7 +80,6 @@ class TestAnnotateReadsCARD(TestPluginBase):
             # Run load_card_db two times with include_other_models set to True and False
             for parameters in [False, True]:
                 load_card_db(
-                    tmp="path_tmp",
                     card_db=card_db,
                     kmer_db=kmer_db,
                     kmer=True,
@@ -95,7 +94,7 @@ class TestAnnotateReadsCARD(TestPluginBase):
 
             expected_calls = [
                 call(
-                    [
+                    cmd=[
                         "rgi",
                         "load",
                         "--card_json",
@@ -117,7 +116,7 @@ class TestAnnotateReadsCARD(TestPluginBase):
                         "--kmer_size",
                         "61",
                     ],
-                    "path_tmp",
+                    cwd=None,
                     verbose=True,
                 )
                 for flag, parameter in zip(flags, parameters)
