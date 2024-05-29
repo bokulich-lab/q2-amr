@@ -48,8 +48,8 @@ class TestNormalize(TestPluginBase):
         # Test Error raised if gene-length is missing genes
         gene_length = SequenceCharacteristicsDirectoryFormat()
         shutil.copy(
-            self.get_data_path("gene_length_short.txt"),
-            os.path.join(gene_length.path, "gene_length.txt"),
+            self.get_data_path("sequence_characteristics_short.tsv"),
+            os.path.join(gene_length.path, "sequence_characteristics.tsv"),
         )
         table = biom.load_table(self.get_data_path("feature-table.biom"))
         expected_message = (
@@ -65,7 +65,9 @@ class TestNormalize(TestPluginBase):
     def test_tpm_fpkm_with_valid_inputs(self, mock_tpm):
         # Test valid inputs for TPM method
         gene_length = SequenceCharacteristicsDirectoryFormat()
-        shutil.copy(self.get_data_path("gene_length.txt"), gene_length.path)
+        shutil.copy(
+            self.get_data_path("sequence_characteristics.tsv"), gene_length.path
+        )
         table = biom.load_table(self.get_data_path("feature-table.biom"))
         normalize(table=table, gene_length=gene_length, method="tpm")
 
