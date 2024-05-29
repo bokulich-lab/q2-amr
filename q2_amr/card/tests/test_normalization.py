@@ -3,11 +3,11 @@ import shutil
 from unittest.mock import MagicMock, patch
 
 import biom
+from q2_types.feature_data import SequenceCharacteristicsDirectoryFormat
 from qiime2.plugin.testing import TestPluginBase
 
 from q2_amr.card.normalization import normalize
 from q2_amr.card.utils import InvalidParameterCombinationError
-from q2_amr.types import GeneLengthDirectoryFormat
 
 
 class TestNormalize(TestPluginBase):
@@ -46,7 +46,7 @@ class TestNormalize(TestPluginBase):
 
     def test_tpm_fpkm_with_short_gene_length(self):
         # Test Error raised if gene-length is missing genes
-        gene_length = GeneLengthDirectoryFormat()
+        gene_length = SequenceCharacteristicsDirectoryFormat()
         shutil.copy(
             self.get_data_path("gene_length_short.txt"),
             os.path.join(gene_length.path, "gene_length.txt"),
@@ -64,7 +64,7 @@ class TestNormalize(TestPluginBase):
     @patch("q2_amr.card.normalization.TPM")
     def test_tpm_fpkm_with_valid_inputs(self, mock_tpm):
         # Test valid inputs for TPM method
-        gene_length = GeneLengthDirectoryFormat()
+        gene_length = SequenceCharacteristicsDirectoryFormat()
         shutil.copy(self.get_data_path("gene_length.txt"), gene_length.path)
         table = biom.load_table(self.get_data_path("feature-table.biom"))
         normalize(table=table, gene_length=gene_length, method="tpm")

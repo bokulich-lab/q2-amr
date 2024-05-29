@@ -20,7 +20,7 @@ from q2_types.feature_data import (
     ProteinFASTAFormat,
     ProteinIterator,
 )
-from q2_types_genomics.genome_data import GenesDirectoryFormat, ProteinsDirectoryFormat
+from q2_types.genome_data import GenesDirectoryFormat, ProteinsDirectoryFormat
 from qiime2.plugin.testing import TestPluginBase
 from skbio import DNA, Protein
 
@@ -36,6 +36,14 @@ from q2_amr.types._format import (
     CARDKmerDatabaseDirectoryFormat,
     CARDKmerJSONFormat,
     CARDKmerTXTFormat,
+    CARDMAGsKmerAnalysisDirectoryFormat,
+    CARDMAGsKmerAnalysisFormat,
+    CARDMAGsKmerAnalysisJSONFormat,
+    CARDReadsAlleleKmerAnalysisDirectoryFormat,
+    CARDReadsAlleleKmerAnalysisFormat,
+    CARDReadsGeneKmerAnalysisDirectoryFormat,
+    CARDReadsGeneKmerAnalysisFormat,
+    CARDReadsKmerAnalysisJSONFormat,
     CARDWildcardIndexFormat,
     GapDNAFASTAFormat,
 )
@@ -43,6 +51,7 @@ from q2_amr.types._transformer import (
     _read_from_card_file,
     card_annotation_df_to_fasta,
     extract_sequence,
+    tabulate_data,
 )
 
 
@@ -270,42 +279,121 @@ class TestCARDMagsAnnotationTypesAndFormats(AMRTypesTestPluginBase):
         self.assertEqual(dna_contents_obs, dna_contents_exp)
 
     def test_CARDAnnotationDirectoryFormat_to_GenesDirectoryFormat_transformer(self):
-        filepath = self.get_data_path("annotate_mags_output")
+        filepath = self.get_data_path("card_annotation")
         transformer = self.get_transformer(
             CARDAnnotationDirectoryFormat, GenesDirectoryFormat
         )
         obs = transformer(filepath)
         self.assertIsInstance(obs, GenesDirectoryFormat)
-        self.assertTrue(
-            os.path.exists(os.path.join(str(obs), "sample1", "bin1_genes.fasta"))
-        )
-        self.assertTrue(
-            os.path.exists(os.path.join(str(obs), "sample2", "bin1_genes.fasta"))
-        )
+
+        paths = [
+            os.path.join(
+                str(obs), "sample1", "e026af61-d911-4de3-a957-7e8bf837f30d_genes.fasta"
+            ),
+            os.path.join(
+                str(obs), "sample2", "aa447c99-ecd9-4c4a-a53b-4df6999815dd_genes.fasta"
+            ),
+            os.path.join(
+                str(obs), "sample2", "f5a16381-ea80-49f9-875e-620f333a9293_genes.fasta"
+            ),
+        ]
+        for path in paths:
+            self.assertTrue(os.path.exists(path))
 
     def test_CARDAnnotationDirectoryFormat_to_ProteinsDirectoryFormat_transformer(self):
-        filepath = self.get_data_path("annotate_mags_output")
+        filepath = self.get_data_path("card_annotation")
         transformer = self.get_transformer(
             CARDAnnotationDirectoryFormat, ProteinsDirectoryFormat
         )
         obs = transformer(filepath)
         self.assertIsInstance(obs, ProteinsDirectoryFormat)
-        self.assertTrue(
-            os.path.exists(os.path.join(str(obs), "sample1", "bin1_proteins.fasta"))
-        )
-        self.assertTrue(
-            os.path.exists(os.path.join(str(obs), "sample2", "bin1_proteins.fasta"))
-        )
+
+        paths = [
+            os.path.join(
+                str(obs),
+                "sample1",
+                "e026af61-d911-4de3-a957-7e8bf837f30d_proteins.fasta",
+            ),
+            os.path.join(
+                str(obs),
+                "sample2",
+                "aa447c99-ecd9-4c4a-a53b-4df6999815dd_proteins.fasta",
+            ),
+            os.path.join(
+                str(obs),
+                "sample2",
+                "f5a16381-ea80-49f9-875e-620f333a9293_proteins.fasta",
+            ),
+        ]
+        for path in paths:
+            self.assertTrue(os.path.exists(path))
 
     def test_CARDAnnotationDirectoryFormat_to_qiime2_Metadata_transformer(self):
         transformer = self.get_transformer(
             CARDAnnotationDirectoryFormat, qiime2.Metadata
         )
         annotation = CARDAnnotationDirectoryFormat(
-            self.get_data_path("annotate_mags_output"), "r"
+            self.get_data_path("card_annotation"), "r"
         )
         metadata_obt = transformer(annotation)
         self.assertIsInstance(metadata_obt, qiime2.Metadata)
+
+    def test_card_annotation_directory_format_sample_dict(self):
+        annotations = CARDAnnotationDirectoryFormat(
+            self.get_data_path("card_annotation"), "r"
+        )
+
+        obs = annotations.sample_dict()
+        exp = {
+            "sample1": {
+                "e026af61-d911-4de3-a957-7e8bf837f30d": [
+                    os.path.join(
+                        annotations.path,
+                        "sample1",
+                        "e026af61-d911-4de3-a957-7e8bf837f30d",
+                        "amr_annotation.json",
+                    ),
+                    os.path.join(
+                        annotations.path,
+                        "sample1",
+                        "e026af61-d911-4de3-a957-7e8bf837f30d",
+                        "amr_annotation.txt",
+                    ),
+                ]
+            },
+            "sample2": {
+                "aa447c99-ecd9-4c4a-a53b-4df6999815dd": [
+                    os.path.join(
+                        annotations.path,
+                        "sample2",
+                        "aa447c99-ecd9-4c4a-a53b-4df6999815dd",
+                        "amr_annotation.json",
+                    ),
+                    os.path.join(
+                        annotations.path,
+                        "sample2",
+                        "aa447c99-ecd9-4c4a-a53b-4df6999815dd",
+                        "amr_annotation.txt",
+                    ),
+                ],
+                "f5a16381-ea80-49f9-875e-620f333a9293": [
+                    os.path.join(
+                        annotations.path,
+                        "sample2",
+                        "f5a16381-ea80-49f9-875e-620f333a9293",
+                        "amr_annotation.json",
+                    ),
+                    os.path.join(
+                        annotations.path,
+                        "sample2",
+                        "f5a16381-ea80-49f9-875e-620f333a9293",
+                        "amr_annotation.txt",
+                    ),
+                ],
+            },
+        }
+
+        self.assertEqual(obs, exp)
 
 
 class TestCARDReadsAnnotationTypesAndFormats(AMRTypesTestPluginBase):
@@ -314,17 +402,162 @@ class TestCARDReadsAnnotationTypesAndFormats(AMRTypesTestPluginBase):
             CARDGeneAnnotationDirectoryFormat, qiime2.Metadata
         )
         annotation = CARDGeneAnnotationDirectoryFormat(
-            self.get_data_path("annotate_reads_output"), "r"
+            self.get_data_path("card_gene_annotation"), "r"
         )
         metadata_obt = transformer(annotation)
         self.assertIsInstance(metadata_obt, qiime2.Metadata)
 
     def test_CARDAlleleAnnotationDirectoryFormat_to_qiime2_Metadata_transformer(self):
         transformer = self.get_transformer(
-            CARDGeneAnnotationDirectoryFormat, qiime2.Metadata
+            CARDAlleleAnnotationDirectoryFormat, qiime2.Metadata
         )
         annotation = CARDAlleleAnnotationDirectoryFormat(
-            self.get_data_path("annotate_reads_output"), "r"
+            self.get_data_path("card_allele_annotation"), "r"
         )
         metadata_obt = transformer(annotation)
         self.assertIsInstance(metadata_obt, qiime2.Metadata)
+
+    def test_card_allele_annotation_directory_format_sample_dict(self):
+        dirpath = self.get_data_path("card_allele_annotation")
+        annotations = CARDAlleleAnnotationDirectoryFormat(dirpath, mode="r")
+
+        obs = annotations.sample_dict()
+        exp = {
+            "sample1": [
+                os.path.join(dirpath, "sample1", "allele_mapping_data.txt"),
+                os.path.join(dirpath, "sample1", "overall_mapping_stats.txt"),
+                os.path.join(dirpath, "sample1", "sorted.length_100.bam"),
+            ],
+            "sample2": [
+                os.path.join(dirpath, "sample2", "allele_mapping_data.txt"),
+                os.path.join(dirpath, "sample2", "overall_mapping_stats.txt"),
+                os.path.join(dirpath, "sample2", "sorted.length_100.bam"),
+            ],
+        }
+        self.assertEqual(obs, exp)
+
+    def test_card_gene_annotation_directory_format_sample_dict(self):
+        dirpath = self.get_data_path("card_gene_annotation")
+        annotations = CARDGeneAnnotationDirectoryFormat(dirpath, mode="r")
+
+        obs = annotations.sample_dict()
+        exp = {
+            "sample1": [os.path.join(dirpath, "sample1", "gene_mapping_data.txt")],
+            "sample2": [os.path.join(dirpath, "sample2", "gene_mapping_data.txt")],
+        }
+        self.assertEqual(obs, exp)
+
+
+class TestKmerTypesAndFormats(AMRTypesTestPluginBase):
+    def test_card_mags_kmer_analysis_validate_positive(self):
+        filepath = self.get_data_path("61mer_analysis_rgi_summary.txt")
+        format = CARDMAGsKmerAnalysisFormat(filepath, mode="r")
+        format.validate()
+
+    def test_kmer_mags_analysis_json_format_validate_positive(self):
+        filepath = self.get_data_path("mags_61mer_analysis.json")
+        format = CARDMAGsKmerAnalysisJSONFormat(filepath, mode="r")
+        format.validate()
+
+    def test_card_reads_allele_kmer_analysis_validate_positive(self):
+        filepath = self.get_data_path("61mer_analysis.allele.txt")
+        format = CARDReadsAlleleKmerAnalysisFormat(filepath, mode="r")
+        format.validate()
+
+    def test_card_reads_gene_kmer_analysis_validate_positive(self):
+        filepath = self.get_data_path("61mer_analysis.gene.txt")
+        format = CARDReadsGeneKmerAnalysisFormat(filepath, mode="r")
+        format.validate()
+
+    def test_kmer_reads_analysis_json_format_validate_positive(self):
+        filepath = self.get_data_path("reads_61mer_analysis.json")
+        format = CARDReadsKmerAnalysisJSONFormat(filepath, mode="r")
+        format.validate()
+
+    def test_kmer_reads_analysis_json_format_validate_empty(self):
+        filepath = self.get_data_path("empty_dict.json")
+        format = CARDReadsKmerAnalysisJSONFormat(filepath, mode="r")
+        format.validate()
+
+    def test_kmer_mags_analysis_json_format_validate_empty(self):
+        filepath = self.get_data_path("empty_dict.json")
+        format = CARDMAGsKmerAnalysisJSONFormat(filepath, mode="r")
+        format.validate()
+
+    def test_card_reads_gene_kmer_analysis_directory_format_validate_positive(self):
+        sample_dir = os.path.join(self.temp_dir.name, "sample1")
+        os.mkdir(sample_dir)
+        shutil.copy(self.get_data_path("61mer_analysis.gene.txt"), sample_dir)
+        format = CARDReadsGeneKmerAnalysisDirectoryFormat(self.temp_dir.name, mode="r")
+        format.validate()
+
+    def test_card_reads_allele_kmer_analysis_directory_format_validate_positive(self):
+        sample_dir = os.path.join(self.temp_dir.name, "sample1")
+        os.mkdir(sample_dir)
+        shutil.copy(self.get_data_path("61mer_analysis.allele.txt"), sample_dir)
+        shutil.copy(
+            self.get_data_path("reads_61mer_analysis.json"),
+            os.path.join(sample_dir, "61mer_analysis.json"),
+        )
+        format = CARDReadsAlleleKmerAnalysisDirectoryFormat(
+            self.temp_dir.name, mode="r"
+        )
+        format.validate()
+
+    def test_card_mags_kmer_analysis_directory_format_validate_positive(self):
+        sample_dir = os.path.join(self.temp_dir.name, "sample1")
+        os.mkdir(sample_dir)
+        shutil.copy(self.get_data_path("61mer_analysis_rgi_summary.txt"), sample_dir)
+        shutil.copy(
+            self.get_data_path("mags_61mer_analysis.json"),
+            os.path.join(sample_dir, "61mer_analysis.json"),
+        )
+        format = CARDMAGsKmerAnalysisDirectoryFormat(self.temp_dir.name, mode="r")
+        format.validate()
+
+    def test_CARDMAGsKmerAnalysisDirectoryFormat_to_qiime2_Metadata_transformer(self):
+        transformer = self.get_transformer(
+            CARDMAGsKmerAnalysisDirectoryFormat, qiime2.Metadata
+        )
+        kmer_analysis = CARDMAGsKmerAnalysisDirectoryFormat(
+            self.get_data_path("card_kmer_analysis_mags"), "r"
+        )
+        metadata_obt = transformer(kmer_analysis)
+        self.assertIsInstance(metadata_obt, qiime2.Metadata)
+
+    def test_CARDReadsAlleleKmerAnalysisDirectoryFormat_to_Metadata_transformer(self):
+        transformer = self.get_transformer(
+            CARDReadsAlleleKmerAnalysisDirectoryFormat, qiime2.Metadata
+        )
+        kmer_analysis = CARDReadsAlleleKmerAnalysisDirectoryFormat(
+            self.get_data_path("card_reads_allele_kmer_analysis"), "r"
+        )
+        metadata_obt = transformer(kmer_analysis)
+        self.assertIsInstance(metadata_obt, qiime2.Metadata)
+
+    def test_CARDReadsGeneKmerAnalysisDirectoryFormat_to_Metadata_transformer(self):
+        transformer = self.get_transformer(
+            CARDReadsGeneKmerAnalysisDirectoryFormat, qiime2.Metadata
+        )
+        kmer_analysis = CARDReadsGeneKmerAnalysisDirectoryFormat(
+            self.get_data_path("card_reads_gene_kmer_analysis"), "r"
+        )
+        metadata_obt = transformer(kmer_analysis)
+        self.assertIsInstance(metadata_obt, qiime2.Metadata)
+
+    def test_tabulate_data_mags(self):
+        exp = pd.read_csv(
+            self.get_data_path("tabulated_df_mags.txt"), sep="\t", index_col=0
+        )
+        exp.index = exp.index.astype(str)
+        exp["Nudged"] = exp["Nudged"].astype(str)
+        obs = tabulate_data(self.get_data_path("card_annotation"), "mags")
+        self.assertEqual(qiime2.Metadata(exp), obs)
+
+    def test_tabulate_data_allele(self):
+        exp = pd.read_csv(
+            self.get_data_path("tabulated_df_allele.txt"), sep="\t", index_col=0
+        )
+        exp.index = exp.index.astype(str)
+        obs = tabulate_data(self.get_data_path("card_allele_annotation"), "allele")
+        self.assertEqual(qiime2.Metadata(exp), obs)

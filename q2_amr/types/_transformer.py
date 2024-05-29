@@ -5,6 +5,7 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
+import glob
 import json
 import os
 import shutil
@@ -14,7 +15,7 @@ import qiime2
 import skbio
 from q2_types.feature_data import DNAFASTAFormat, DNAIterator, ProteinFASTAFormat
 from q2_types.feature_data._transformer import ProteinIterator
-from q2_types_genomics.genome_data import GenesDirectoryFormat, ProteinsDirectoryFormat
+from q2_types.genome_data import GenesDirectoryFormat, ProteinsDirectoryFormat
 from skbio import DNA, Protein
 
 from q2_amr.types import CARDAnnotationDirectoryFormat
@@ -26,6 +27,9 @@ from ._format import (
     CARDAnnotationTXTFormat,
     CARDDatabaseFormat,
     CARDGeneAnnotationDirectoryFormat,
+    CARDMAGsKmerAnalysisDirectoryFormat,
+    CARDReadsAlleleKmerAnalysisDirectoryFormat,
+    CARDReadsGeneKmerAnalysisDirectoryFormat,
 )
 
 
@@ -228,28 +232,58 @@ def _14(data: CARDAnnotationDirectoryFormat) -> qiime2.Metadata:
     return tabulate_data(data, "mags")
 
 
+@plugin.register_transformer
+def _15(data: CARDMAGsKmerAnalysisDirectoryFormat) -> qiime2.Metadata:
+    return tabulate_data(data, "kmer_mags")
+
+
+@plugin.register_transformer
+def _16(data: CARDReadsAlleleKmerAnalysisDirectoryFormat) -> qiime2.Metadata:
+    return tabulate_data(data, "kmer_allele")
+
+
+@plugin.register_transformer
+def _17(data: CARDReadsGeneKmerAnalysisDirectoryFormat) -> qiime2.Metadata:
+    return tabulate_data(data, "kmer_gene")
+
+
 def tabulate_data(data_path, data_type):
+    filenames = {
+        "allele": "allele_mapping_data.txt",
+        "gene": "gene_mapping_data.txt",
+        "mags": "amr_annotation.txt",
+        "kmer_allele": "*mer_analysis.allele.txt",
+        "kmer_gene": "*mer_analysis.gene.txt",
+        "kmer_mags": "*mer_analysis_rgi_summary.txt",
+    }
+
+    filename = filenames[data_type]
     df_list = []
+
+    # Read in all analysis files as pd.Dataframes and add them to df_list
     for samp in os.listdir(str(data_path)):
-        if data_type == "mags":
+        if data_type in ["mags", "kmer_mags"]:
             for bin in os.listdir(os.path.join(str(data_path), samp)):
-                file_path = os.path.join(
-                    str(data_path), samp, bin, "amr_annotation.txt"
-                )
+                file_path = glob.glob(rf"{str(data_path)}/{samp}/{bin}/{filename}")[0]
                 df = pd.read_csv(file_path, sep="\t")
                 df.insert(0, "Sample Name", f"{samp}/{bin}")
-                df["Nudged"] = df["Nudged"].astype(str)
-        elif data_type == "gene" or "allele":
-            file_path = os.path.join(
-                str(data_path), samp, f"{data_type}_mapping_data.txt"
-            )
+                df_list.append(df)
+
+        if data_type in ["allele", "gene", "kmer_allele", "kmer_gene"]:
+            file_path = glob.glob(rf"{str(data_path)}/{samp}/{filename}")[0]
             df = pd.read_csv(file_path, sep="\t")
             df.insert(0, "Sample Name", samp)
-        df_list.append(df)
+            df_list.append(df)
+
+    # Combine all dataframes
     df_combined = pd.concat(df_list, axis=0)
+    df_combined.sort_values(by="Sample Name", inplace=True)
     df_combined.reset_index(inplace=True, drop=True)
     df_combined.index.name = "id"
     df_combined.index = df_combined.index.astype(str)
+
     if data_type == "mags":
+        df_combined["Nudged"] = df_combined["Nudged"].astype(str)
         df_combined.rename(columns={"ID": "HSP_Identifier"}, inplace=True)
+
     return qiime2.Metadata(df_combined)

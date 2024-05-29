@@ -6,13 +6,14 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 import json
+import os
 import re
 from copy import copy
 
 import pandas as pd
 import qiime2.plugin.model as model
 from q2_types.feature_data._format import DNAFASTAFormat
-from q2_types_genomics.per_sample_data._format import MultiDirValidationMixin
+from q2_types.per_sample_sequences._format import BAMFormat, MultiDirValidationMixin
 from qiime2.plugin import ValidationError
 
 
@@ -277,6 +278,18 @@ class CARDAnnotationDirectoryFormat(MultiDirValidationMixin, model.DirectoryForm
     def txt_path_maker(self, sample_id, bin_id):
         return f"{sample_id}/{bin_id}/amr_annotation.txt"
 
+    def sample_dict(self):
+        sample_dict = {}
+        for sample in self.path.iterdir():
+            mag_dict = {}
+            for mag in sample.iterdir():
+                mag_dict[mag.name] = [
+                    os.path.join(mag, "amr_annotation.json"),
+                    os.path.join(mag, "amr_annotation.txt"),
+                ]
+            sample_dict[sample.name] = mag_dict
+        return sample_dict
+
 
 class CARDAlleleAnnotationFormat(model.TextFileFormat):
     def _validate(self, n_records=None):
@@ -402,11 +415,12 @@ class CARDAlleleAnnotationDirectoryFormat(
     MultiDirValidationMixin, model.DirectoryFormat
 ):
     allele = model.FileCollection(
-        r".+(allele_mapping_data.txt)$", format=CARDAlleleAnnotationFormat
+        r".+allele_mapping_data.txt$", format=CARDAlleleAnnotationFormat
     )
     stats = model.FileCollection(
-        r".+(overall_mapping_stats.txt)$", format=CARDAnnotationStatsFormat
+        r".+overall_mapping_stats.txt$", format=CARDAnnotationStatsFormat
     )
+    bam = model.FileCollection(r".+sorted.length_100.bam$", format=BAMFormat)
 
     @allele.set_path_maker
     def allele_path_maker(self, sample_id):
@@ -416,12 +430,246 @@ class CARDAlleleAnnotationDirectoryFormat(
     def stats_path_maker(self, sample_id):
         return "%s/overall_mapping_stats.txt" % sample_id
 
+    @bam.set_path_maker
+    def bam_path_maker(self, sample_id):
+        return "%s/sorted.length_100.bam" % sample_id
+
+    def sample_dict(self):
+        sample_dict = {}
+        for sample in self.path.iterdir():
+            sample_dict[sample.name] = [
+                os.path.join(sample, "allele_mapping_data.txt"),
+                os.path.join(sample, "overall_mapping_stats.txt"),
+                os.path.join(sample, "sorted.length_100.bam"),
+            ]
+        return sample_dict
+
 
 class CARDGeneAnnotationDirectoryFormat(MultiDirValidationMixin, model.DirectoryFormat):
     gene = model.FileCollection(
-        r".+(gene_mapping_data.txt)$", format=CARDGeneAnnotationFormat
+        r".+gene_mapping_data.txt$", format=CARDGeneAnnotationFormat
     )
 
     @gene.set_path_maker
     def gene_path_maker(self, sample_id):
         return "%s/gene_mapping_data.txt" % sample_id
+
+    def sample_dict(self):
+        sample_dict = {}
+        for sample in self.path.iterdir():
+            sample_dict[sample.name] = [os.path.join(sample, "gene_mapping_data.txt")]
+        return sample_dict
+
+
+class CARDMAGsKmerAnalysisFormat(model.TextFileFormat):
+    def _validate(self, n_records=None):
+        header_exp = [
+            "ORF_ID",
+            "Contig",
+            "Cut_Off",
+            "Best_Hit_ARO",
+            "CARD*kmer Prediction",
+            "Taxonomic kmers",
+            "Genomic kmers",
+        ]
+
+        df = pd.read_csv(str(self), sep="\t")
+        header_obs = list(df.columns)
+        if not set(header_exp).issubset(set(header_obs)):
+            raise ValidationError(
+                "Header line does not match CARDMAGsKmerAnalysisFormat. Must contain"
+                "the following values: "
+                + ", ".join(header_exp)
+                + ".\n\nFound instead: "
+                + ", ".join(header_obs)
+            )
+
+    def _validate_(self, level):
+        self._validate()
+
+
+class CARDMAGsKmerAnalysisJSONFormat(model.TextFileFormat):
+    def _validate(self, n_records=None):
+        keys_exp = [
+            "ORF",
+            "contig",
+            "HSP",
+            "ARO_model",
+            "type_hit",
+            "#_of_kmers_in_sequence",
+            "#_of_AMR_kmers",
+            "taxonomic_info",
+            "genomic_info",
+        ]
+        with open(str(self)) as json_file:
+            json_dict = json.load(json_file)
+
+        if json_dict:
+            keys_obs = list(next(iter(json_dict.values())).keys())
+
+            if not set(keys_exp).issubset(set(keys_obs)):
+                raise ValidationError(
+                    "Keys do not match CARDMAGsKmerAnalysisJSONFormat format. Must "
+                    "consist of the following values: "
+                    + ", ".join(keys_exp)
+                    + ".\n\nFound instead: "
+                    + ", ".join(keys_obs)
+                )
+
+    def _validate_(self, level):
+        self._validate()
+
+
+class CARDMAGsKmerAnalysisDirectoryFormat(
+    MultiDirValidationMixin, model.DirectoryFormat
+):
+    txt = model.FileCollection(
+        r".+\d+mer_analysis_rgi_summary\.txt$", format=CARDMAGsKmerAnalysisFormat
+    )
+    json = model.FileCollection(
+        r".+\d+mer_analysis\.json$", format=CARDMAGsKmerAnalysisJSONFormat
+    )
+
+    @txt.set_path_maker
+    def txt_path_maker(self, sample_id, bin_id):
+        pattern = r"\d+mer_analysis_rgi_summary\.txt$"
+        return f"{sample_id}/{bin_id}/{pattern}"
+
+    @json.set_path_maker
+    def json_path_maker(self, sample_id, bin_id):
+        pattern = r"\d+mer_analysis_mags\.json$"
+        return f"{sample_id}/{bin_id}/{pattern}"
+
+
+class CARDReadsGeneKmerAnalysisFormat(model.TextFileFormat):
+    def _validate(self, n_records=None):
+        header_exp = [
+            "ARO term",
+            "Mapped reads with kmer DB hits",
+            "CARD*kmer Prediction",
+            "Single species (chromosome) reads",
+            "Single species (chromosome or plasmid) reads",
+            "Single species (plasmid) reads",
+            "Single species (no genomic info) reads",
+            "Single genus (chromosome) reads",
+            "Single genus (chromosome or plasmid) reads",
+            "Single genus (plasmid) reads",
+            "Single genus (no genomic info) reads",
+            "Promiscuous plasmid reads",
+            "Unknown taxonomy (chromosome) reads",
+            "Unknown taxonomy (chromosome or plasmid) reads",
+            "Unknown taxonomy (no genomic info) reads",
+        ]
+
+        df = pd.read_csv(str(self), sep="\t")
+        header_obs = list(df.columns)
+        if not set(header_exp).issubset(set(header_obs)):
+            raise ValidationError(
+                "Header line does not match CARDReadsGeneKmerAnalysisFormat. Must "
+                "contain the following values: "
+                + ", ".join(header_exp)
+                + ".\n\nFound instead: "
+                + ", ".join(header_obs)
+            )
+
+    def _validate_(self, level):
+        self._validate()
+
+
+class CARDReadsAlleleKmerAnalysisFormat(model.TextFileFormat):
+    def _validate(self, n_records=None):
+        header_exp = [
+            "Reference Sequence",
+            "Mapped reads with kmer DB hits",
+            "CARD*kmer Prediction",
+            "Single species (chromosome) reads",
+            "Single species (chromosome or plasmid) reads",
+            "Single species (plasmid) reads",
+            "Single species (no genomic info) reads",
+            "Single genus (chromosome) reads",
+            "Single genus (chromosome or plasmid) reads",
+            "Single genus (plasmid) reads",
+            "Single genus (no genomic info) reads",
+            "Promiscuous plasmid reads",
+            "Unknown taxonomy (chromosome) reads",
+            "Unknown taxonomy (chromosome or plasmid) reads",
+            "Unknown taxonomy (no genomic info) reads",
+        ]
+
+        df = pd.read_csv(str(self), sep="\t")
+        header_obs = list(df.columns)
+        if not set(header_exp).issubset(set(header_obs)):
+            raise ValidationError(
+                "Header line does not match CARDReadsAlleleKmerAnalysisFormat. Must "
+                "contain the following values: "
+                + ", ".join(header_exp)
+                + ".\n\nFound instead: "
+                + ", ".join(header_obs)
+            )
+
+    def _validate_(self, level):
+        self._validate()
+
+
+class CARDReadsKmerAnalysisJSONFormat(model.TextFileFormat):
+    def _validate(self, n_records=None):
+        keys_exp = [
+            "reference",
+            "#_of_kmers_in_sequence",
+            "#_of_AMR_kmers",
+            "SAM_flag",
+            "MAPQ",
+            "taxonomic_info",
+            "genomic_info",
+        ]
+        with open(str(self)) as json_file:
+            json_dict = json.load(json_file)
+
+        if json_dict:
+            keys_obs = list(next(iter(json_dict.values())).keys())
+
+            if not set(keys_exp).issubset(set(keys_obs)):
+                raise ValidationError(
+                    "Keys do not match CARDReadsKmerAnalysisJSONFormat format. Must "
+                    "consist of the following values: "
+                    + ", ".join(keys_exp)
+                    + ".\n\nFound instead: "
+                    + ", ".join(keys_obs)
+                )
+
+    def _validate_(self, level):
+        self._validate()
+
+
+class CARDReadsAlleleKmerAnalysisDirectoryFormat(
+    MultiDirValidationMixin, model.DirectoryFormat
+):
+    txt = model.FileCollection(
+        r".+\d+mer_analysis\.allele\.txt$", format=CARDReadsAlleleKmerAnalysisFormat
+    )
+    json = model.FileCollection(
+        r".+\d+mer_analysis\.json$", format=CARDReadsKmerAnalysisJSONFormat
+    )
+
+    @txt.set_path_maker
+    def txt_path_maker(self, sample_id):
+        pattern = r"\d+mer_analysis\.allele\.txt$"
+        return f"{sample_id}/{pattern}"
+
+    @json.set_path_maker
+    def json_path_maker(self, sample_id):
+        pattern = r"\d+mer_analysis\.json$"
+        return f"{sample_id}/{pattern}"
+
+
+class CARDReadsGeneKmerAnalysisDirectoryFormat(
+    MultiDirValidationMixin, model.DirectoryFormat
+):
+    txt = model.FileCollection(
+        r".+\d+mer_analysis\.gene\.txt$", format=CARDReadsGeneKmerAnalysisFormat
+    )
+
+    @txt.set_path_maker
+    def txt_path_maker(self, sample_id):
+        pattern = r"\d+mer_analysis\.gene\.txt$"
+        return f"{sample_id}/{pattern}"
