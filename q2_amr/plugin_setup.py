@@ -7,7 +7,7 @@
 # ----------------------------------------------------------------------------
 import importlib
 
-from q2_types.feature_table import FeatureTable, Frequency
+from q2_types.feature_table import FeatureTable, Frequency, PresenceAbsence
 from q2_types.per_sample_sequences import (
     PairedEndSequencesWithQuality,
     SequencesWithQuality,
@@ -42,15 +42,12 @@ from q2_amr.types._format import (
     CARDKmerTXTFormat,
     CARDWildcardIndexFormat,
     GapDNAFASTAFormat,
-    GeneLengthDirectoryFormat,
-    GeneLengthFormat,
 )
 from q2_amr.types._type import (
     CARDAlleleAnnotation,
     CARDAnnotation,
     CARDGeneAnnotation,
     CARDKmerDatabase,
-    GeneLength,
 )
 
 citations = Citations.load("citations.bib", package="q2_amr")
@@ -98,7 +95,7 @@ plugin.methods.register_function(
     },
     outputs=[
         ("amr_annotations", SampleData[CARDAnnotation]),
-        ("feature_table", FeatureTable[Frequency]),
+        ("feature_table", FeatureTable[PresenceAbsence]),
     ],
     input_descriptions={
         "mag": "MAGs to be annotated with CARD.",
@@ -115,7 +112,7 @@ plugin.methods.register_function(
     },
     output_descriptions={
         "amr_annotations": "AMR annotation as .txt and .json file.",
-        "feature_table": "Frequency table of ARGs in all samples.",
+        "feature_table": "Presence and absence table of ARGs in all samples.",
     },
     name="Annotate MAGs with antimicrobial resistance genes from CARD.",
     description="Annotate MAGs with antimicrobial resistance genes from CARD.",
@@ -280,9 +277,6 @@ plugin.register_semantic_type_to_format(
 plugin.register_semantic_type_to_format(
     SampleData[CARDGeneAnnotation], artifact_format=CARDGeneAnnotationDirectoryFormat
 )
-plugin.register_semantic_type_to_format(
-    GeneLength, artifact_format=GeneLengthDirectoryFormat
-)
 
 plugin.register_formats(
     CARDKmerDatabaseDirectoryFormat,
@@ -300,8 +294,6 @@ plugin.register_formats(
     CARDAnnotationStatsFormat,
     CARDAlleleAnnotationDirectoryFormat,
     CARDGeneAnnotationDirectoryFormat,
-    GeneLengthFormat,
-    GeneLengthDirectoryFormat,
 )
 
 importlib.import_module("q2_amr.types._transformer")

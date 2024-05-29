@@ -26,7 +26,6 @@ from ._format import (
     CARDAnnotationTXTFormat,
     CARDDatabaseFormat,
     CARDGeneAnnotationDirectoryFormat,
-    GeneLengthDirectoryFormat,
 )
 
 
@@ -254,23 +253,3 @@ def tabulate_data(data_path, data_type):
     if data_type == "mags":
         df_combined.rename(columns={"ID": "HSP_Identifier"}, inplace=True)
     return qiime2.Metadata(df_combined)
-
-
-@plugin.register_transformer
-def _15(data: CARDAlleleAnnotationDirectoryFormat) -> GeneLengthDirectoryFormat:
-    len_all = pd.Series()
-    directory = GeneLengthDirectoryFormat()
-    # Iterate over samples in the specified path
-    for samp in os.listdir(data.path):
-        anno_txt = os.path.join(data.path, samp, "allele_mapping_data.txt")
-
-        # Read each DataFrame and append it to the list
-        len_sample = pd.read_csv(
-            anno_txt, sep="\t", usecols=["Reference Sequence", "Reference Length"]
-        ).set_index("Reference Sequence")["Reference Length"]
-
-        len_all = len_all.combine_first(len_sample)
-    len_all.to_csv(
-        os.path.join(directory.path, "gene_length.txt"), sep="\t", header=False
-    )
-    return directory

@@ -22,8 +22,6 @@ from ._format import (
     CARDKmerTXTFormat,
     CARDWildcardIndexFormat,
     GapDNAFASTAFormat,
-    GeneLengthDirectoryFormat,
-    GeneLengthFormat,
 )
 from ._type import (
     CARDAlleleAnnotation,
@@ -54,6 +52,4 @@ __all__ = [
     "GapDNAFASTAFormat",
     "CARDWildcardIndexFormat",
     "CARDKmerDatabase",
-    "GeneLengthDirectoryFormat",
-    "GeneLengthFormat",
 ]
