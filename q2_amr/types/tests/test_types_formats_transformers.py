@@ -19,6 +19,8 @@ from q2_types.feature_data import (
     DNAIterator,
     ProteinFASTAFormat,
     ProteinIterator,
+    SequenceCharacteristicsDirectoryFormat,
+    SequenceCharacteristicsFormat,
 )
 from q2_types.genome_data import GenesDirectoryFormat, ProteinsDirectoryFormat
 from qiime2.plugin.testing import TestPluginBase
@@ -561,3 +563,31 @@ class TestKmerTypesAndFormats(AMRTypesTestPluginBase):
         exp.index = exp.index.astype(str)
         obs = tabulate_data(self.get_data_path("card_allele_annotation"), "allele")
         self.assertEqual(qiime2.Metadata(exp), obs)
+
+    def test_card_allele_annotation_dir_format_to_gene_length_dir_format(self):
+        transformer = self.get_transformer(
+            CARDAlleleAnnotationDirectoryFormat, SequenceCharacteristicsDirectoryFormat
+        )
+        annotation = CARDAlleleAnnotationDirectoryFormat(
+            self.get_data_path("card_allele_annotation"), "r"
+        )
+        obs = transformer(annotation)
+        self.assertIsInstance(obs, SequenceCharacteristicsDirectoryFormat)
+        format = SequenceCharacteristicsFormat(
+            os.path.join(obs.path, "gene_length.tsv"), mode="r"
+        )
+        format.validate()
+
+    def test_card_gene_annotation_dir_format_to_gene_length_dir_format(self):
+        transformer = self.get_transformer(
+            CARDGeneAnnotationDirectoryFormat, SequenceCharacteristicsDirectoryFormat
+        )
+        annotation = CARDGeneAnnotationDirectoryFormat(
+            self.get_data_path("card_gene_annotation"), "r"
+        )
+        obs = transformer(annotation)
+        self.assertIsInstance(obs, SequenceCharacteristicsDirectoryFormat)
+        format = SequenceCharacteristicsFormat(
+            os.path.join(obs.path, "gene_length.tsv"), mode="r"
+        )
+        format.validate()

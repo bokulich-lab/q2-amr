@@ -13,7 +13,12 @@ import shutil
 import pandas as pd
 import qiime2
 import skbio
-from q2_types.feature_data import DNAFASTAFormat, DNAIterator, ProteinFASTAFormat
+from q2_types.feature_data import (
+    DNAFASTAFormat,
+    DNAIterator,
+    ProteinFASTAFormat,
+    SequenceCharacteristicsDirectoryFormat,
+)
 from q2_types.feature_data._transformer import ProteinIterator
 from q2_types.genome_data import GenesDirectoryFormat, ProteinsDirectoryFormat
 from skbio import DNA, Protein
@@ -287,3 +292,42 @@ def tabulate_data(data_path, data_type):
         df_combined.rename(columns={"ID": "HSP_Identifier"}, inplace=True)
 
     return qiime2.Metadata(df_combined)
+
+
+@plugin.register_transformer
+def _18(
+    data: CARDAlleleAnnotationDirectoryFormat,
+) -> SequenceCharacteristicsDirectoryFormat:
+    directory = get_gene_lengths(map_type="allele", annotations=data.path)
+    return directory
+
+
+@plugin.register_transformer
+def _19(
+    data: CARDGeneAnnotationDirectoryFormat,
+) -> SequenceCharacteristicsDirectoryFormat:
+    directory = get_gene_lengths(map_type="gene", annotations=data.path)
+    return directory
+
+
+def get_gene_lengths(map_type, annotations):
+    # Extracts gene lengths from CARDAlleleAnnotation and CARDGeneAnnotation
+    gene_name_col = "Reference Sequence" if map_type == "allele" else "ARO Term"
+    len_all = pd.Series()
+    directory_fmt = SequenceCharacteristicsDirectoryFormat()
+
+    # Iterate over samples, read in each DataFrame and append it to the series
+    for samp in os.listdir(annotations):
+        anno_txt = os.path.join(annotations, samp, f"{map_type}_mapping_data.txt")
+        cols = [gene_name_col, "Reference Length"]
+        len_sample = pd.read_csv(anno_txt, sep="\t", usecols=cols)
+        len_sample = len_sample.set_index(cols[0])[cols[1]]
+        len_all = len_all.combine_first(len_sample)
+
+    df = len_all.to_frame()
+    df.index.name = "id"
+    df.columns = ["length"]
+    df.to_csv(
+        os.path.join(directory_fmt.path, "gene_length.tsv"), sep="\t", header=True
+    )
+    return directory_fmt

@@ -5,7 +5,6 @@ import pandas as pd
 from rnanorm import CPM, CTF, CUF, FPKM, TMM, TPM, UQ
 
 from q2_amr.card.utils import InvalidParameterCombinationError
-from q2_amr.types import GeneLengthDirectoryFormat
 
 
 def normalize(
@@ -13,7 +12,7 @@ def normalize(
     method: str,
     m_trim: float = 0.3,
     a_trim: float = 0.05,
-    gene_length: GeneLengthDirectoryFormat = None,
+    gene_length: pd.DataFrame = None,
 ) -> pd.DataFrame:
     # Create Dataframe with counts from biom.Table
     counts = pd.DataFrame(
