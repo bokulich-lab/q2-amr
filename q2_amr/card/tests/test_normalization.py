@@ -22,7 +22,7 @@ class TestNormalize(TestPluginBase):
     def test_tpm_fpkm_uq_cuf_with_invalid_m_a_trim(self):
         # Test Error raised if gene-length is given with TMM method
         expected_message = (
-            "Parameters m-trim and a-trim can only be used with methods TMM and " "CTF."
+            "Parameters m-trim and a-trim can only be used with methods TMM and CTF."
         )
         with self.assertRaises(InvalidParameterCombinationError) as cm:
             normalize(self.table, "tpm", m_trim=0.2, a_trim=0.05)

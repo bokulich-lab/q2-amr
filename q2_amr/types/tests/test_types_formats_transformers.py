@@ -574,7 +574,7 @@ class TestKmerTypesAndFormats(AMRTypesTestPluginBase):
         obs = transformer(annotation)
         self.assertIsInstance(obs, SequenceCharacteristicsDirectoryFormat)
         format = SequenceCharacteristicsFormat(
-            os.path.join(obs.path, "gene_length.tsv"), mode="r"
+            os.path.join(obs.path, "sequence_characteristics.tsv"), mode="r"
         )
         format.validate()
 
@@ -588,6 +588,6 @@ class TestKmerTypesAndFormats(AMRTypesTestPluginBase):
         obs = transformer(annotation)
         self.assertIsInstance(obs, SequenceCharacteristicsDirectoryFormat)
         format = SequenceCharacteristicsFormat(
-            os.path.join(obs.path, "gene_length.tsv"), mode="r"
+            os.path.join(obs.path, "sequence_characteristics.tsv"), mode="r"
         )
         format.validate()

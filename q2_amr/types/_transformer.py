@@ -314,7 +314,7 @@ def get_gene_lengths(map_type, annotations):
     # Extracts gene lengths from CARDAlleleAnnotation and CARDGeneAnnotation
     gene_name_col = "Reference Sequence" if map_type == "allele" else "ARO Term"
     len_all = pd.Series()
-    directory_fmt = SequenceCharacteristicsDirectoryFormat()
+    dir_fmt = SequenceCharacteristicsDirectoryFormat()
 
     # Iterate over samples, read in each DataFrame and append it to the series
     for samp in os.listdir(annotations):
@@ -328,6 +328,8 @@ def get_gene_lengths(map_type, annotations):
     df.index.name = "id"
     df.columns = ["length"]
     df.to_csv(
-        os.path.join(directory_fmt.path, "gene_length.tsv"), sep="\t", header=True
+        os.path.join(dir_fmt.path, "sequence_characteristics.tsv"),
+        sep="\t",
+        header=True,
     )
-    return directory_fmt
+    return dir_fmt
