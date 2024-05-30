@@ -180,7 +180,7 @@ plugin.pipelines.register_function(
     ],
     input_descriptions={
         "reads": "Paired or single end reads.",
-        "card_db": "CARD Database",
+        "card_db": "CARD Database.",
     },
     parameter_descriptions={
         "aligner": "Specify alignment tool.",
@@ -235,7 +235,7 @@ plugin.methods.register_function(
     ],
     input_descriptions={
         "reads": "Paired or single end reads.",
-        "card_db": "CARD Database",
+        "card_db": "CARD Database.",
     },
     parameter_descriptions={
         "aligner": "Specify alignment tool.",
