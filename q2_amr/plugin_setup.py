@@ -417,7 +417,7 @@ plugin.methods.register_function(
     parameters={},
     outputs={"collated_annotations": SampleData[CARDAnnotation]},
     input_descriptions={
-        "annotations": "A collection of annotations from MAGs to be " "collated."
+        "annotations": "A collection of annotations from MAGs to be collated."
     },
     name="Collate mags annotations.",
     description="Takes a collection of SampleData[CARDAnnotation] "
@@ -528,7 +528,7 @@ plugin.methods.register_function(
         "num_partitions": "The number of partitions to split the annotations "
         "into. Defaults to partitioning into individual annotations."
     },
-    output_descriptions={"partitioned_annotations": "partitioned annotations"},
+    output_descriptions={"partitioned_annotations": "Partitioned annotations."},
     name="Partition annotations",
     description="Partition amr annotations of MAGs into a collections of individual "
     "artifacts or the number of partitions specified.",
@@ -572,7 +572,7 @@ plugin.methods.register_function(
         "num_partitions": "The number of partitions to split the annotations "
         "into. Defaults to partitioning into individual annotations."
     },
-    output_descriptions={"partitioned_annotations": "partitioned annotations"},
+    output_descriptions={"partitioned_annotations": "Partitioned annotations."},
     name="Partition annotations",
     description="Partition amr annotations of reads at allele level into a collections "
     "of individual artifacts or the number of partitions specified.",
@@ -616,7 +616,7 @@ plugin.methods.register_function(
         "num_partitions": "The number of partitions to split the annotations"
         " into. Defaults to partitioning into individual annotations."
     },
-    output_descriptions={"partitioned_annotations": "partitioned annotations"},
+    output_descriptions={"partitioned_annotations": "Partitioned annotations."},
     name="Partition annotations",
     description="Partition amr annotations of reads at gene level into a collection of"
     " individual artifacts or the number of partitions specified.",
@@ -739,7 +739,7 @@ plugin.methods.register_function(
         "num_partitions": "The number of partitions to split the annotations "
         "into. Defaults to partitioning into individual annotations."
     },
-    output_descriptions={"partitioned_annotations": "partitioned annotations"},
+    output_descriptions={"partitioned_annotations": "Partitioned annotations."},
     name="Partition annotations",
     description="Partition amr annotations of MAGs into a collections of individual "
     "artifacts or the number of partitions specified.",

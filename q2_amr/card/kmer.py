@@ -4,6 +4,7 @@ import shutil
 import subprocess
 import tempfile
 import warnings
+from pathlib import Path
 
 from q2_amr.card.utils import load_card_db, run_command
 from q2_amr.types import (
@@ -112,16 +113,16 @@ def _kmer_query_helper(card_db, kmer_db, amr_annotations, minimum, threads):
         annotation_file = "sorted.length_100.bam"
         input_type = "bwt"
 
-        reads_allele_kmer_analysis = CARDReadsAlleleKmerAnalysisDirectoryFormat()
-        reads_gene_kmer_analysis = CARDReadsGeneKmerAnalysisDirectoryFormat()
-        kmer_analysis = (reads_allele_kmer_analysis, reads_gene_kmer_analysis)
+        kmer_analysis = (
+            CARDReadsAlleleKmerAnalysisDirectoryFormat(),
+            CARDReadsGeneKmerAnalysisDirectoryFormat(),
+        )
 
     else:
         annotation_file = "amr_annotation.json"
         input_type = "rgi"
 
-        mags_kmer_analysis = CARDMAGsKmerAnalysisDirectoryFormat()
-        kmer_analysis = mags_kmer_analysis
+        kmer_analysis = CARDMAGsKmerAnalysisDirectoryFormat()
 
     with tempfile.TemporaryDirectory() as tmp:
         # Load all necessary database files and retrieve Kmer size
@@ -158,38 +159,35 @@ def _kmer_query_helper(card_db, kmer_db, amr_annotations, minimum, threads):
                         UserWarning,
                     )
 
-                # Define filenames and paths to des directories for reads or MAGs
-                # analysis
+                # Define filenames and paths to destination directories for reads or
+                # MAGs analysis
                 if type(amr_annotations) is CARDAlleleAnnotationDirectoryFormat:
                     files = (
                         f"output_{kmer_size}mer_analysis.allele.txt",
                         f"output_{kmer_size}mer_analysis.json",
                         f"output_{kmer_size}mer_analysis.gene.txt",
                     )
-                    des_dir_allele = os.path.join(
-                        str(reads_allele_kmer_analysis), path_split[-2]
-                    )
-                    des_dir_gene = os.path.join(
-                        str(reads_gene_kmer_analysis), path_split[-2]
-                    )
-                    des_dirs = [des_dir_allele, des_dir_allele, des_dir_gene]
+                    des_dirs = [
+                        kmer_analysis[0].path / path_split[-2],
+                        kmer_analysis[0].path / path_split[-2],
+                        kmer_analysis[1].path / path_split[-2],
+                    ]
 
                 else:
                     files = (
                         f"output_{kmer_size}mer_analysis_rgi_summary.txt",
                         f"output_{kmer_size}mer_analysis.json",
                     )
-                    des_dir = os.path.join(
-                        str(mags_kmer_analysis), path_split[-3], path_split[-2]
-                    )
-                    des_dirs = [des_dir, des_dir]
+                    des_dirs = [
+                        kmer_analysis.path / path_split[-3] / path_split[-2],
+                        kmer_analysis.path / path_split[-3] / path_split[-2],
+                    ]
 
                 # Copy Kmer analysis files into the destination directories and remove
                 # "output_" prefix from filenames
                 for file, des_dir in zip(files, des_dirs):
                     os.makedirs(des_dir, exist_ok=True)
-                    des_path = os.path.join(des_dir, file[7:])
-                    shutil.move(os.path.join(tmp, file), des_path)
+                    shutil.move(Path(tmp) / file, des_dir / file[7:])
 
     return kmer_analysis
 
