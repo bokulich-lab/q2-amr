@@ -7,7 +7,6 @@ from q2_types.feature_data import SequenceCharacteristicsDirectoryFormat
 from qiime2.plugin.testing import TestPluginBase
 
 from q2_amr.card.normalization import normalize
-from q2_amr.card.utils import InvalidParameterCombinationError
 
 
 class TestNormalize(TestPluginBase):
@@ -24,7 +23,7 @@ class TestNormalize(TestPluginBase):
         expected_message = (
             "Parameters m-trim and a-trim can only be used with methods TMM and CTF."
         )
-        with self.assertRaises(InvalidParameterCombinationError) as cm:
+        with self.assertRaises(ValueError) as cm:
             normalize(self.table, "tpm", m_trim=0.2, a_trim=0.05)
         self.assertEqual(str(cm.exception), expected_message)
 

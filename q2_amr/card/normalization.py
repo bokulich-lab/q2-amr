@@ -5,8 +5,6 @@ import pandas as pd
 from q2_types.feature_data import SequenceCharacteristicsDirectoryFormat
 from rnanorm import CPM, CTF, CUF, FPKM, TMM, TPM, UQ
 
-from q2_amr.card.utils import InvalidParameterCombinationError
-
 
 def normalize(
     table: biom.Table,
@@ -26,7 +24,7 @@ def normalize(
         # Raise Error if m or a-trim parameters are given with methods TPM, FPKM, UQ,
         # CPM or CUF
         if m_trim != 0.3 or a_trim != 0.05:
-            raise InvalidParameterCombinationError(
+            raise ValueError(
                 "Parameters m-trim and a-trim can only be used with methods TMM and "
                 "CTF."
             )
