@@ -22,8 +22,6 @@ conda activate q2-amr
 pip install --no-deps --force-reinstall \
   git+https://github.com/misialq/rgi.git@py38-fix \
   git+https://github.com/bokulich-lab/q2-amr.git
-
-pip install git+https://github.com/qiime2/qiime2.git
 ```
 
 Refresh cache and check that everything worked:
@@ -48,8 +46,6 @@ conda config --env --set subdir osx-64
 pip install --no-deps --force-reinstall \
   git+https://github.com/misialq/rgi.git@py38-fix \
   git+https://github.com/bokulich-lab/q2-amr.git
-
-pip install git+https://github.com/qiime2/qiime2.git
 ```
 
 Refresh cache and check that everything worked:
