@@ -49,13 +49,13 @@ def _validate_parameters(method, m_trim, a_trim, gene_length):
     # Raise Error if gene-length is given when using methods TMM, UQ, CUF, CPM or CTF
     if method in ["tmm", "uq", "cuf", "ctf", "cpm"] and gene_length:
         raise ValueError(
-            "gene-length input can only be used with FPKM and TPM " "methods."
+            "gene-length input can only be used with FPKM and TPM methods."
         )
 
     # Raise Error if m_trim or a_trim are given when not using methods TMM or CTF
     if (method not in ["tmm", "ctf"]) and (m_trim is not None or a_trim is not None):
         raise ValueError(
-            "Parameters m-trim and a-trim can only be used with methods TMM and " "CTF."
+            "Parameters m-trim and a-trim can only be used with methods TMM and CTF."
         )
 
     # Set m_trim and a_trim to their default values for methods TMM and CTF
