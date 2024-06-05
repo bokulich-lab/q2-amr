@@ -470,8 +470,8 @@ plugin.methods.register_function(
     },
     parameters={
         "method": Str % Choices(["tpm", "fpkm", "tmm", "uq", "cuf", "ctf", "cpm"]),
-        "m_trim": Float % Range(0, 1, inclusive_start=True),
-        "a_trim": Float % Range(0, 1, inclusive_start=True),
+        "m_trim": Float % Range(0, 1, inclusive_start=True, inclusive_end=True),
+        "a_trim": Float % Range(0, 1, inclusive_start=True, inclusive_end=True),
     },
     outputs=[("normalized_table", FeatureTable[Frequency])],
     input_descriptions={
@@ -485,9 +485,9 @@ plugin.methods.register_function(
         "/12/2023-Normalizing-RNA-seq-data-in-Python-with-RNAnorm.pdf for "
         "more information on the methods.",
         "m_trim": "Two sided cutoff for M-values. Can only be used for methods TMM and "
-        "CTF.",
+        "CTF. (default = 0.3)",
         "a_trim": "Two sided cutoff for A-values. Can only be used for methods TMM and "
-        "CTF.",
+        "CTF. (default = 0.05)",
     },
     output_descriptions={
         "normalized_table": "Feature table normalized with specified " "method."
