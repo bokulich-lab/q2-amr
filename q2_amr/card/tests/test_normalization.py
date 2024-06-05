@@ -26,7 +26,7 @@ class TestNormalize(TestPluginBase):
         cls.lengths.index.name = "index"
 
     def test_validate_parameters_uq_with_m_a_trim(self):
-        # Test Error raised if gene-length is given with TMM method
+        # Test Error raised if gene-length is given with UQ method
         with self.assertRaisesRegex(
             ValueError,
             "Parameters m-trim and a-trim can only "
