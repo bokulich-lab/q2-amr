@@ -7,6 +7,7 @@
 # ----------------------------------------------------------------------------
 import importlib
 
+from q2_types.feature_data import FeatureData, SequenceCharacteristics
 from q2_types.feature_table import FeatureTable, Frequency
 from q2_types.per_sample_sequences import (
     MAGs,
@@ -18,6 +19,7 @@ from qiime2.core.type import (
     Bool,
     Choices,
     Collection,
+    Float,
     Int,
     List,
     Properties,
@@ -31,6 +33,7 @@ from q2_amr import __version__
 from q2_amr.card.database import fetch_card_db
 from q2_amr.card.heatmap import heatmap
 from q2_amr.card.mags import annotate_mags_card
+from q2_amr.card.normalization import normalize
 from q2_amr.card.partition import (
     collate_mags_annotations,
     collate_mags_kmer_analyses,
@@ -457,6 +460,43 @@ plugin.methods.register_function(
     " individual artifacts or the number of partitions specified.",
 )
 
+
+plugin.methods.register_function(
+    function=normalize,
+    inputs={
+        "table": FeatureTable[Frequency],
+        "gene_length": FeatureData[SequenceCharacteristics % Properties("length")]
+        | SampleData[CARDAlleleAnnotation | CARDGeneAnnotation],
+    },
+    parameters={
+        "method": Str % Choices(["tpm", "fpkm", "tmm", "uq", "cuf", "ctf", "cpm"]),
+        "m_trim": Float % Range(0, 1, inclusive_start=True, inclusive_end=True),
+        "a_trim": Float % Range(0, 1, inclusive_start=True, inclusive_end=True),
+    },
+    outputs=[("normalized_table", FeatureTable[Frequency])],
+    input_descriptions={
+        "table": "Feature table with gene counts.",
+        "gene_length": "Gene lengths of all genes in the feature table.",
+    },
+    parameter_descriptions={
+        "method": "Specify the normalization method to be used. Use FPKM or TPM for "
+        "within comparisons and TMM, UQ, CUF or CTF for between sample "
+        "camparisons. Check https://www.genialis.com/wp-content/uploads/2023"
+        "/12/2023-Normalizing-RNA-seq-data-in-Python-with-RNAnorm.pdf for "
+        "more information on the methods.",
+        "m_trim": "Two sided cutoff for M-values. Can only be used for methods TMM and "
+        "CTF. (default = 0.3)",
+        "a_trim": "Two sided cutoff for A-values. Can only be used for methods TMM and "
+        "CTF. (default = 0.05)",
+    },
+    output_descriptions={
+        "normalized_table": "Feature table normalized with specified " "method."
+    },
+    name="Normalize FeatureTable",
+    description="Normalize FeatureTable by gene length, library size and composition "
+    "with common methods for RNA-seq.",
+    citations=[citations["Zmrzlikar_RNAnorm_RNA-seq_data_2023"]],
+)
 
 # Registrations
 plugin.register_semantic_types(

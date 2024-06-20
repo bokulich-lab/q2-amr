@@ -161,3 +161,9 @@ def copy_files(file_paths: list, *dst_path_components):
 
         # Copy file from source to destination
         duplicate(src, dst)
+
+
+class InvalidParameterCombinationError(Exception):
+    def __init__(self, message="Invalid parameter combination"):
+        self.message = message
+        super().__init__(self.message)
