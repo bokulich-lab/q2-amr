@@ -104,7 +104,6 @@ def _annotate_reads_card(
     with tempfile.TemporaryDirectory() as tmp:
         # Load CARD database files
         load_card_db(
-            tmp=tmp,
             card_db=card_db,
             fasta=True,
             include_other_models=include_other_models,
@@ -198,7 +197,6 @@ def run_rgi_bwt(
         f"{cwd}/{samp}/output",
         "-n",
         str(threads),
-        "--local",
         "--clean",
         "--aligner",
         aligner,
