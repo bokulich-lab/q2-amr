@@ -25,7 +25,6 @@ def run_command(cmd, cwd, verbose=True):
 
 
 def load_card_db(
-    tmp,
     card_db,
     kmer_db=None,
     kmer: bool = False,
@@ -36,8 +35,8 @@ def load_card_db(
     # Get path to card.json
     path_card_json = str(card_db.path / "card.json")
 
-    # Base command that only loads card.json into the local database
-    cmd = ["rgi", "load", "--card_json", path_card_json, "--local"]
+    # Base command that only loads card.json
+    cmd = ["rgi", "load", "--card_json", path_card_json]
 
     # Define suffixes for card fasta file
     models = ("_all", "_all_models") if include_other_models is True else ("", "")
@@ -86,7 +85,7 @@ def load_card_db(
 
     # Run command
     try:
-        run_command(cmd, tmp, verbose=True)
+        run_command(cmd=cmd, cwd=None, verbose=True)
     except subprocess.CalledProcessError as e:
         raise Exception(
             f"An error was encountered while running rgi, "

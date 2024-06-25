@@ -95,12 +95,11 @@ class TestAnnotateReadsCARD(TestPluginBase):
 
             expected_calls = [
                 call(
-                    [
+                    cmd=[
                         "rgi",
                         "load",
                         "--card_json",
                         os.path.join(str(card_db), "card.json"),
-                        "--local",
                         f"--card_annotation{flag}",
                         os.path.join(
                             str(card_db), f"card_database_v3.2.5{parameter}.fasta"
@@ -118,7 +117,7 @@ class TestAnnotateReadsCARD(TestPluginBase):
                         "--kmer_size",
                         "61",
                     ],
-                    "path_tmp",
+                    cwd=None,
                     verbose=True,
                 )
                 for flag, parameter in zip(flags, parameters)
