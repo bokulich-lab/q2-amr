@@ -1005,7 +1005,7 @@ plugin.methods.register_function(
         ("kmer_db", CARDKmerDatabase),
     ],
     input_descriptions={
-        "card_db": "CARD Database",
+        "card_db": "CARD database.",
     },
     parameter_descriptions={
         "kmer_size": "Length of k-mers in base pairs.",
