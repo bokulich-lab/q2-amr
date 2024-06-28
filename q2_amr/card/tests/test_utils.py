@@ -6,6 +6,10 @@ from unittest.mock import call, patch
 import pandas as pd
 from qiime2.plugin.testing import TestPluginBase
 
+from q2_amr.card.types import (
+    CARDDatabaseDirectoryFormat,
+    CARDKmerDatabaseDirectoryFormat,
+)
 from q2_amr.card.utils import (
     colorify,
     copy_files,
@@ -13,7 +17,6 @@ from q2_amr.card.utils import (
     load_card_db,
     read_in_txt,
 )
-from q2_amr.types import CARDDatabaseDirectoryFormat, CARDKmerDatabaseDirectoryFormat
 
 
 class TestAnnotateReadsCARD(TestPluginBase):

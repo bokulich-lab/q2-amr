@@ -43,14 +43,14 @@ from q2_amr.card.partition import (
     partition_reads_gene_annotations,
 )
 from q2_amr.card.reads import annotate_reads_card
-from q2_amr.types import (
+from q2_amr.card.types import (
     CARDAnnotationJSONFormat,
     CARDAnnotationTXTFormat,
     CARDDatabase,
     CARDDatabaseDirectoryFormat,
     CARDDatabaseFormat,
 )
-from q2_amr.types._format import (
+from q2_amr.card.types._format import (
     CARDAlleleAnnotationDirectoryFormat,
     CARDAlleleAnnotationFormat,
     CARDAnnotationDirectoryFormat,
@@ -71,7 +71,7 @@ from q2_amr.types._format import (
     CARDWildcardIndexFormat,
     GapDNAFASTAFormat,
 )
-from q2_amr.types._type import (
+from q2_amr.card.types._type import (
     CARDAlleleAnnotation,
     CARDAnnotation,
     CARDGeneAnnotation,
@@ -524,4 +524,4 @@ plugin.register_formats(
     CARDReadsAlleleKmerAnalysisDirectoryFormat,
 )
 
-importlib.import_module("q2_amr.types._transformer")
+importlib.import_module("q2_amr.card.types._transformer")
