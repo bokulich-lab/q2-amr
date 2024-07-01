@@ -28,6 +28,12 @@ from qiime2.core.type import (
 from qiime2.plugin import Citations, Plugin
 
 from q2_amr import __version__
+from q2_amr.amrfinderplus.types._format import (
+    AMRFinderPlusDatabaseDirectoryFormat,
+    BinaryFormat,
+    TextFormat,
+)
+from q2_amr.amrfinderplus.types._type import AMRFinderPlusDatabase
 from q2_amr.card.database import fetch_card_db
 from q2_amr.card.heatmap import heatmap
 from q2_amr.card.mags import annotate_mags_card
@@ -468,6 +474,7 @@ plugin.register_semantic_types(
     CARDReadsGeneKmerAnalysis,
     CARDReadsAlleleKmerAnalysis,
     CARDMAGsKmerAnalysis,
+    AMRFinderPlusDatabase,
 )
 
 plugin.register_semantic_type_to_format(
@@ -498,6 +505,10 @@ plugin.register_semantic_type_to_format(
     SampleData[CARDMAGsKmerAnalysis],
     artifact_format=CARDMAGsKmerAnalysisDirectoryFormat,
 )
+plugin.register_semantic_type_to_format(
+    AMRFinderPlusDatabase,
+    artifact_format=AMRFinderPlusDatabaseDirectoryFormat,
+)
 plugin.register_formats(
     CARDKmerDatabaseDirectoryFormat,
     CARDKmerJSONFormat,
@@ -522,6 +533,9 @@ plugin.register_formats(
     CARDReadsKmerAnalysisJSONFormat,
     CARDReadsGeneKmerAnalysisDirectoryFormat,
     CARDReadsAlleleKmerAnalysisDirectoryFormat,
+    AMRFinderPlusDatabaseDirectoryFormat,
+    TextFormat,
+    BinaryFormat,
 )
 
 importlib.import_module("q2_amr.card.types._transformer")
