@@ -15,6 +15,6 @@ class TestAMRFinderPlusDatabaseTypesAndFormats(TestPluginBase):
 
     def test_amrfinderplus_database_directory_format_validate_positive(self):
         format = AMRFinderPlusDatabaseDirectoryFormat(
-            "/Users/rischv/Documents/data/amrfinder/database", mode="r"
+            self.get_data_path("database"), mode="r"
         )
         format.validate()
