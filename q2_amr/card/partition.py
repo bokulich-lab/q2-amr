@@ -1,8 +1,11 @@
 import os
+import warnings
+from typing import Union
 
+import numpy as np
 from qiime2.util import duplicate
 
-from q2_amr.types import (
+from q2_amr.card.types import (
     CARDAlleleAnnotationDirectoryFormat,
     CARDAnnotationDirectoryFormat,
     CARDGeneAnnotationDirectoryFormat,
@@ -10,6 +13,7 @@ from q2_amr.types import (
     CARDReadsAlleleKmerAnalysisDirectoryFormat,
     CARDReadsGeneKmerAnalysisDirectoryFormat,
 )
+from q2_amr.card.utils import copy_files
 
 
 def collate_mags_annotations(
@@ -98,3 +102,92 @@ def _collate(partition_list):
                     duplicate(file, collated_partitions.path / sample.name / file.name)
 
     return collated_partitions
+
+
+def partition_mags_annotations(
+    annotations: CARDAnnotationDirectoryFormat, num_partitions: int = None
+) -> CARDAnnotationDirectoryFormat:
+    return _partition_annotations(annotations, num_partitions)
+
+
+def partition_reads_allele_annotations(
+    annotations: CARDAlleleAnnotationDirectoryFormat, num_partitions: int = None
+) -> CARDAlleleAnnotationDirectoryFormat:
+    return _partition_annotations(annotations, num_partitions)
+
+
+def partition_reads_gene_annotations(
+    annotations: CARDGeneAnnotationDirectoryFormat, num_partitions: int = None
+) -> CARDGeneAnnotationDirectoryFormat:
+    return _partition_annotations(annotations, num_partitions)
+
+
+def _partition_annotations(
+    annotations: Union[
+        CARDAnnotationDirectoryFormat,
+        CARDGeneAnnotationDirectoryFormat,
+        CARDAlleleAnnotationDirectoryFormat,
+    ],
+    num_partitions: int = None,
+):
+    partitioned_annotations = {}
+    annotations_all = []
+    # Add one tuples with sample ID, MAG ID and full paths to annotation files to
+    # annotations_all
+    if isinstance(annotations, CARDAnnotationDirectoryFormat):
+        for sample_id, mag in annotations.sample_dict().items():
+            for mag_id, file_paths in mag.items():
+                annotations_all.append((sample_id, mag_id, file_paths))
+
+    else:
+        for sample_id, file_paths in annotations.sample_dict().items():
+            annotations_all.append((sample_id, file_paths))
+
+    # Sort annotations_all for consistent splitting behaviour
+    annotations_all.sort()
+
+    # Retrieve the number of annotations
+    num_annotations = len(annotations_all)
+
+    # If no number of partitions is specified or the number is higher than the number
+    # of annotations, all annotations get partitioned by annotation
+    if num_partitions is None:
+        num_partitions = num_annotations
+    elif num_partitions > num_annotations:
+        warnings.warn(
+            "You have requested a number of partitions"
+            f" '{num_partitions}' that is greater than your number"
+            f" of annotations '{num_annotations}'. Your data will be"
+            f" partitioned by annotation into '{num_annotations}'"
+            " partitions."
+        )
+        num_partitions = num_annotations
+
+    # Splits annotations into the specified number of arrays
+    arrays = np.array_split(np.array(annotations_all, dtype=object), num_partitions)
+
+    for i, annotation_tuple in enumerate(arrays, 1):
+        # Creates directory with same format as input
+        partitioned_annotation = type(annotations)()
+
+        # Constructs paths to all annotation files and moves them to the new partition
+        # directories
+        if isinstance(annotations, CARDAnnotationDirectoryFormat):
+            for sample_id, mag_id, file_paths in annotation_tuple:
+                copy_files(file_paths, partitioned_annotation.path, sample_id, mag_id)
+
+        else:
+            mag_id = None
+            for sample_id, file_paths in annotation_tuple:
+                copy_files(file_paths, partitioned_annotation.path, sample_id)
+
+        # Set key for partitioned_annotations dict to mag_id or sample_id
+        partitioned_annotation_key = mag_id if mag_id else sample_id
+
+        # Add the partitioned object to the collection dict
+        if num_partitions == num_annotations:
+            partitioned_annotations[partitioned_annotation_key] = partitioned_annotation
+        else:
+            partitioned_annotations[i] = partitioned_annotation
+
+    return partitioned_annotations

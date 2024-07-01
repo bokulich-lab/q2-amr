@@ -7,7 +7,7 @@ from q2_types.per_sample_sequences import MultiMAGSequencesDirFmt
 from qiime2.plugin.testing import TestPluginBase
 
 from q2_amr.card.mags import annotate_mags_card, run_rgi_main
-from q2_amr.types import CARDAnnotationDirectoryFormat, CARDDatabaseDirectoryFormat
+from q2_amr.card.types import CARDAnnotationDirectoryFormat, CARDDatabaseDirectoryFormat
 
 
 class TestAnnotateMagsCard(TestPluginBase):
@@ -78,7 +78,6 @@ class TestAnnotateMagsCard(TestPluginBase):
                     "DIAMOND",
                     "--input_type",
                     "contig",
-                    "--local",
                     "--include_loose",
                     "--include_nudge",
                     "--low_quality",

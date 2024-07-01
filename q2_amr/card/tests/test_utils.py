@@ -6,8 +6,17 @@ from unittest.mock import call, patch
 import pandas as pd
 from qiime2.plugin.testing import TestPluginBase
 
-from q2_amr.card.utils import create_count_table, load_card_db, read_in_txt
-from q2_amr.types import CARDDatabaseDirectoryFormat, CARDKmerDatabaseDirectoryFormat
+from q2_amr.card.types import (
+    CARDDatabaseDirectoryFormat,
+    CARDKmerDatabaseDirectoryFormat,
+)
+from q2_amr.card.utils import (
+    colorify,
+    copy_files,
+    create_count_table,
+    load_card_db,
+    read_in_txt,
+)
 
 
 class TestAnnotateReadsCARD(TestPluginBase):
@@ -74,7 +83,6 @@ class TestAnnotateReadsCARD(TestPluginBase):
             # Run load_card_db two times with include_other_models set to True and False
             for parameters in [False, True]:
                 load_card_db(
-                    tmp="path_tmp",
                     card_db=card_db,
                     kmer_db=kmer_db,
                     kmer=True,
@@ -89,12 +97,11 @@ class TestAnnotateReadsCARD(TestPluginBase):
 
             expected_calls = [
                 call(
-                    [
+                    cmd=[
                         "rgi",
                         "load",
                         "--card_json",
                         os.path.join(str(card_db), "card.json"),
-                        "--local",
                         f"--card_annotation{flag}",
                         os.path.join(
                             str(card_db), f"card_database_v3.2.5{parameter}.fasta"
@@ -112,7 +119,7 @@ class TestAnnotateReadsCARD(TestPluginBase):
                         "--kmer_size",
                         "61",
                     ],
-                    "path_tmp",
+                    cwd=None,
                     verbose=True,
                 )
                 for flag, parameter in zip(flags, parameters)
@@ -191,3 +198,37 @@ class TestAnnotateReadsCARD(TestPluginBase):
     def test_create_count_table_value_error(self):
         # Assert if ValueError is called when empy list is passed
         self.assertRaises(ValueError, create_count_table, [])
+
+    def test_colorify(self):
+        # Test if colorify function correctly adds color codes
+        string = "Hello, world!"
+        colored_string = colorify(string)
+        expected_output = "\033[1;32mHello, world!\033[0m"
+        self.assertEqual(colored_string, expected_output)
+
+    def test_copy_files(self):
+        # Setup test files
+        self.tmp = self.temp_dir.name
+
+        file_path_1 = os.path.join(self.tmp, "DNA_fasta.fasta")
+        file_path_2 = os.path.join(self.tmp, "DNA_fasta_-.fasta")
+
+        shutil.copy(self.get_data_path("DNA_fasta.fasta"), self.tmp)
+        shutil.copy(self.get_data_path("DNA_fasta_-.fasta"), self.tmp)
+
+        # Call the function
+        file_paths = [file_path_1, file_path_2]
+        dst_path_components = [self.tmp, "dst_folder_1", "dst_folder_2"]
+
+        copy_files(file_paths, *dst_path_components)
+
+        # Assert if both files have been copied to the correct location
+        dst_path_1 = os.path.join(
+            self.tmp, "dst_folder_1", "dst_folder_2", "DNA_fasta.fasta"
+        )
+        dst_path_2 = os.path.join(
+            self.tmp, "dst_folder_1", "dst_folder_2", "DNA_fasta_-.fasta"
+        )
+
+        self.assertTrue(os.path.exists(dst_path_1))
+        self.assertTrue(os.path.exists(dst_path_2))

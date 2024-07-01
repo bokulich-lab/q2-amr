@@ -7,39 +7,54 @@ import tarfile
 import tempfile
 
 import requests
+from tqdm import tqdm
 
-from q2_amr.card.utils import run_command
-from q2_amr.types._format import (
+from q2_amr.card.types._format import (
     CARDDatabaseDirectoryFormat,
     CARDKmerDatabaseDirectoryFormat,
 )
+from q2_amr.card.utils import colorify, run_command
 
 
 def fetch_card_db() -> (CARDDatabaseDirectoryFormat, CARDKmerDatabaseDirectoryFormat):
-    # Fetch CARD and WildCARD data from CARD website
-    try:
-        response_card = requests.get(
-            "https://card.mcmaster.ca/latest/data", stream=True
-        )
-        response_wildcard = requests.get(
-            "https://card.mcmaster.ca/latest/variants", stream=True
-        )
-    except requests.ConnectionError as e:
-        raise requests.ConnectionError("Network connectivity problems.") from e
-
-    # Create temporary directory for WildCARD data
     with tempfile.TemporaryDirectory() as tmp_dir:
+        try:
+            card_tar_path = os.path.join(tmp_dir, "card_tar")
+            wildcard_tar_path = os.path.join(tmp_dir, "wildcard_tar")
+
+            # Download CARD and WildCARD tar database archives with progressbars
+            download_with_progress_bar(
+                url="https://card.mcmaster.ca/latest/data",
+                description="Downloading CARD database",
+                tar_path=card_tar_path,
+            )
+
+            download_with_progress_bar(
+                url="https://card.mcmaster.ca/latest/variants",
+                description="Downloading WildCARD database",
+                tar_path=wildcard_tar_path,
+            )
+
+        except requests.ConnectionError as e:
+            raise requests.ConnectionError(
+                "Unable to connect to the CARD server. Please try again later."
+            ) from e
+
+        print(colorify("Extracting database files..."), flush=True)
+
+        # Create directories to store zipped and unzipped database files
+        os.mkdir(os.path.join(tmp_dir, "card"))
+        os.mkdir(os.path.join(tmp_dir, "wildcard_zip"))
         os.mkdir(os.path.join(tmp_dir, "wildcard"))
 
         # Extract tar.bz2 archives and store files in dirs "card" and "wildcard_zip"
         try:
-            with tarfile.open(
-                fileobj=response_card.raw, mode="r|bz2"
-            ) as c_tar, tarfile.open(
-                fileobj=response_wildcard.raw, mode="r|bz2"
-            ) as wc_tar:
+            with tarfile.open(card_tar_path, mode="r:bz2") as c_tar:
                 c_tar.extractall(path=os.path.join(tmp_dir, "card"))
+
+            with tarfile.open(wildcard_tar_path, mode="r|bz2") as wc_tar:
                 wc_tar.extractall(path=os.path.join(tmp_dir, "wildcard_zip"))
+
         except tarfile.ReadError as a:
             raise tarfile.ReadError("Tarfile is invalid.") from a
 
@@ -63,12 +78,16 @@ def fetch_card_db() -> (CARDDatabaseDirectoryFormat, CARDKmerDatabaseDirectoryFo
             ) as f_out:
                 f_out.write(f_in.read())
 
+        print(colorify("Preprocessing database files..."), flush=True)
+
         # Preprocess data for CARD and WildCARD
         # This creates additional fasta files in the temp directory
         preprocess(dir=tmp_dir, operation="card")
         preprocess(dir=tmp_dir, operation="wildcard")
 
-        # Create CARD and Kmer database objects
+        print(colorify("Creating database artifacts..."), flush=True)
+
+        # Create CARD and Kmer database artifacts
         card_db = CARDDatabaseDirectoryFormat()
         kmer_db = CARDKmerDatabaseDirectoryFormat()
 
@@ -113,6 +132,28 @@ def fetch_card_db() -> (CARDDatabaseDirectoryFormat, CARDKmerDatabaseDirectoryFo
                 )
 
         return card_db, kmer_db
+
+
+def download_with_progress_bar(url, description, tar_path):
+    response = requests.get(url=url, stream=True)
+
+    # Get content length to calculate progress bar length
+    tot_size = int(response.headers.get("content-length", 0))
+
+    # Initialize CARD progress bar and download database
+    progress_bar_card = tqdm(
+        total=tot_size,
+        unit="B",
+        unit_scale=True,
+        desc=description,
+    )
+
+    with open(tar_path, "wb") as file:
+        for chunk in response.iter_content(chunk_size=8192):
+            file.write(chunk) if chunk else False
+            if tot_size > 0:
+                progress_bar_card.update(len(chunk))
+        progress_bar_card.close() if tot_size > 0 else False
 
 
 def preprocess(dir, operation):

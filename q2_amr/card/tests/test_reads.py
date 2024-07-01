@@ -10,7 +10,7 @@ from q2_types.per_sample_sequences import (
 from qiime2.plugin.testing import TestPluginBase
 
 from q2_amr.card.reads import annotate_reads_card, run_rgi_bwt
-from q2_amr.types import (
+from q2_amr.card.types import (
     CARDAlleleAnnotationDirectoryFormat,
     CARDDatabaseDirectoryFormat,
     CARDGeneAnnotationDirectoryFormat,
@@ -105,7 +105,6 @@ class TestAnnotateReadsCARD(TestPluginBase):
             # Expected call object for mock_run_rgi_load
             exp_calls_mock_load = [
                 call(
-                    tmp=tmp_dir,
                     card_db=ANY,
                     fasta=True,
                     include_other_models=False,
@@ -174,7 +173,6 @@ class TestAnnotateReadsCARD(TestPluginBase):
                     "path_tmp/sample1/output",
                     "-n",
                     "8",
-                    "--local",
                     "--clean",
                     "--aligner",
                     "bowtie2",

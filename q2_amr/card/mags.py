@@ -6,8 +6,8 @@ import tempfile
 import pandas as pd
 from q2_types.per_sample_sequences import MultiMAGSequencesDirFmt
 
+from q2_amr.card.types import CARDAnnotationDirectoryFormat, CARDDatabaseDirectoryFormat
 from q2_amr.card.utils import create_count_table, load_card_db, read_in_txt, run_command
-from q2_amr.types import CARDAnnotationDirectoryFormat, CARDDatabaseDirectoryFormat
 
 
 def annotate_mags_card(
@@ -24,7 +24,7 @@ def annotate_mags_card(
     amr_annotations = CARDAnnotationDirectoryFormat()
     frequency_list = []
     with tempfile.TemporaryDirectory() as tmp:
-        load_card_db(tmp=tmp, card_db=card_db)
+        load_card_db(card_db=card_db)
         for samp_bin in list(manifest.index):
             bin_dir = os.path.join(str(amr_annotations), samp_bin[0], samp_bin[1])
             os.makedirs(bin_dir, exist_ok=True)
@@ -79,7 +79,6 @@ def run_rgi_main(
         alignment_tool,
         "--input_type",
         "contig",
-        "--local",
     ]
     if include_loose:
         cmd.append("--include_loose")

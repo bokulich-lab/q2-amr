@@ -5,6 +5,7 @@ import subprocess
 from functools import reduce
 
 import pandas as pd
+from qiime2.util import duplicate
 
 EXTERNAL_CMD_WARNING = (
     "Running external command line application(s). "
@@ -24,7 +25,6 @@ def run_command(cmd, cwd, verbose=True):
 
 
 def load_card_db(
-    tmp,
     card_db,
     kmer_db=None,
     kmer: bool = False,
@@ -35,8 +35,8 @@ def load_card_db(
     # Get path to card.json
     path_card_json = os.path.join(str(card_db), "card.json")
 
-    # Base command that only loads card.json into the local database
-    cmd = ["rgi", "load", "--card_json", path_card_json, "--local"]
+    # Base command that only loads card.json
+    cmd = ["rgi", "load", "--card_json", path_card_json]
 
     # Define suffixes for card fasta file
     models = ("_all", "_all_models") if include_other_models is True else ("", "")
@@ -82,7 +82,7 @@ def load_card_db(
 
     # Run command
     try:
-        run_command(cmd, tmp, verbose=True)
+        run_command(cmd=cmd, cwd=None, verbose=True)
     except subprocess.CalledProcessError as e:
         raise Exception(
             f"An error was encountered while running rgi, "
@@ -134,3 +134,30 @@ def create_count_table(df_list: list) -> pd.DataFrame:
     df.columns.name = None
     df.index.name = "sample_id"
     return df
+
+
+def colorify(string: str):
+    return "%s%s%s" % ("\033[1;32m", string, "\033[0m")
+
+
+def copy_files(file_paths: list, *dst_path_components):
+    """
+    Creates a destination file path out of the *dst_path_components. Then creates
+    the directory for the destination file path if it doesn't exist already and
+    finally copies the file from source path to destination path.
+
+    Args:
+        file_paths (list): A list of source file paths to be copied.
+        *dst_path_components: Variable number of arguments representing destination
+        path components that will be joined together to form the destination file
+        path.
+    """
+    for src in file_paths:
+        # Construct destination file path with destination file path components
+        dst = os.path.join(*dst_path_components, os.path.basename(src))
+
+        # Create destination directory if it not already exists
+        os.makedirs(os.path.dirname(dst), exist_ok=True)
+
+        # Copy file from source to destination
+        duplicate(src, dst)

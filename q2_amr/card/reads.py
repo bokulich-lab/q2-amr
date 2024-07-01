@@ -10,12 +10,12 @@ from q2_types.per_sample_sequences import (
     SingleLanePerSampleSingleEndFastqDirFmt,
 )
 
-from q2_amr.card.utils import create_count_table, load_card_db, read_in_txt, run_command
-from q2_amr.types import (
+from q2_amr.card.types import (
     CARDAlleleAnnotationDirectoryFormat,
     CARDDatabaseDirectoryFormat,
     CARDGeneAnnotationDirectoryFormat,
 )
+from q2_amr.card.utils import create_count_table, load_card_db, read_in_txt, run_command
 
 
 def annotate_reads_card(
@@ -40,7 +40,6 @@ def annotate_reads_card(
     amr_gene_annotation = CARDGeneAnnotationDirectoryFormat()
     with tempfile.TemporaryDirectory() as tmp:
         load_card_db(
-            tmp=tmp,
             card_db=card_db,
             fasta=True,
             include_other_models=include_other_models,
@@ -126,7 +125,6 @@ def run_rgi_bwt(
         f"{cwd}/{samp}/output",
         "-n",
         str(threads),
-        "--local",
         "--clean",
         "--aligner",
         aligner,
