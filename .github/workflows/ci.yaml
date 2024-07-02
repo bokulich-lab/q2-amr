@@ -39,9 +39,9 @@ jobs:
         run: |
           commit_msg="${{ steps.get-commit-msg.outputs.commit-msg }}"
           if [[ "$commit_msg" == *"[stable]"* ]] || [[ "$commit_msg" == *"[prod]"* ]]; then
-              tag="${{ steps.fetch-tags.outputs.latest-stable-tag }}"
+              tag="2024.2.0"
           else
-              tag="${{ steps.fetch-tags.outputs.latest-dev-tag }}"
+              tag="2024.5.0.dev0"
           fi
           bash utilities/ci/get-dependencies.sh "$DISTRO" $tag utilities/ci/repositories.yaml
           cat environment.yml >> $GITHUB_STEP_SUMMARY
