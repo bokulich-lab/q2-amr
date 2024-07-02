@@ -75,8 +75,8 @@ jobs:
         run: mamba env update -n conda-env -f environment.yml
         if: steps.cache.outputs.cache-hit != 'true'
 
-      - name: Install dev versions of QIIME repos
-        run: mamba run -n conda-env pip install ${{ steps.create-conda-yaml.outputs.qiime-deps }}
+#      - name: Install dev versions of QIIME repos
+#        run: mamba run -n conda-env pip install ${{ steps.create-conda-yaml.outputs.qiime-deps }}
 
       - name: Update specific dependency, if requested
         if: contains(${{ steps.get-commit-msg.outputs.commit-msg }}, '[add:')
