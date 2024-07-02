@@ -8,7 +8,10 @@ import requests
 from qiime2.plugin.testing import TestPluginBase
 
 from q2_amr.card.database import download_with_progress_bar, fetch_card_db, preprocess
-from q2_amr.types import CARDDatabaseDirectoryFormat, CARDKmerDatabaseDirectoryFormat
+from q2_amr.card.types import (
+    CARDDatabaseDirectoryFormat,
+    CARDKmerDatabaseDirectoryFormat,
+)
 
 
 class TestAnnotateMagsCard(TestPluginBase):

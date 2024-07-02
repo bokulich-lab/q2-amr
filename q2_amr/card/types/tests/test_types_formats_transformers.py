@@ -24,12 +24,12 @@ from q2_types.genome_data import GenesDirectoryFormat, ProteinsDirectoryFormat
 from qiime2.plugin.testing import TestPluginBase
 from skbio import DNA, Protein
 
-from q2_amr.types import (
+from q2_amr.card.types import (
     CARDAlleleAnnotationDirectoryFormat,
     CARDDatabaseDirectoryFormat,
     CARDGeneAnnotationDirectoryFormat,
 )
-from q2_amr.types._format import (
+from q2_amr.card.types._format import (
     CARDAnnotationDirectoryFormat,
     CARDAnnotationTXTFormat,
     CARDDatabaseFormat,
@@ -47,7 +47,7 @@ from q2_amr.types._format import (
     CARDWildcardIndexFormat,
     GapDNAFASTAFormat,
 )
-from q2_amr.types._transformer import (
+from q2_amr.card.types._transformer import (
     _read_from_card_file,
     card_annotation_df_to_fasta,
     extract_sequence,
@@ -56,7 +56,7 @@ from q2_amr.types._transformer import (
 
 
 class AMRTypesTestPluginBase(TestPluginBase):
-    package = "q2_amr.types.tests"
+    package = "q2_amr.card.types.tests"
 
     def setUp(self):
         super().setUp()

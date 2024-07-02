@@ -28,6 +28,13 @@ from qiime2.core.type import (
 from qiime2.plugin import Citations, Plugin
 
 from q2_amr import __version__
+from q2_amr.amrfinderplus.database import fetch_amrfinderplus_db
+from q2_amr.amrfinderplus.types._format import (
+    AMRFinderPlusDatabaseDirectoryFormat,
+    BinaryFormat,
+    TextFormat,
+)
+from q2_amr.amrfinderplus.types._type import AMRFinderPlusDatabase
 from q2_amr.card.database import fetch_card_db
 from q2_amr.card.heatmap import heatmap
 from q2_amr.card.mags import annotate_mags_card
@@ -43,14 +50,14 @@ from q2_amr.card.partition import (
     partition_reads_gene_annotations,
 )
 from q2_amr.card.reads import annotate_reads_card
-from q2_amr.types import (
+from q2_amr.card.types import (
     CARDAnnotationJSONFormat,
     CARDAnnotationTXTFormat,
     CARDDatabase,
     CARDDatabaseDirectoryFormat,
     CARDDatabaseFormat,
 )
-from q2_amr.types._format import (
+from q2_amr.card.types._format import (
     CARDAlleleAnnotationDirectoryFormat,
     CARDAlleleAnnotationFormat,
     CARDAnnotationDirectoryFormat,
@@ -71,7 +78,7 @@ from q2_amr.types._format import (
     CARDWildcardIndexFormat,
     GapDNAFASTAFormat,
 )
-from q2_amr.types._type import (
+from q2_amr.card.types._type import (
     CARDAlleleAnnotation,
     CARDAnnotation,
     CARDGeneAnnotation,
@@ -457,6 +464,20 @@ plugin.methods.register_function(
     " individual artifacts or the number of partitions specified.",
 )
 
+plugin.methods.register_function(
+    function=fetch_amrfinderplus_db,
+    inputs={},
+    parameters={},
+    outputs=[("amrfinderplus_db", AMRFinderPlusDatabase)],
+    input_descriptions={},
+    parameter_descriptions={},
+    output_descriptions={
+        "amrfinderplus_db": "AMRFinderPlus database.",
+    },
+    name="Download AMRFinderPlus database.",
+    description="Download the latest version of the AMRFinderPlus database.",
+    citations=[citations["feldgarden2021amrfinderplus"]],
+)
 
 # Registrations
 plugin.register_semantic_types(
@@ -468,6 +489,7 @@ plugin.register_semantic_types(
     CARDReadsGeneKmerAnalysis,
     CARDReadsAlleleKmerAnalysis,
     CARDMAGsKmerAnalysis,
+    AMRFinderPlusDatabase,
 )
 
 plugin.register_semantic_type_to_format(
@@ -498,6 +520,10 @@ plugin.register_semantic_type_to_format(
     SampleData[CARDMAGsKmerAnalysis],
     artifact_format=CARDMAGsKmerAnalysisDirectoryFormat,
 )
+plugin.register_semantic_type_to_format(
+    AMRFinderPlusDatabase,
+    artifact_format=AMRFinderPlusDatabaseDirectoryFormat,
+)
 plugin.register_formats(
     CARDKmerDatabaseDirectoryFormat,
     CARDKmerJSONFormat,
@@ -522,6 +548,9 @@ plugin.register_formats(
     CARDReadsKmerAnalysisJSONFormat,
     CARDReadsGeneKmerAnalysisDirectoryFormat,
     CARDReadsAlleleKmerAnalysisDirectoryFormat,
+    AMRFinderPlusDatabaseDirectoryFormat,
+    TextFormat,
+    BinaryFormat,
 )
 
-importlib.import_module("q2_amr.types._transformer")
+importlib.import_module("q2_amr.card.types._transformer")
