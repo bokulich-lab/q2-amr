@@ -38,6 +38,9 @@ setup(
             "data/*/*/*/*",
             "data/*/*/*/*/*",
         ],
+        "q2_amr.amrfinderplus.types.tests": [
+            "data/*/*",
+        ],
     },
     zip_safe=False,
 )
