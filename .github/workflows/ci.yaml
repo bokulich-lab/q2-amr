@@ -11,7 +11,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     outputs:
-      latest-dev-tag: 2024.5.0.dev0
+      latest-dev-tag: 2024.2.0
       latest-stable-tag: 2024.2.0
       commit-msg: ${{ steps.get-commit-msg.outputs.commit-msg }}
     steps:
@@ -37,13 +37,7 @@ jobs:
       - name: Create conda yaml
         id: create-conda-yaml
         run: |
-          commit_msg="${{ steps.get-commit-msg.outputs.commit-msg }}"
-          if [[ "$commit_msg" == *"[stable]"* ]] || [[ "$commit_msg" == *"[prod]"* ]]; then
-              tag="2024.2.0"
-          else
-              tag="2024.5.0.dev0"
-          fi
-          bash utilities/ci/get-dependencies.sh "$DISTRO" $tag utilities/ci/repositories.yaml
+          bash utilities/ci/get-dependencies.sh "$DISTRO" "2024.2.0" utilities/ci/repositories.yaml
           cat environment.yml >> $GITHUB_STEP_SUMMARY
           echo "qiime-deps=$(tr '\n' ' ' < repo-urls.txt | xargs)" >> $GITHUB_OUTPUT
 
