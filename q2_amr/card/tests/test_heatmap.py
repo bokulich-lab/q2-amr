@@ -10,7 +10,7 @@ from q2_amr.card.heatmap import (
     heatmap,
     run_rgi_heatmap,
 )
-from q2_amr.types import CARDAnnotationDirectoryFormat
+from q2_amr.card.types import CARDAnnotationDirectoryFormat
 
 
 class TestHeatmap(TestPluginBase):

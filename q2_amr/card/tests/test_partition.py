@@ -13,7 +13,7 @@ from q2_amr.card.partition import (
     partition_reads_allele_annotations,
     partition_reads_gene_annotations,
 )
-from q2_amr.types import (
+from q2_amr.card.types import (
     CARDAlleleAnnotationDirectoryFormat,
     CARDAnnotationDirectoryFormat,
     CARDGeneAnnotationDirectoryFormat,
