@@ -49,7 +49,7 @@ from q2_amr.card.partition import (
     partition_reads_allele_annotations,
     partition_reads_gene_annotations,
 )
-from q2_amr.card.reads import annotate_reads_card
+from q2_amr.card.reads import _annotate_reads_card, annotate_reads_card
 from q2_amr.types import (
     CARDAnnotationJSONFormat,
     CARDAnnotationTXTFormat,
@@ -157,28 +157,73 @@ plugin.methods.register_function(
     citations=[citations["alcock_card_2023"]],
 )
 
-P_aligner, T_allele_annotation, T_gene_annotation = TypeMap(
+P_aligner, T_allele_annotation = TypeMap(
     {
+        Str % Choices("kma"): SampleData[CARDAlleleAnnotation % Properties("kma")],
         Str
-        % Choices("kma"): (
-            SampleData[CARDAlleleAnnotation % Properties("kma")],
-            SampleData[CARDGeneAnnotation % Properties("kma")],
-        ),
-        Str
-        % Choices("bowtie2"): (
-            SampleData[CARDAlleleAnnotation % Properties("bowtie2")],
-            SampleData[CARDGeneAnnotation % Properties("bowtie2")],
-        ),
-        Str
-        % Choices("bwa"): (
-            SampleData[CARDAlleleAnnotation % Properties("bwa")],
-            SampleData[CARDGeneAnnotation % Properties("bwa")],
-        ),
+        % Choices("bowtie2"): SampleData[CARDAlleleAnnotation % Properties("bowtie2")],
+        Str % Choices("bwa"): SampleData[CARDAlleleAnnotation % Properties("bwa")],
     }
 )
 
-plugin.methods.register_function(
+plugin.pipelines.register_function(
     function=annotate_reads_card,
+    inputs={
+        "reads": SampleData[PairedEndSequencesWithQuality | SequencesWithQuality],
+        "card_db": CARDDatabase,
+    },
+    parameters={
+        "aligner": P_aligner,
+        "threads": Int % Range(0, None, inclusive_start=False),
+        "include_wildcard": Bool,
+        "include_other_models": Bool,
+        "num_partitions": Int % Range(0, None, inclusive_start=False),
+    },
+    outputs=[
+        ("amr_allele_annotation", T_allele_annotation),
+        ("amr_gene_annotation", SampleData[CARDGeneAnnotation]),
+        ("allele_feature_table", FeatureTable[Frequency]),
+        ("gene_feature_table", FeatureTable[Frequency]),
+    ],
+    input_descriptions={
+        "reads": "Paired or single end reads.",
+        "card_db": "CARD Database.",
+    },
+    parameter_descriptions={
+        "aligner": "Specify alignment tool.",
+        "threads": "Number of threads (CPUs) to use.",
+        "include_wildcard": "Additionally align reads to the in silico predicted "
+        "allelic variants available in CARD's Resistomes & Variants"
+        " data set. This is highly recommended for non-clinical "
+        "samples .",
+        "include_other_models": "The default settings will align reads against "
+        "CARD's protein homolog models. With include_other_"
+        "models set to True, reads are additionally aligned to "
+        "protein variant models, rRNA mutation models, and "
+        "protein over-expression models. These three model "
+        "types require comparison to CARD's curated lists of "
+        "mutations known to confer phenotypic antibiotic "
+        "resistance to differentiate alleles conferring "
+        "resistance from antibiotic susceptible alleles, "
+        "but RGI as of yet does not perform this comparison. "
+        "Use these results with caution.",
+        "num_partitions": "Number of partitions that should run in parallel.",
+    },
+    output_descriptions={
+        "amr_allele_annotation": "AMR annotation mapped on alleles.",
+        "amr_gene_annotation": "AMR annotation mapped on genes.",
+        "allele_feature_table": "Frequency table of ARGs in all samples for allele "
+        "mapping.",
+        "gene_feature_table": "Frequency table of ARGs in all samples for gene "
+        "mapping.",
+    },
+    name="Annotate reads with antimicrobial resistance genes from CARD.",
+    description="Annotate reads with antimicrobial resistance genes from CARD.",
+    citations=[citations["alcock_card_2023"]],
+)
+
+plugin.methods.register_function(
+    function=_annotate_reads_card,
     inputs={
         "reads": SampleData[PairedEndSequencesWithQuality | SequencesWithQuality],
         "card_db": CARDDatabase,
@@ -191,13 +236,13 @@ plugin.methods.register_function(
     },
     outputs=[
         ("amr_allele_annotation", T_allele_annotation),
-        ("amr_gene_annotation", T_gene_annotation),
+        ("amr_gene_annotation", SampleData[CARDGeneAnnotation]),
         ("allele_feature_table", FeatureTable[Frequency]),
         ("gene_feature_table", FeatureTable[Frequency]),
     ],
     input_descriptions={
         "reads": "Paired or single end reads.",
-        "card_db": "CARD Database",
+        "card_db": "CARD Database.",
     },
     parameter_descriptions={
         "aligner": "Specify alignment tool.",
