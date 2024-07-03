@@ -28,14 +28,13 @@ def fetch_amrfinderplus_db() -> AMRFinderPlusDatabaseDirectoryFormat:
 def _copy_all(src_dir, des_dir):
     # Copies all files from source directory to destination directory
     for file in os.listdir(src_dir):
-        src = os.path.join(src_dir, file)
-        des = os.path.join(des_dir, file)
-        duplicate(src, des)
+        duplicate(os.path.join(src_dir, file), os.path.join(des_dir, file))
 
 
 def run_amrfinder_u():
+    # The command "amrfinder -u" downloads the latest amrfinderplus database or
+    # updates it
     cmd = ["amrfinder", "-u"]
-
     try:
         run_command(cmd, verbose=True)
     except subprocess.CalledProcessError as e:
