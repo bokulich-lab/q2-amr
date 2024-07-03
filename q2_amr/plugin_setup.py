@@ -1005,7 +1005,7 @@ plugin.methods.register_function(
         ("kmer_db", CARDKmerDatabase),
     ],
     input_descriptions={
-        "card_db": "CARD Database",
+        "card_db": "CARD database.",
     },
     parameter_descriptions={
         "kmer_size": "Length of k-mers in base pairs.",
@@ -1017,7 +1017,7 @@ plugin.methods.register_function(
         "kmer_db": "K-mer database with custom k-mer size.",
     },
     name="K-mer build",
-    description="With kmer_build_card a kmer database can be built with a custom kmer"
+    description="With kmer_build_card a kmer database can be built with a custom kmer."
     " size",
     citations=[citations["alcock_card_2023"]],
 )
