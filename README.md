@@ -65,12 +65,14 @@ sequencing reads and MAGs with antimicrobial resistance genes. Currently, the [C
 the implementation and usage, please refer to the [rgi](https://github.com/arpcard/rgi) documentation). Below you will
 find an overview of actions available in the plugin.
 
-| Action                     | Description                                                                          | Underlying tool                       | Used function                        |
-|----------------------------|--------------------------------------------------------------------------------------|---------------------------------------|--------------------------------------|
-| fetch-card-db              | Download and preprocess CARD and WildCARD data.                                      | [rgi](https://github.com/arpcard/rgi) | card_annotation, wildcard_annotation |
-| annotate-mags-card         | Annotate MAGs with antimicrobial resistance gene information from CARD.              | [rgi](https://github.com/arpcard/rgi) | main, load                           |
-| annotate-reads-card        | Annotate metagenomic reads with antimicrobial resistance gene information from CARD. | [rgi](https://github.com/arpcard/rgi) | bwt, load                            |
-| heatmap                    | Create a heatmap from annotate-mags-card output files.                               | [rgi](https://github.com/arpcard/rgi) | heatmap                              |
+| Action                | Description                                                                          | Underlying tool                       | Used function                        |
+|-----------------------|--------------------------------------------------------------------------------------|---------------------------------------|--------------------------------------|
+| fetch-card-db         | Download and preprocess CARD and WildCARD data.                                      | [rgi](https://github.com/arpcard/rgi) | card_annotation, wildcard_annotation |
+| annotate-mags-card    | Annotate MAGs with antimicrobial resistance gene information from CARD.              | [rgi](https://github.com/arpcard/rgi) | main, load                           |
+| annotate-reads-card   | Annotate metagenomic reads with antimicrobial resistance gene information from CARD. | [rgi](https://github.com/arpcard/rgi) | bwt, load                            |
+| heatmap               | Create a heatmap from annotate-mags-card output files.                               | [rgi](https://github.com/arpcard/rgi) | heatmap                              |
+| kmer-query-mags-card  | Pathogen-of-origin prediction for ARGs in MAGs.                                      | [rgi](https://github.com/arpcard/rgi) | kmer-query                           |
+| kmer-query-reads-card | Pathogen-of-origin prediction for ARGs in reads.                                     | [rgi](https://github.com/arpcard/rgi) | kmer-query                           |
 
 ## Dev environment
 This repository follows the _black_ code style. To make the development slightly easier
