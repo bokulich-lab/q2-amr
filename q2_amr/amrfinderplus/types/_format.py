@@ -5,7 +5,9 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
+import pandas as pd
 from q2_types.feature_data import MixedCaseDNAFASTAFormat, ProteinFASTAFormat
+from qiime2.core.exceptions import ValidationError
 from qiime2.plugin import model
 
 
@@ -345,3 +347,45 @@ class AMRFinderPlusDatabaseDirectoryFormat(model.DirectoryFormat):
         "AMR_DNA-Streptococcus_pneumoniae.tab", format=TextFormat
     )
     AMR_DNA_Escherichia_tab = model.File("AMR_DNA-Escherichia.tab", format=TextFormat)
+
+
+class ARMFinderPlusAnnotationFormat(model.TextFileFormat):
+    def _validate(self, n_records=None):
+        header_coordinates = [
+            "Protein identifier",
+            "Contig id",
+            "Start",
+            "Stop",
+            "Strand",
+            "Gene symbol",
+            "Sequence name",
+            "Scope",
+            "Element type",
+            "Element subtype",
+            "Class",
+            "Subclass",
+            "Method",
+            "Target length",
+            "Reference sequence length",
+            "% Coverage of reference sequence",
+            "% Identity to reference sequence",
+            "Alignment length",
+            "Accession of closest sequence",
+            "Name of closest sequence",
+            "HMM id",
+            "HMM description",
+        ]
+        header = header_coordinates[:1] + header_coordinates[5:]
+        header_obs = pd.read_csv(str(self), sep="\t", nrows=0).columns.tolist()
+        if header != header_obs and header_coordinates != header_obs:
+            raise ValidationError(
+                "Header line does not match ARMFinderPlusAnnotation format. Must "
+                "consist of the following values: "
+                + ", ".join(header_coordinates)
+                + ".\nWhile Contig id, Start, Stop and Strand are optional."
+                + ".\n\nFound instead: "
+                + ", ".join(header_obs)
+            )
+
+    def _validate_(self, level):
+        self._validate()

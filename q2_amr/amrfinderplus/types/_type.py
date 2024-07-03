@@ -8,3 +8,4 @@
 from qiime2.core.type import SemanticType
 
 AMRFinderPlusDatabase = SemanticType("AMRFinderPlusDatabase")
+ARMFinderPlusAnnotation = SemanticType("ARMFinderPlusAnnotation")

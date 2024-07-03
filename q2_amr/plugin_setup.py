@@ -30,6 +30,7 @@ from qiime2.plugin import Citations, Plugin
 from q2_amr import __version__
 from q2_amr.amrfinderplus.types._format import (
     AMRFinderPlusDatabaseDirectoryFormat,
+    ARMFinderPlusAnnotationFormat,
     BinaryFormat,
     TextFormat,
 )
@@ -1145,6 +1146,7 @@ plugin.register_formats(
     AMRFinderPlusDatabaseDirectoryFormat,
     TextFormat,
     BinaryFormat,
+    ARMFinderPlusAnnotationFormat,
 )
 
 importlib.import_module("q2_amr.card.types._transformer")
