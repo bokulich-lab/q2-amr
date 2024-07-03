@@ -80,7 +80,6 @@ class TestAnnotateReadsCARD(TestPluginBase):
             # Run load_card_db two times with include_other_models set to True and False
             for parameters in [False, True]:
                 kmer_size = load_card_db(
-                    tmp="path_tmp",
                     card_db=card_db,
                     kmer_db=kmer_db,
                     kmer=True,
