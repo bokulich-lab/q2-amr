@@ -10,8 +10,10 @@ from q2_amr.card.kmer import (
     _kmer_query_mags,
     _kmer_query_reads,
     _run_rgi_kmer_query,
+    kmer_build_card,
     kmer_query_mags_card,
     kmer_query_reads_card,
+    run_rgi_kmer_build,
 )
 from q2_amr.types import (
     CARDAlleleAnnotationDirectoryFormat,
@@ -222,3 +224,54 @@ class TestKmer(TestPluginBase):
                     "tmp", "input_file", "input_type", "kmer_size", "minimum", "threads"
                 )
             self.assertEqual(str(cm.exception), expected_message)
+
+    def test_kmer_build_card(self):
+        mock_run_rgi_kmer_build = MagicMock(side_effect=self.copy_kmer_build_files)
+        with patch(
+            "q2_amr.card.kmer.run_rgi_kmer_build", side_effect=mock_run_rgi_kmer_build
+        ), patch("q2_amr.card.kmer.load_card_db"), patch("glob.glob"):
+            card_db = CARDDatabaseDirectoryFormat()
+            result = kmer_build_card(card_db=card_db, kmer_size=32)
+
+            self.assertIsInstance(result, CARDKmerDatabaseDirectoryFormat)
+            for file in ["32_kmer_db.json", "all_amr_32mers.txt"]:
+                self.assertTrue(os.path.exists(os.path.join(str(result), file)))
+
+    def copy_kmer_build_files(
+        self, tmp, input_directory, card_fasta, kmer_size, threads, batch_size
+    ):
+        src_des_list = [
+            ("kmer_json_test.json", f"{kmer_size}_kmer_db.json"),
+            ("kmer_txt_test.txt", f"all_amr_{kmer_size}mers.txt"),
+        ]
+        for scr_file, des_file in src_des_list:
+            shutil.copy(self.get_data_path(scr_file), os.path.join(tmp, des_file))
+
+    def test_run_rgi_kmer_build(self):
+        with patch("q2_amr.card.kmer.run_command") as mock_run_command:
+            run_rgi_kmer_build(
+                tmp="path_tmp",
+                input_directory="path_directory",
+                card_fasta="path_fasta",
+                kmer_size="61",
+                threads="10",
+                batch_size="1000000",
+            )
+            mock_run_command.assert_called_once_with(
+                [
+                    "rgi",
+                    "kmer_build",
+                    "--input_directory",
+                    "path_directory",
+                    "--card",
+                    "path_fasta",
+                    "-k",
+                    "61",
+                    "--threads",
+                    "10",
+                    "--batch_size",
+                    "1000000",
+                ],
+                "path_tmp",
+                verbose=True,
+            )

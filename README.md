@@ -69,6 +69,7 @@ find an overview of actions available in the plugin.
 | heatmap               | Create a heatmap from annotate-mags-card output files.                               | [rgi](https://github.com/arpcard/rgi) | heatmap                              |
 | kmer-query-mags-card  | Pathogen-of-origin prediction for ARGs in MAGs.                                      | [rgi](https://github.com/arpcard/rgi) | kmer-query, load                     |
 | kmer-query-reads-card | Pathogen-of-origin prediction for ARGs in reads.                                     | [rgi](https://github.com/arpcard/rgi) | kmer-query, load                     |
+| kmer-build-card       | Build a kmer database with a custom kmer length.                                     | [rgi](https://github.com/arpcard/rgi) | kmer-build                           |
 
 ## Dev environment
 This repository follows the _black_ code style. To make the development slightly easier
