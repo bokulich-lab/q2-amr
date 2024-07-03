@@ -13,11 +13,11 @@ build:
 
 requirements:
   host:
-    - python {{ python }}
+    - python=3.8.*
     - setuptools
 
   run:
-    - python {{ python }}
+    - python=3.8.*
     - qiime2 {{ qiime2_epoch }}.*
     - q2-demux {{ qiime2_epoch }}.*
     - q2-feature-table {{ qiime2_epoch }}.*
