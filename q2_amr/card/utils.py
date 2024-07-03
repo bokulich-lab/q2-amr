@@ -33,7 +33,7 @@ def load_card_db(
     include_wildcard: bool = False,
 ):
     # Get path to card.json
-    path_card_json = os.path.join(str(card_db), "card.json")
+    path_card_json = str(card_db.path / "card.json")
 
     # Base command that only loads card.json
     cmd = ["rgi", "load", "--card_json", path_card_json]
@@ -67,14 +67,17 @@ def load_card_db(
             ]
         )
     # Extend base command with flag to load kmer json and txt database files
+    kmer_size = None
     if kmer:
         path_kmer_json = glob.glob(os.path.join(str(kmer_db), "*_kmer_db.json"))[0]
+        path_kmer_txt = glob.glob(os.path.join(str(kmer_db), "all_amr_*mers.txt"))[0]
+        kmer_size = os.path.basename(path_kmer_json).split("_")[0]
         cmd.extend(
             [
                 "--kmer_database",
                 path_kmer_json,
                 "--amr_kmers",
-                glob.glob(os.path.join(str(kmer_db), "all_amr_*mers.txt"))[0],
+                path_kmer_txt,
                 "--kmer_size",
                 os.path.basename(path_kmer_json).split("_")[0],
             ]
@@ -89,6 +92,7 @@ def load_card_db(
             f"(return code {e.returncode}), please inspect "
             "stdout and stderr to learn more."
         )
+    return kmer_size
 
 
 def read_in_txt(path: str, samp_bin_name: str, data_type: str, map_type=None):
