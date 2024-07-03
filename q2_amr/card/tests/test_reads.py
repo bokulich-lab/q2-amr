@@ -7,9 +7,10 @@ from q2_types.per_sample_sequences import (
     SingleLanePerSamplePairedEndFastqDirFmt,
     SingleLanePerSampleSingleEndFastqDirFmt,
 )
+from qiime2 import Artifact
 from qiime2.plugin.testing import TestPluginBase
 
-from q2_amr.card.reads import annotate_reads_card, run_rgi_bwt
+from q2_amr.card.reads import _annotate_reads_card, annotate_reads_card, run_rgi_bwt
 from q2_amr.card.types import (
     CARDAlleleAnnotationDirectoryFormat,
     CARDDatabaseDirectoryFormat,
@@ -78,8 +79,8 @@ class TestAnnotateReadsCARD(TestPluginBase):
         ), patch("q2_amr.card.reads.read_in_txt", mock_read_in_txt), patch(
             "q2_amr.card.reads.create_count_table", mock_create_count_table
         ):
-            # Run annotate_reads_card function
-            result = annotate_reads_card(reads, card_db)
+            # Run _annotate_reads_card function
+            result = _annotate_reads_card(reads, card_db)
 
             # Retrieve the path to cwd directory from mock_run_rgi_bwt arguments
             first_call_args = mock_run_rgi_bwt.call_args_list[0]
@@ -197,3 +198,50 @@ class TestAnnotateReadsCARD(TestPluginBase):
             mock_run_command.side_effect = subprocess.CalledProcessError(1, "cmd")
             run_rgi_bwt()
             self.assertEqual(str(cm.exception), expected_message)
+
+    def test_annotate_reads_card_pipeline_paired(self):
+        reads_path = self.get_data_path("reads_paired")
+        reads = SingleLanePerSamplePairedEndFastqDirFmt(reads_path, "r")
+        reads_artifact = Artifact.import_data(
+            "SampleData[PairedEndSequencesWithQuality]", reads
+        )
+        self._test_annotate_reads_card_pipeline(reads_artifact)
+
+    def test_annotate_reads_card_pipeline_single(self):
+        reads_path = self.get_data_path("reads_single")
+        reads = SingleLanePerSampleSingleEndFastqDirFmt(reads_path, "r")
+        reads_artifact = Artifact.import_data("SampleData[SequencesWithQuality]", reads)
+        self._test_annotate_reads_card_pipeline(reads_artifact)
+
+    def _test_annotate_reads_card_pipeline(self, reads):
+        # Mock the get_action method to return MagicMock objects
+        mock_ctx = MagicMock()
+        mock_ctx.get_action.side_effect = [
+            MagicMock(
+                return_value=({"1": "artifact_reads_1", "2": "artifact_reads_2"},)
+            ),
+            MagicMock(
+                return_value=(
+                    "artifact_annotation_allele",
+                    "artifact_annotation_gene",
+                    "artifact_feature_table_allele",
+                    "artifact_feature_table_gene",
+                )
+            ),
+            MagicMock(return_value=("artifact_allele_annotation_collated",)),
+            MagicMock(return_value=("artifact_gene_annotation_collated",)),
+            MagicMock(return_value=("artifact_feature_table_merged",)),
+        ]
+
+        # Call function with mocked ctx
+        result = annotate_reads_card(ctx=mock_ctx, reads=reads, card_db=None)
+
+        self.assertEqual(
+            result,
+            (
+                "artifact_allele_annotation_collated",
+                "artifact_gene_annotation_collated",
+                "artifact_feature_table_merged",
+                "artifact_feature_table_merged",
+            ),
+        )
