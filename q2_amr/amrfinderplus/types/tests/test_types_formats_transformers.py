@@ -5,12 +5,16 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
+import os
+
 from qiime2.core.exceptions import ValidationError
 from qiime2.plugin.testing import TestPluginBase
 
 from q2_amr.amrfinderplus.types._format import (
     AMRFinderPlusDatabaseDirectoryFormat,
+    ARMFinderPlusAnnotationDirFmt,
     ARMFinderPlusAnnotationFormat,
+    ARMFinderPlusAnnotationsDirFmt,
 )
 
 
@@ -24,18 +28,25 @@ class TestAMRFinderPlusTypesAndFormats(TestPluginBase):
         format.validate()
 
     def test_amrfinderplus_annotation_format_validate_positive(self):
-        filepath = self.get_data_path("annotation/amr_annotation.tsv")
+        filepath = self.get_data_path(
+            "annotation/no_coordinates/aa447c99-ecd9-4c4a-a53b-4df6999815dd"
+            "/amr_annotation.tsv"
+        )
+
         format = ARMFinderPlusAnnotationFormat(filepath, mode="r")
         format.validate()
 
     def test_amrfinderplus_annotation_format_validate_positive_coordinates(self):
-        filepath = self.get_data_path("annotation/amr_annotation_coordiantes.tsv")
+        filepath = self.get_data_path(
+            "annotation/coordinates/e026af61-d911-4de3-a957-7e8bf837f30d"
+            "/amr_annotation.tsv"
+        )
         format = ARMFinderPlusAnnotationFormat(filepath, mode="r")
         format.validate()
 
     def test_amrfinderplus_annotation_format_validation_error(self):
         with self.assertRaises(ValidationError) as context:
-            path = self.get_data_path("annotation/amr_annotation_wrong.tsv")
+            path = self.get_data_path("annotation_wrong/amr_annotation.tsv")
             format = ARMFinderPlusAnnotationFormat(path, mode="r")
             format.validate()
 
@@ -73,3 +84,40 @@ class TestAMRFinderPlusTypesAndFormats(TestPluginBase):
             )
 
             self.assertEqual(str(context.exception), expected_message)
+
+    def test_amrfinderplus_annotations_directory_format_sample_dict(self):
+        dirpath = self.get_data_path("annotation")
+        annotations = ARMFinderPlusAnnotationsDirFmt(dirpath, mode="r")
+
+        obs = annotations.sample_dict()
+
+        exp = {
+            "coordinates": {
+                "e026af61-d911-4de3-a957-7e8bf837f30d": [
+                    os.path.join(
+                        annotations.path,
+                        "coordinates",
+                        "e026af61-d911-4de3-a957-7e8bf837f30d",
+                        "amr_annotation.tsv",
+                    ),
+                ]
+            },
+            "no_coordinates": {
+                "aa447c99-ecd9-4c4a-a53b-4df6999815dd": [
+                    os.path.join(
+                        annotations.path,
+                        "no_coordinates",
+                        "aa447c99-ecd9-4c4a-a53b-4df6999815dd",
+                        "amr_annotation.tsv",
+                    ),
+                ],
+            },
+        }
+        self.assertEqual(obs, exp)
+
+    def test_amrfinderplus_annotation_directory_format(self):
+        dirpath = self.get_data_path(
+            "annotation/coordinates/e026af61-d911-4de3-a957-7e8bf837f30d"
+        )
+        annotations = ARMFinderPlusAnnotationDirFmt(dirpath, mode="r")
+        assert isinstance(annotations, ARMFinderPlusAnnotationDirFmt)

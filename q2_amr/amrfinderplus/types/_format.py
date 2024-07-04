@@ -5,8 +5,11 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
+import os
+
 import pandas as pd
 from q2_types.feature_data import MixedCaseDNAFASTAFormat, ProteinFASTAFormat
+from q2_types.per_sample_sequences._format import MultiDirValidationMixin
 from qiime2.core.exceptions import ValidationError
 from qiime2.plugin import model
 
@@ -389,3 +392,29 @@ class ARMFinderPlusAnnotationFormat(model.TextFileFormat):
 
     def _validate_(self, level):
         self._validate()
+
+
+class ARMFinderPlusAnnotationsDirFmt(MultiDirValidationMixin, model.DirectoryFormat):
+    tsv = model.FileCollection(
+        r".+amr_annotation.tsv$", format=ARMFinderPlusAnnotationFormat
+    )
+
+    @tsv.set_path_maker
+    def json_path_maker(self, sample_id, mag_id):
+        return f"{sample_id}/{mag_id}/amr_annotation.tsv$"
+
+    def sample_dict(self):
+        sample_dict = {}
+        for sample in self.path.iterdir():
+            mag_dict = {}
+            for mag in sample.iterdir():
+                mag_dict[mag.name] = [
+                    os.path.join(mag, "amr_annotation.tsv"),
+                ]
+            sample_dict[sample.name] = mag_dict
+        return sample_dict
+
+
+ARMFinderPlusAnnotationDirFmt = model.SingleFileDirectoryFormat(
+    "ARMFinderPlusAnnotationDirFmt", "amr_annotation.tsv", ARMFinderPlusAnnotationFormat
+)

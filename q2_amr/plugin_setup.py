@@ -7,6 +7,7 @@
 # ----------------------------------------------------------------------------
 import importlib
 
+from q2_types.feature_data import FeatureData
 from q2_types.feature_table import FeatureTable, Frequency
 from q2_types.per_sample_sequences import (
     MAGs,
@@ -30,11 +31,17 @@ from qiime2.plugin import Citations, Plugin
 from q2_amr import __version__
 from q2_amr.amrfinderplus.types._format import (
     AMRFinderPlusDatabaseDirectoryFormat,
+    ARMFinderPlusAnnotationDirFmt,
     ARMFinderPlusAnnotationFormat,
+    ARMFinderPlusAnnotationsDirFmt,
     BinaryFormat,
     TextFormat,
 )
-from q2_amr.amrfinderplus.types._type import AMRFinderPlusDatabase
+from q2_amr.amrfinderplus.types._type import (
+    AMRFinderPlusDatabase,
+    ARMFinderPlusAnnotation,
+    ARMFinderPlusAnnotations,
+)
 from q2_amr.card.database import fetch_card_db
 from q2_amr.card.heatmap import heatmap
 from q2_amr.card.kmer import (
@@ -1118,6 +1125,14 @@ plugin.register_semantic_type_to_format(
 plugin.register_semantic_type_to_format(
     AMRFinderPlusDatabase,
     artifact_format=AMRFinderPlusDatabaseDirectoryFormat,
+)
+plugin.register_semantic_type_to_format(
+    SampleData[ARMFinderPlusAnnotations],
+    artifact_format=ARMFinderPlusAnnotationsDirFmt,
+)
+plugin.register_semantic_type_to_format(
+    FeatureData[ARMFinderPlusAnnotation],
+    artifact_format=ARMFinderPlusAnnotationDirFmt,
 )
 plugin.register_formats(
     CARDKmerDatabaseDirectoryFormat,
