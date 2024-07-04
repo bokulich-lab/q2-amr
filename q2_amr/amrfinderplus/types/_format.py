@@ -19,6 +19,10 @@ class BinaryFormat(model.BinaryFileFormat):
         pass
 
 
+def _path_maker(name):
+    return str(name)
+
+
 class AMRFinderPlusDatabaseDirFmt(model.DirectoryFormat):
     amr_lib = model.File("AMR.LIB", format=TextFormat)
     amr_lib_comp = model.FileCollection(r"^AMR\.LIB\.h3.$", format=BinaryFormat)
@@ -42,26 +46,10 @@ class AMRFinderPlusDatabaseDirFmt(model.DirectoryFormat):
     amr_cds_comp = model.FileCollection(r"^AMR_CDS\.n..$", format=BinaryFormat)
     amr_cds = model.File("AMR_CDS", format=MixedCaseDNAFASTAFormat)
 
-    @amr_lib_comp.set_path_maker
-    def amr_lib_comp_path_maker(self):
-        return r"^AMR\.LIB\.h3.$"
+    def __init__(self, path, mode):
+        super().__init__(path, mode)
 
-    @amrprot_blast.set_path_maker
-    def amrprot_blast_path_maker(self):
-        return r"^AMRProt\.p..$"
-
-    @amr_dna.set_path_maker
-    def amr_dna_path_maker(self):
-        return r"^AMR_DNA-[a-zA-Z_]+$"
-
-    @amr_dna_comp.set_path_maker
-    def amr_dna_comp_path_maker(self):
-        return r"^AMR_DNA-[a-zA-Z_]+\.n..$"
-
-    @amr_cds_comp.set_path_maker
-    def amr_cds_comp_path_maker(self):
-        return r"^AMR_CDS\.n..$"
-
-    @amr_dna_tab.set_path_maker
-    def amr_dna_tab_path_maker(self):
-        return r"^AMR_DNA-[a-zA-Z_]+\.tab$"
+        # Overwrite path maker methods for all file collections
+        for var_name, var_value in vars(self.__class__).items():
+            if isinstance(var_value, model.FileCollection):
+                var_value.set_path_maker(_path_maker)
