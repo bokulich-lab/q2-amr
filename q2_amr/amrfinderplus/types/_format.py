@@ -24,7 +24,7 @@ class BinaryFormat(model.BinaryFileFormat):
         pass
 
 
-class AMRFinderPlusDatabaseDirectoryFormat(model.DirectoryFormat):
+class AMRFinderPlusDatabaseDirFmt(model.DirectoryFormat):
     amr_lib = model.File("AMR.LIB", format=TextFormat)
     amr_lib_comp = model.FileCollection(r"^AMR\.LIB\.h3.$", format=BinaryFormat)
     amrprot = model.File("AMRProt", format=ProteinFASTAFormat)
