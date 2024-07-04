@@ -1162,6 +1162,8 @@ plugin.register_formats(
     TextFormat,
     BinaryFormat,
     ARMFinderPlusAnnotationFormat,
+    ARMFinderPlusAnnotationsDirFmt,
+    ARMFinderPlusAnnotationDirFmt,
 )
 
 importlib.import_module("q2_amr.card.types._transformer")

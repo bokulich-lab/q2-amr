@@ -7,7 +7,9 @@
 # ----------------------------------------------------------------------------
 from q2_amr.amrfinderplus.types._format import (
     AMRFinderPlusDatabaseDirectoryFormat,
+    ARMFinderPlusAnnotationDirFmt,
     ARMFinderPlusAnnotationFormat,
+    ARMFinderPlusAnnotationsDirFmt,
     BinaryFormat,
     TextFormat,
 )
@@ -15,6 +17,8 @@ from q2_amr.amrfinderplus.types._format import (
 __all__ = [
     "AMRFinderPlusDatabaseDirectoryFormat",
     "ARMFinderPlusAnnotationFormat",
+    "ARMFinderPlusAnnotationsDirFmt",
+    "ARMFinderPlusAnnotationDirFmt",
     "TextFormat",
     "BinaryFormat",
 ]
