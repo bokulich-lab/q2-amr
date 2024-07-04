@@ -6,13 +6,13 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 from q2_amr.amrfinderplus.types._format import (
-    AMRFinderPlusDatabaseDirectoryFormat,
+    AMRFinderPlusDatabaseDirFmt,
     BinaryFormat,
     TextFormat,
 )
 
 __all__ = [
-    "AMRFinderPlusDatabaseDirectoryFormat",
+    "AMRFinderPlusDatabaseDirFmt",
     "TextFormat",
     "BinaryFormat",
 ]

@@ -30,7 +30,7 @@ from qiime2.plugin import Citations, Plugin
 from q2_amr import __version__
 from q2_amr.amrfinderplus.database import fetch_amrfinderplus_db
 from q2_amr.amrfinderplus.types._format import (
-    AMRFinderPlusDatabaseDirectoryFormat,
+    AMRFinderPlusDatabaseDirFmt,
     BinaryFormat,
     TextFormat,
 )
@@ -1131,7 +1131,7 @@ plugin.register_semantic_type_to_format(
 )
 plugin.register_semantic_type_to_format(
     AMRFinderPlusDatabase,
-    artifact_format=AMRFinderPlusDatabaseDirectoryFormat,
+    artifact_format=AMRFinderPlusDatabaseDirFmt,
 )
 plugin.register_formats(
     CARDKmerDatabaseDirectoryFormat,
@@ -1157,7 +1157,7 @@ plugin.register_formats(
     CARDReadsKmerAnalysisJSONFormat,
     CARDReadsGeneKmerAnalysisDirectoryFormat,
     CARDReadsAlleleKmerAnalysisDirectoryFormat,
-    AMRFinderPlusDatabaseDirectoryFormat,
+    AMRFinderPlusDatabaseDirFmt,
     TextFormat,
     BinaryFormat,
 )

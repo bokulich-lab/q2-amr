@@ -7,14 +7,12 @@
 # ----------------------------------------------------------------------------
 from qiime2.plugin.testing import TestPluginBase
 
-from q2_amr.amrfinderplus.types._format import AMRFinderPlusDatabaseDirectoryFormat
+from q2_amr.amrfinderplus.types._format import AMRFinderPlusDatabaseDirFmt
 
 
 class TestAMRFinderPlusDatabaseTypesAndFormats(TestPluginBase):
     package = "q2_amr.amrfinderplus.types.tests"
 
     def test_amrfinderplus_database_directory_format_validate_positive(self):
-        format = AMRFinderPlusDatabaseDirectoryFormat(
-            self.get_data_path("database"), mode="r"
-        )
+        format = AMRFinderPlusDatabaseDirFmt(self.get_data_path("database"), mode="r")
         format.validate()
