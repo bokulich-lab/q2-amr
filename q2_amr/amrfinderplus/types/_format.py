@@ -97,6 +97,7 @@ class ARMFinderPlusAnnotationFormat(model.TextFileFormat):
             "Name of closest sequence",
             "HMM id",
             "HMM description",
+            "Hierarchy node",
         ]
         header = header_coordinates[:1] + header_coordinates[5:]
         header_obs = pd.read_csv(str(self), sep="\t", nrows=0).columns.tolist()
