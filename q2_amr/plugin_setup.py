@@ -1190,8 +1190,24 @@ plugin.methods.register_function(
         "fail. Using more than 4 threads may speed up searches.",
     },
     output_descriptions={
-        "amr_annotations": "AMR annotation as .txt and .json file.",
-        "feature_table": "Frequency table of ARGs in all samples.",
+        "annotations": "AMR annotation as .txt and .json file.",
+        "mutations": "Report of genotypes at all locations screened for point "
+        "mutations. These files allow you to distinguish between called "
+        "point mutations that were the sensitive variant and the point "
+        "mutations that could not be called because the sequence was not "
+        "found. This file will contain all detected variants from the "
+        "reference sequence, so it could be used as an initial screen for "
+        "novel variants. Note 'Gene symbols' for mutations not in the "
+        "database (identifiable by [UNKNOWN] in the Sequence name field) "
+        "have offsets that are relative to the start of the sequence "
+        "indicated in the field 'Accession of closest sequence' while "
+        "'Gene symbols' from known point-mutation sites have gene symbols "
+        "that match the Pathogen Detection Reference Gene Catalog "
+        "standardized nomenclature for point mutations.",
+        "genes": "Sequences that were identified by AMRFinderPlus as AMR genes. This "
+        "will include the entire region that aligns to the references for "
+        "point mutations.",
+        "feature_table": "Presence/Absence table of ARGs in all samples.",
     },
     name="Annotate MAGs with AMRFinderPlus.",
     description="Annotate MAGs with antimicrobial resistance genes with AMRFinderPlus.",

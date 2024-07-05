@@ -22,9 +22,14 @@ def annotate_mags_amrfinderplus(
     report_all_equal: bool = False,
     ident_min: float = None,
     coverage_min: float = 0.5,
-    translation_table: int = 11,
+    translation_table: str = "11",
     threads: int = None,
-) -> (ARMFinderPlusAnnotationsDirFmt, ARMFinderPlusAnnotationsDirFmt, pd.DataFrame):
+) -> (
+    ARMFinderPlusAnnotationsDirFmt,
+    ARMFinderPlusAnnotationsDirFmt,
+    GenesDirectoryFormat,
+    pd.DataFrame,
+):
     manifest = mags.manifest.view(pd.DataFrame)
 
     annotations = ARMFinderPlusAnnotationsDirFmt()
@@ -49,6 +54,13 @@ def annotate_mags_amrfinderplus(
                 threads,
             )
 
+            frequency_df = read_in_txt(
+                path=os.path.join(tmp, "amr_annotations.tsv"),
+                samp_bin_name=str(os.path.join(samp_mag[0], samp_mag[1])),
+                data_type="mags",
+                colname="Gene symbol",
+            )
+
             for dir_format, file_name in zip(
                 [annotations, mutations, genes],
                 ["amr_annotations.tsv", "amr_mutations.tsv", str(samp_mag)[1]],
@@ -57,13 +69,6 @@ def annotate_mags_amrfinderplus(
                     des_dir = os.path.join(str(dir_format), samp_mag[0], samp_mag[1])
                     os.makedirs(des_dir, exist_ok=True)
                 shutil.move(os.path.join(tmp, file_name), des_dir)
-
-            frequency_df = read_in_txt(
-                path=os.path.join(tmp, "amr_annotations.tsv"),
-                samp_bin_name=str(os.path.join(samp_mag[0], samp_mag[1])),
-                data_type="mags",
-                colname="Gene symbol",
-            )
 
             frequency_list.append(frequency_df)
 
@@ -80,13 +85,13 @@ def run_amrfinderplus_n(
     tmp,
     amrfinderplus_db,
     input_sequence,
-    organism: str = None,
-    plus: bool = False,
-    report_all_equal: bool = False,
-    ident_min: float = None,
-    coverage_min: float = None,
-    translation_table: int = None,
-    threads: int = None,
+    organism,
+    plus,
+    report_all_equal,
+    ident_min,
+    coverage_min,
+    translation_table,
+    threads,
 ):
     cmd = [
         "amrfinder",
