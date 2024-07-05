@@ -5,8 +5,6 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
-import os
-
 import pandas as pd
 from q2_types.feature_data import MixedCaseDNAFASTAFormat, ProteinFASTAFormat
 from q2_types.per_sample_sequences._format import MultiDirValidationMixin
@@ -116,22 +114,13 @@ class ARMFinderPlusAnnotationFormat(model.TextFileFormat):
 
 
 class ARMFinderPlusAnnotationsDirFmt(MultiDirValidationMixin, model.DirectoryFormat):
-    annotation = model.FileCollection(r".+\.tsv$", format=ARMFinderPlusAnnotationFormat)
+    annotation = model.FileCollection(
+        r".+_amr_(annotations|mutations)\.tsv$", format=ARMFinderPlusAnnotationFormat
+    )
 
     @annotation.set_path_maker
     def annotation_path_maker(self, sample_id, mag_id):
-        return rf"{sample_id}/{mag_id}/.+\.tsv"
-
-    def sample_dict(self):
-        sample_dict = {}
-        for sample in self.path.iterdir():
-            mag_dict = {}
-            for mag in sample.iterdir():
-                mag_dict[mag.name] = [
-                    os.path.join(mag, "amr_annotation.tsv"),
-                ]
-            sample_dict[sample.name] = mag_dict
-        return sample_dict
+        return rf"{sample_id}/{mag_id}_amr_(annotations|mutations)\.tsv$"
 
 
 ARMFinderPlusAnnotationDirFmt = model.SingleFileDirectoryFormat(
