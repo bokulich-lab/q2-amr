@@ -52,6 +52,7 @@ def annotate_mags_amrfinderplus(
                 coverage_min,
                 translation_table,
                 threads,
+                samp_mag[1],
             )
 
             frequency_df = read_in_txt(
@@ -63,11 +64,17 @@ def annotate_mags_amrfinderplus(
 
             for dir_format, file_name in zip(
                 [annotations, mutations, genes],
-                ["amr_annotations.tsv", "amr_mutations.tsv", str(samp_mag)[1]],
+                [
+                    "amr_annotations.tsv",
+                    "amr_mutations.tsv",
+                    f"{samp_mag[1]}_amr_genes.fasta",
+                ],
             ):
                 if dir_format in [annotations, mutations]:
                     des_dir = os.path.join(str(dir_format), samp_mag[0], samp_mag[1])
                     os.makedirs(des_dir, exist_ok=True)
+                else:
+                    des_dir = str(dir_format)
                 shutil.move(os.path.join(tmp, file_name), des_dir)
 
             frequency_list.append(frequency_df)
@@ -92,6 +99,7 @@ def run_amrfinderplus_n(
     coverage_min,
     translation_table,
     threads,
+    mag_id,
 ):
     cmd = [
         "amrfinder",
@@ -102,11 +110,10 @@ def run_amrfinderplus_n(
         "-o",
         f"{tmp}/amr_annotations.tsv",
         "--print_node",
-        "--alignment_tool",
         "--nucleotide_output",
-        f"{tmp}/amr_genes.fasta",
+        f"{tmp}/{mag_id}_amr_genes.fasta",
         "--mutation_all",
-        f"{tmp}/amr_mutations.fasta",
+        f"{tmp}/amr_mutations.tsv",
     ]
     if threads:
         cmd.extend(["--threads", str(threads)])
