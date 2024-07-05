@@ -3,12 +3,12 @@ import subprocess
 
 from qiime2.util import duplicate
 
-from q2_amr.amrfinderplus.types import AMRFinderPlusDatabaseDirectoryFormat
+from q2_amr.amrfinderplus.types import AMRFinderPlusDatabaseDirFmt
 from q2_amr.card.utils import run_command
 
 
-def fetch_amrfinderplus_db() -> AMRFinderPlusDatabaseDirectoryFormat:
-    amrfinderplus_db = AMRFinderPlusDatabaseDirectoryFormat()
+def fetch_amrfinderplus_db() -> AMRFinderPlusDatabaseDirFmt:
+    amrfinderplus_db = AMRFinderPlusDatabaseDirFmt()
 
     # Run AMRFinderPlus u function that downloads the database
     run_amrfinder_u()
