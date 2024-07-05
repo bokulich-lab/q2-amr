@@ -116,13 +116,11 @@ class ARMFinderPlusAnnotationFormat(model.TextFileFormat):
 
 
 class ARMFinderPlusAnnotationsDirFmt(MultiDirValidationMixin, model.DirectoryFormat):
-    tsv = model.FileCollection(
-        r".+amr_annotation.tsv$", format=ARMFinderPlusAnnotationFormat
-    )
+    annotation = model.FileCollection(r".+\.tsv$", format=ARMFinderPlusAnnotationFormat)
 
-    @tsv.set_path_maker
-    def json_path_maker(self, sample_id, mag_id):
-        return f"{sample_id}/{mag_id}/amr_annotation.tsv$"
+    @annotation.set_path_maker
+    def annotation_path_maker(self, sample_id, mag_id):
+        return rf"{sample_id}/{mag_id}/.+\.tsv"
 
     def sample_dict(self):
         sample_dict = {}

@@ -1209,6 +1209,8 @@ plugin.register_semantic_types(
     CARDReadsAlleleKmerAnalysis,
     CARDMAGsKmerAnalysis,
     AMRFinderPlusDatabase,
+    ARMFinderPlusAnnotations,
+    ARMFinderPlusAnnotation,
 )
 
 plugin.register_semantic_type_to_format(

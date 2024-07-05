@@ -119,3 +119,8 @@ class TestAMRFinderPlusTypesAndFormats(TestPluginBase):
         )
         annotations = ARMFinderPlusAnnotationDirFmt(dirpath, mode="r")
         assert isinstance(annotations, ARMFinderPlusAnnotationDirFmt)
+
+    def test_amrfinderplus_annotations_directory_format(self):
+        dirpath = self.get_data_path("annotation")
+        annotations = ARMFinderPlusAnnotationsDirFmt(dirpath, mode="r")
+        assert isinstance(annotations, ARMFinderPlusAnnotationsDirFmt)
