@@ -46,7 +46,10 @@ def annotate_mags_card(
             shutil.move(f"{tmp}/output.json", json_path)
             samp_bin_name = os.path.join(samp_bin[0], samp_bin[1])
             frequency_df = read_in_txt(
-                path=txt_path, samp_bin_name=samp_bin_name, data_type="mags"
+                path=txt_path,
+                samp_bin_name=samp_bin_name,
+                data_type="mags",
+                colname="Best_Hit_ARO",
             )
             frequency_list.append(frequency_df)
         feature_table = create_count_table(df_list=frequency_list)

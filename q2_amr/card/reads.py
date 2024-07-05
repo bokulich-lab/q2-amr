@@ -144,11 +144,12 @@ def _annotate_reads_card(
                 path_txt = os.path.join(
                     samp_tmp_dir, f"output.{map_type}_mapping_data.txt"
                 )
+                colname = "Reference Sequence" if map_type == "allele" else "ARO Term"
                 frequency_table = read_in_txt(
                     path=path_txt,
                     samp_bin_name=samp,
                     data_type="reads",
-                    map_type=map_type,
+                    colname=colname,
                 )
                 table_list.append(frequency_table)
 
