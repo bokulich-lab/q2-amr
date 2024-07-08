@@ -1,6 +1,5 @@
 import os
 import shutil
-import subprocess
 import tempfile
 
 import pandas as pd
@@ -11,7 +10,8 @@ from q2_amr.amrfinderplus.types import (
     AMRFinderPlusDatabaseDirFmt,
     ARMFinderPlusAnnotationsDirFmt,
 )
-from q2_amr.card.utils import create_count_table, read_in_txt, run_command
+from q2_amr.amrfinderplus.utils import run_amrfinderplus_n
+from q2_amr.card.utils import create_count_table, read_in_txt
 
 
 def annotate_mags_amrfinderplus(
@@ -46,17 +46,19 @@ def annotate_mags_amrfinderplus(
             mag_id = samp_mag[1]
 
             run_amrfinderplus_n(
-                tmp,
-                amrfinderplus_db,
-                input_sequence,
-                organism,
-                plus,
-                report_all_equal,
-                ident_min,
-                coverage_min,
-                translation_table,
-                threads,
-                mag_id,
+                working_dir=tmp,
+                amrfinderplus_db=amrfinderplus_db,
+                dna_sequence=input_sequence,
+                protein_sequence=None,
+                gff=None,
+                organism=organism,
+                plus=plus,
+                report_all_equal=report_all_equal,
+                ident_min=ident_min,
+                coverage_min=coverage_min,
+                translation_table=translation_table,
+                threads=threads,
+                id=mag_id,
             )
 
             frequency_df = read_in_txt(
@@ -90,54 +92,3 @@ def annotate_mags_amrfinderplus(
         genes,
         feature_table,
     )
-
-
-def run_amrfinderplus_n(
-    tmp,
-    amrfinderplus_db,
-    input_sequence,
-    organism,
-    plus,
-    report_all_equal,
-    ident_min,
-    coverage_min,
-    translation_table,
-    threads,
-    id,
-):
-    cmd = [
-        "amrfinder",
-        "-n",
-        input_sequence,
-        "--database",
-        str(amrfinderplus_db),
-        "-o",
-        f"{tmp}/{id}_amr_annotations.tsv",
-        "--print_node",
-        "--nucleotide_output",
-        f"{tmp}/{id}_amr_genes.fasta",
-        "--mutation_all",
-        f"{tmp}/{id}_amr_mutations.tsv",
-    ]
-    if threads:
-        cmd.extend(["--threads", str(threads)])
-    if organism:
-        cmd.extend(["--organism", organism])
-    if plus:
-        cmd.append("--plus")
-    if report_all_equal:
-        cmd.append("--report_all_equal")
-    if ident_min:
-        cmd.extend(["--ident_min", str(ident_min)])
-    if coverage_min:
-        cmd.extend(["--coverage_min", str(coverage_min)])
-    if translation_table:
-        cmd.extend(["--translation_table", str(translation_table)])
-    try:
-        run_command(cmd, tmp, verbose=True)
-    except subprocess.CalledProcessError as e:
-        raise Exception(
-            "An error was encountered while running AMRFinderPlus, "
-            f"(return code {e.returncode}), please inspect "
-            "stdout and stderr to learn more."
-        )
