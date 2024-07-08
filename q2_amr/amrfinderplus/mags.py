@@ -103,7 +103,7 @@ def run_amrfinderplus_n(
     coverage_min,
     translation_table,
     threads,
-    mag_id,
+    id,
 ):
     cmd = [
         "amrfinder",
@@ -112,12 +112,12 @@ def run_amrfinderplus_n(
         "--database",
         str(amrfinderplus_db),
         "-o",
-        f"{tmp}/{mag_id}_amr_annotations.tsv",
+        f"{tmp}/{id}_amr_annotations.tsv",
         "--print_node",
         "--nucleotide_output",
-        f"{tmp}/{mag_id}_amr_genes.fasta",
+        f"{tmp}/{id}_amr_genes.fasta",
         "--mutation_all",
-        f"{tmp}/{mag_id}_amr_mutations.tsv",
+        f"{tmp}/{id}_amr_mutations.tsv",
     ]
     if threads:
         cmd.extend(["--threads", str(threads)])
