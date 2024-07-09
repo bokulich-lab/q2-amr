@@ -95,4 +95,4 @@ def annotate_sequences_amrfinderplus(
             with open(os.path.join(str(proteins), "amr_proteins.fasta"), "w"):
                 pass
 
-    return (annotations, mutations, genes, proteins)
+    return annotations, mutations, genes, proteins
