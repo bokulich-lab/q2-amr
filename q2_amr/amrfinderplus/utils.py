@@ -23,7 +23,7 @@ def run_amrfinderplus_n(
         "--database",
         str(amrfinderplus_db),
         "-o",
-        f"{working_dir}/{id}_amr_annotations.tsv",
+        f"{working_dir}/{id}amr_annotations.tsv",
         "--print_node",
     ]
     if dna_sequence:
@@ -32,7 +32,7 @@ def run_amrfinderplus_n(
                 "-n",
                 dna_sequence,
                 "--nucleotide_output",
-                f"{working_dir}/{id}_amr_genes.fasta",
+                f"{working_dir}/{id}amr_genes.fasta",
             ]
         )
     if protein_sequence:
@@ -41,7 +41,7 @@ def run_amrfinderplus_n(
                 "-p",
                 protein_sequence,
                 "--protein_output",
-                f"{working_dir}/{id}_amr_proteins.fasta",
+                f"{working_dir}/{id}amr_proteins.fasta",
             ]
         )
     if gff:
@@ -54,7 +54,7 @@ def run_amrfinderplus_n(
                 "--organism",
                 organism,
                 "--mutation_all",
-                f"{working_dir}/{id}_amr_mutations.tsv",
+                f"{working_dir}/{id}amr_mutations.tsv",
             ]
         )
     if plus:

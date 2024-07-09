@@ -58,7 +58,7 @@ def annotate_mags_amrfinderplus(
                 coverage_min=coverage_min,
                 translation_table=translation_table,
                 threads=threads,
-                id=mag_id,
+                id=mag_id + "_",
             )
 
             frequency_df = read_in_txt(
