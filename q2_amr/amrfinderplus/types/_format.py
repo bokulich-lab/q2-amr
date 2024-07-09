@@ -124,5 +124,7 @@ class ARMFinderPlusAnnotationsDirFmt(MultiDirValidationMixin, model.DirectoryFor
 
 
 ARMFinderPlusAnnotationDirFmt = model.SingleFileDirectoryFormat(
-    "ARMFinderPlusAnnotationDirFmt", "amr_annotation.tsv", ARMFinderPlusAnnotationFormat
+    "ARMFinderPlusAnnotationDirFmt",
+    r"amr_(annotations|mutations)\.tsv$",
+    ARMFinderPlusAnnotationFormat,
 )
