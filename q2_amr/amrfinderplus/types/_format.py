@@ -71,7 +71,7 @@ class AMRFinderPlusDatabaseDirFmt(model.DirectoryFormat):
 
 
 class ARMFinderPlusAnnotationFormat(model.TextFileFormat):
-    def _validate(self, n_records=None):
+    def _validate(self):
         header_coordinates = [
             "Protein identifier",
             "Contig id",
@@ -98,16 +98,19 @@ class ARMFinderPlusAnnotationFormat(model.TextFileFormat):
             "Hierarchy node",
         ]
         header = header_coordinates[:1] + header_coordinates[5:]
-        header_obs = pd.read_csv(str(self), sep="\t", nrows=0).columns.tolist()
-        if header != header_obs and header_coordinates != header_obs:
-            raise ValidationError(
-                "Header line does not match ARMFinderPlusAnnotation format. Must "
-                "consist of the following values: "
-                + ", ".join(header_coordinates)
-                + ".\nWhile Contig id, Start, Stop and Strand are optional."
-                + ".\n\nFound instead: "
-                + ", ".join(header_obs)
-            )
+        try:
+            header_obs = pd.read_csv(str(self), sep="\t", nrows=0).columns.tolist()
+            if header != header_obs and header_coordinates != header_obs:
+                raise ValidationError(
+                    "Header line does not match ARMFinderPlusAnnotation format. Must "
+                    "consist of the following values: "
+                    + ", ".join(header_coordinates)
+                    + ".\nWhile Contig id, Start, Stop and Strand are optional."
+                    + ".\n\nFound instead: "
+                    + ", ".join(header_obs)
+                )
+        except pd.errors.EmptyDataError:
+            pass
 
     def _validate_(self, level):
         self._validate()

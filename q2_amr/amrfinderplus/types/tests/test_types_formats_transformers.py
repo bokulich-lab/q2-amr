@@ -5,6 +5,9 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
+import os
+import tempfile
+
 from qiime2.core.exceptions import ValidationError
 from qiime2.plugin.testing import TestPluginBase
 
@@ -39,6 +42,14 @@ class TestAMRFinderPlusTypesAndFormats(TestPluginBase):
         )
         format = ARMFinderPlusAnnotationFormat(filepath, mode="r")
         format.validate()
+
+    def test_amrfinderplus_annotation_format_validate_positive_empty(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_file_path = os.path.join(temp_dir, "amr_annotations.tsv")
+            with open(temp_file_path, "w"):
+                pass
+            format = ARMFinderPlusAnnotationFormat(temp_file_path, mode="r")
+            format.validate()
 
     def test_amrfinderplus_annotation_format_validation_error(self):
         with self.assertRaises(ValidationError) as context:
