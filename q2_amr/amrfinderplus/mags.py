@@ -97,11 +97,7 @@ def annotate_sample_data_amrfinderplus(
                 shutil.move(mutations_path, des_dir_mutations)
             else:
                 with open(
-                    os.path.join(
-                        str(mutations),
-                        des_dir_mutations,
-                        os.path.basename(mutations_path),
-                    ),
+                    os.path.join(des_dir_mutations, os.path.basename(mutations_path)),
                     "w",
                 ):
                     pass
