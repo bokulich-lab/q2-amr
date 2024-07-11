@@ -62,7 +62,7 @@ class AMRFinderPlusDatabaseDirFmt(model.DirectoryFormat):
         return "AMR_DNA-%s.tab" % species
 
 
-class ARMFinderPlusAnnotationFormat(model.TextFileFormat):
+class AMRFinderPlusAnnotationFormat(model.TextFileFormat):
     def _validate(self):
         header_coordinates = [
             "Protein identifier",
@@ -94,11 +94,11 @@ class ARMFinderPlusAnnotationFormat(model.TextFileFormat):
             header_obs = pd.read_csv(str(self), sep="\t", nrows=0).columns.tolist()
             if header != header_obs and header_coordinates != header_obs:
                 raise ValidationError(
-                    "Header line does not match ARMFinderPlusAnnotation format. Must "
+                    "Header line does not match AMRFinderPlusAnnotationFormat. Must "
                     "consist of the following values: "
                     + ", ".join(header_coordinates)
-                    + ".\nWhile Contig id, Start, Stop and Strand are optional."
-                    + ".\n\nFound instead: "
+                    + ".\n\nWhile Contig id, Start, Stop and Strand are optional."
+                    + "\n\nFound instead: "
                     + ", ".join(header_obs)
                 )
         except pd.errors.EmptyDataError:
@@ -108,9 +108,9 @@ class ARMFinderPlusAnnotationFormat(model.TextFileFormat):
         self._validate()
 
 
-class ARMFinderPlusAnnotationsDirFmt(MultiDirValidationMixin, model.DirectoryFormat):
+class AMRFinderPlusAnnotationsDirFmt(MultiDirValidationMixin, model.DirectoryFormat):
     annotation = model.FileCollection(
-        r".+amr_(annotations|mutations)\.tsv$", format=ARMFinderPlusAnnotationFormat
+        r".*amr_(annotations|mutations)\.tsv$", format=AMRFinderPlusAnnotationFormat
     )
 
     @annotation.set_path_maker
@@ -119,8 +119,8 @@ class ARMFinderPlusAnnotationsDirFmt(MultiDirValidationMixin, model.DirectoryFor
         return f"{prefix}amr_annotations.tsv"
 
 
-ARMFinderPlusAnnotationDirFmt = model.SingleFileDirectoryFormat(
-    "ARMFinderPlusAnnotationDirFmt",
+AMRFinderPlusAnnotationDirFmt = model.SingleFileDirectoryFormat(
+    "AMRFinderPlusAnnotationDirFmt",
     r"amr_(annotations|mutations)\.tsv$",
-    ARMFinderPlusAnnotationFormat,
+    AMRFinderPlusAnnotationFormat,
 )

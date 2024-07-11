@@ -10,9 +10,9 @@ from q2_types.sample_data import SampleData
 from qiime2.core.type import SemanticType
 
 AMRFinderPlusDatabase = SemanticType("AMRFinderPlusDatabase")
-ARMFinderPlusAnnotations = SemanticType(
-    "ARMFinderPlusAnnotations", variant_of=SampleData.field["type"]
+AMRFinderPlusAnnotations = SemanticType(
+    "AMRFinderPlusAnnotations", variant_of=SampleData.field["type"]
 )
-ARMFinderPlusAnnotation = SemanticType(
-    "ARMFinderPlusAnnotation", variant_of=FeatureData.field["type"]
+AMRFinderPlusAnnotation = SemanticType(
+    "AMRFinderPlusAnnotation", variant_of=FeatureData.field["type"]
 )
