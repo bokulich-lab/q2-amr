@@ -1,4 +1,5 @@
 import os
+import re
 import subprocess
 
 from qiime2.util import duplicate
@@ -26,9 +27,13 @@ def fetch_amrfinderplus_db() -> AMRFinderPlusDatabaseDirFmt:
 
 
 def _copy_all(src_dir, des_dir):
-    # Copies all files from source directory to destination directory
+    regex = re.compile(r".*(?:AMR_CDS|changes|database_format_version).*")
+    # Loop over all files in the source directory
     for file in os.listdir(src_dir):
-        duplicate(os.path.join(src_dir, file), os.path.join(des_dir, file))
+        # Check if the filename does not match the regex pattern and copy the file
+        # from src to des. Files matching the pattern are not needed for the database.
+        if not regex.match(file):
+            duplicate(os.path.join(src_dir, file), os.path.join(des_dir, file))
 
 
 def run_amrfinder_u():
