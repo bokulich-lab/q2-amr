@@ -33,7 +33,8 @@ def run_amrfinderplus_n(
                 "-n",
                 dna_sequence,
                 "--nucleotide_output",
-                f"{working_dir}/{mag_id if mag_id else sample_id}_amr_genes.fasta",
+                f"{working_dir}/\
+                {mag_id + '_' if mag_id else sample_id + '_'}amr_genes.fasta",
             ]
         )
     if protein_sequence:
@@ -42,7 +43,7 @@ def run_amrfinderplus_n(
                 "-p",
                 protein_sequence,
                 "--protein_output",
-                f"{working_dir}/{mag_id + '_' if mag_id else ''}amr_proteins.fasta",
+                f"{working_dir}/{sample_id}_amr_proteins.fasta",
             ]
         )
     if gff:
