@@ -28,7 +28,7 @@ setup(
             "assets/rgi/annotation_stats/*",
             "assets/rgi/heatmap/*",
         ],
-        "q2_amr.types.tests": [
+        "q2_amr.card.types.tests": [
             "data/*",
             "data/*/*/*",
             "data/*/*/*/*",
@@ -38,6 +38,9 @@ setup(
             "data/*/*",
             "data/*/*/*/*",
             "data/*/*/*/*/*",
+        ],
+        "q2_amr.amrfinderplus.types.tests": [
+            "data/*/*",
         ],
     },
     zip_safe=False,

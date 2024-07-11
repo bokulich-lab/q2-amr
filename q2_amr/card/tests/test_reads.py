@@ -11,7 +11,7 @@ from qiime2 import Artifact
 from qiime2.plugin.testing import TestPluginBase
 
 from q2_amr.card.reads import _annotate_reads_card, annotate_reads_card, run_rgi_bwt
-from q2_amr.types import (
+from q2_amr.card.types import (
     CARDAlleleAnnotationDirectoryFormat,
     CARDDatabaseDirectoryFormat,
     CARDGeneAnnotationDirectoryFormat,
