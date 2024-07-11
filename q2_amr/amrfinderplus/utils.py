@@ -42,7 +42,7 @@ def run_amrfinderplus_n(
                 "-p",
                 protein_sequence,
                 "--protein_output",
-                f"{working_dir}/{sample_id}_amr_proteins.fasta",
+                f"{working_dir}/{mag_id + '_' if mag_id else ''}amr_proteins.fasta",
             ]
         )
     if gff:
