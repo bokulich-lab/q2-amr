@@ -11,6 +11,7 @@ from q2_types.feature_data import FeatureData, ProteinSequence, Sequence
 from q2_types.feature_table import FeatureTable, Frequency
 from q2_types.genome_data import Genes, GenomeData, Loci, Proteins
 from q2_types.per_sample_sequences import (
+    Contigs,
     MAGs,
     PairedEndSequencesWithQuality,
     SequencesWithQuality,
@@ -31,7 +32,7 @@ from qiime2.core.type import (
 from qiime2.plugin import Citations, Plugin
 
 from q2_amr import __version__
-from q2_amr.amrfinderplus.mags import annotate_mags_amrfinderplus
+from q2_amr.amrfinderplus.mags import annotate_sample_data_amrfinderplus
 from q2_amr.amrfinderplus.sequences import annotate_sequences_amrfinderplus
 from q2_amr.amrfinderplus.types._format import (
     AMRFinderPlusDatabaseDirFmt,
@@ -1144,8 +1145,11 @@ translation_tables = [
 ]
 
 plugin.methods.register_function(
-    function=annotate_mags_amrfinderplus,
-    inputs={"mags": SampleData[MAGs], "amrfinderplus_db": AMRFinderPlusDatabase},
+    function=annotate_sample_data_amrfinderplus,
+    inputs={
+        "sequences": SampleData[MAGs | Contigs],
+        "amrfinderplus_db": AMRFinderPlusDatabase,
+    },
     parameters={
         "organism": Str % Choices(organisms),
         "plus": Bool,
@@ -1162,7 +1166,7 @@ plugin.methods.register_function(
         ("feature_table", FeatureTable[Frequency]),
     ],
     input_descriptions={
-        "mags": "MAGs to be annotated with AMRFinderPlus.",
+        "sequences": "MAGs to be annotated with AMRFinderPlus.",
         "amrfinderplus_db": "AMRFinderPlus Database.",
     },
     parameter_descriptions={
