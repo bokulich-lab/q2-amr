@@ -30,8 +30,6 @@ class AMRFinderPlusDatabaseDirFmt(model.DirectoryFormat):
     amrprot_mutation = model.File("AMRProt-mutation.tab", format=TextFormat)
     amrprot_suppress = model.File("AMRProt-suppress", format=TextFormat)
     amrprot_susceptible = model.File("AMRProt-susceptible.tab", format=TextFormat)
-    changes = model.File("changes.txt", format=TextFormat)
-    db_version = model.File("database_format_version.txt", format=TextFormat)
     fam = model.File("fam.tab", format=TextFormat)
     taxgroup = model.File("taxgroup.tab", format=TextFormat)
     version = model.File("version.txt", format=TextFormat)
@@ -42,32 +40,26 @@ class AMRFinderPlusDatabaseDirFmt(model.DirectoryFormat):
         r"^AMR_DNA-[a-zA-Z_]+\.n..$", format=BinaryFormat
     )
     amr_dna_tab = model.FileCollection(r"^AMR_DNA-[a-zA-Z_]+\.tab$", format=TextFormat)
-    amr_cds_comp = model.FileCollection(r"^AMR_CDS\.n..$", format=BinaryFormat)
-    amr_cds = model.File("AMR_CDS", format=MixedCaseDNAFASTAFormat)
 
     @amr_lib_comp.set_path_maker
-    def amr_lib_comp_path_maker(self):
-        return r"^AMR\.LIB\.h3.$"
+    def amr_lib_comp_path_maker(self, extension):
+        return "AMR.LIB.%s" % extension
 
     @amrprot_blast.set_path_maker
-    def amrprot_blast_path_maker(self):
-        return r"^AMRProt\.p..$"
+    def amrprot_blast_path_maker(self, extension):
+        return "AMRProt.%s" % extension
 
     @amr_dna.set_path_maker
-    def amr_dna_path_maker(self):
-        return r"^AMR_DNA-[a-zA-Z_]+$"
+    def amr_dna_path_maker(self, species):
+        return "AMR_DNA-%s" % species
 
     @amr_dna_comp.set_path_maker
-    def amr_dna_comp_path_maker(self):
-        return r"^AMR_DNA-[a-zA-Z_]+\.n..$"
-
-    @amr_cds_comp.set_path_maker
-    def amr_cds_comp_path_maker(self):
-        return r"^AMR_CDS\.n..$"
+    def amr_dna_comp_path_maker(self, species, extension):
+        return "AMR_DNA-%s.%s" % species, extension
 
     @amr_dna_tab.set_path_maker
-    def amr_dna_tab_path_maker(self):
-        return r"^AMR_DNA-[a-zA-Z_]+\.tab$"
+    def amr_dna_tab_path_maker(self, species):
+        return "AMR_DNA-%s.tab" % species
 
 
 class ARMFinderPlusAnnotationFormat(model.TextFileFormat):
