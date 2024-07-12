@@ -32,7 +32,7 @@ from qiime2.core.type import (
 from qiime2.plugin import Citations, Plugin
 
 from q2_amr import __version__
-from q2_amr.amrfinderplus.mags import annotate_sample_data_amrfinderplus
+from q2_amr.amrfinderplus.sample_data import annotate_sample_data_amrfinderplus
 from q2_amr.amrfinderplus.types._format import (
     AMRFinderPlusDatabaseDirFmt,
     ARMFinderPlusAnnotationDirFmt,
@@ -1165,7 +1165,7 @@ plugin.methods.register_function(
         ("feature_table", FeatureTable[Frequency]),
     ],
     input_descriptions={
-        "sequences": "MAGs to be annotated with AMRFinderPlus.",
+        "sequences": "MAGs or contigs to be annotated with AMRFinderPlus.",
         "amrfinderplus_db": "AMRFinderPlus Database.",
     },
     parameter_descriptions={
@@ -1213,8 +1213,9 @@ plugin.methods.register_function(
         "point mutations.",
         "feature_table": "Presence/Absence table of ARGs in all samples.",
     },
-    name="Annotate MAGs with AMRFinderPlus.",
-    description="Annotate MAGs with antimicrobial resistance genes with AMRFinderPlus.",
+    name="Annotate MAGs or contigs with AMRFinderPlus.",
+    description="Annotate sample data MAGs or contigs with antimicrobial resistance "
+    "genes with AMRFinderPlus.",
     citations=[],
 )
 
