@@ -5,7 +5,10 @@
 #
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
+import pandas as pd
 from q2_types.feature_data import MixedCaseDNAFASTAFormat, ProteinFASTAFormat
+from q2_types.per_sample_sequences._format import MultiDirValidationMixin
+from qiime2.core.exceptions import ValidationError
 from qiime2.plugin import model
 
 
@@ -57,3 +60,67 @@ class AMRFinderPlusDatabaseDirFmt(model.DirectoryFormat):
     @amr_dna_tab.set_path_maker
     def amr_dna_tab_path_maker(self, species):
         return "AMR_DNA-%s.tab" % species
+
+
+class AMRFinderPlusAnnotationFormat(model.TextFileFormat):
+    def _validate(self):
+        header_coordinates = [
+            "Protein identifier",
+            "Contig id",
+            "Start",
+            "Stop",
+            "Strand",
+            "Gene symbol",
+            "Sequence name",
+            "Scope",
+            "Element type",
+            "Element subtype",
+            "Class",
+            "Subclass",
+            "Method",
+            "Target length",
+            "Reference sequence length",
+            "% Coverage of reference sequence",
+            "% Identity to reference sequence",
+            "Alignment length",
+            "Accession of closest sequence",
+            "Name of closest sequence",
+            "HMM id",
+            "HMM description",
+            "Hierarchy node",
+        ]
+        header = header_coordinates[:1] + header_coordinates[5:]
+        try:
+            header_obs = pd.read_csv(str(self), sep="\t", nrows=0).columns.tolist()
+            if header != header_obs and header_coordinates != header_obs:
+                raise ValidationError(
+                    "Header line does not match AMRFinderPlusAnnotationFormat. Must "
+                    "consist of the following values: "
+                    + ", ".join(header_coordinates)
+                    + ".\n\nWhile Contig id, Start, Stop and Strand are optional."
+                    + "\n\nFound instead: "
+                    + ", ".join(header_obs)
+                )
+        except pd.errors.EmptyDataError:
+            pass
+
+    def _validate_(self, level):
+        self._validate()
+
+
+class AMRFinderPlusAnnotationsDirFmt(MultiDirValidationMixin, model.DirectoryFormat):
+    annotation = model.FileCollection(
+        r".*amr_(annotations|mutations)\.tsv$", format=AMRFinderPlusAnnotationFormat
+    )
+
+    @annotation.set_path_maker
+    def annotation_path_maker(self, sample_id, mag_id):
+        prefix = f"{sample_id}/{mag_id}_" if mag_id else f"{sample_id}/"
+        return f"{prefix}amr_annotations.tsv"
+
+
+AMRFinderPlusAnnotationDirFmt = model.SingleFileDirectoryFormat(
+    "AMRFinderPlusAnnotationDirFmt",
+    r"amr_(annotations|mutations)\.tsv$",
+    AMRFinderPlusAnnotationFormat,
+)
