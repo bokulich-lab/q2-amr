@@ -1,5 +1,4 @@
 import os
-import shutil
 from unittest.mock import MagicMock, patch
 
 from q2_types.per_sample_sequences import ContigSequencesDirFmt, MultiMAGSequencesDirFmt
@@ -49,15 +48,15 @@ class TestAnnotateMagsCard(TestPluginBase):
     ]
 
     def test_annotate_sample_data_amrfinderplus_mags(self):
-        manifest = self.get_data_path("MANIFEST_mags")
         sequences = MultiMAGSequencesDirFmt()
-        shutil.copy(manifest, os.path.join(str(sequences), "MANIFEST"))
+        with open(os.path.join(str(sequences), "MANIFEST"), "w") as file:
+            file.write("sample-id,mag-id,filename\nsample1,mag1,sample1/mag1.fasta\n")
         self._helper(sequences=sequences, organism=None, files=self.files_mags)
 
     def test_annotate_sample_data_amrfinderplus_mags_organism(self):
-        manifest = self.get_data_path("MANIFEST_mags")
         sequences = MultiMAGSequencesDirFmt()
-        shutil.copy(manifest, os.path.join(str(sequences), "MANIFEST"))
+        with open(os.path.join(str(sequences), "MANIFEST"), "w") as file:
+            file.write("sample-id,mag-id,filename\nsample1,mag1,sample1/mag1.fasta\n")
         self._helper(sequences, "Escherichia", files=self.files_mags)
 
     def test_annotate_sample_data_amrfinderplus_contigs(self):
