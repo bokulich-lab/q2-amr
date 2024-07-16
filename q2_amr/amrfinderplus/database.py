@@ -27,7 +27,7 @@ def fetch_amrfinderplus_db() -> AMRFinderPlusDatabaseDirFmt:
 
 
 def _copy_all(src_dir, des_dir):
-    regex = re.compile(r".*(?:AMR_CDS|changes|database_format_version).*")
+    regex = re.compile(r".*(?:AMR_CDS|changes).*")
     # Loop over all files in the source directory
     for file in os.listdir(src_dir):
         # Check if the filename does not match the regex pattern and copy the file
