@@ -22,6 +22,7 @@ class TestAnnotateMagsCard(TestPluginBase):
         plus,
         report_all_equal,
         ident_min,
+        curated_ident,
         coverage_min,
         translation_table,
         threads,
