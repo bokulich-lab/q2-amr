@@ -69,6 +69,7 @@ def annotate_sample_data_amrfinderplus(
                 plus=plus,
                 report_all_equal=report_all_equal,
                 ident_min=ident_min,
+                curated_ident=curated_ident,
                 coverage_min=coverage_min,
                 translation_table=translation_table,
                 threads=threads,
