@@ -29,6 +29,7 @@ from qiime2.core.type import (
 from qiime2.plugin import Citations, Plugin
 
 from q2_amr import __version__
+from q2_amr.amrfinderplus.database import fetch_amrfinderplus_db
 from q2_amr.amrfinderplus.types._format import (
     AMRFinderPlusAnnotationDirFmt,
     AMRFinderPlusAnnotationFormat,
@@ -1079,6 +1080,20 @@ plugin.methods.register_function(
     description="With kmer_build_card a kmer database can be built with a custom kmer."
     " size",
     citations=[citations["alcock_card_2023"]],
+)
+plugin.methods.register_function(
+    function=fetch_amrfinderplus_db,
+    inputs={},
+    parameters={},
+    outputs=[("amrfinderplus_db", AMRFinderPlusDatabase)],
+    input_descriptions={},
+    parameter_descriptions={},
+    output_descriptions={
+        "amrfinderplus_db": "AMRFinderPlus database.",
+    },
+    name="Download AMRFinderPlus database.",
+    description="Download the latest version of the AMRFinderPlus database.",
+    citations=[citations["feldgarden2021amrfinderplus"]],
 )
 
 # Registrations

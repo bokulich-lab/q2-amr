@@ -17,6 +17,7 @@ requirements:
     - setuptools
 
   run:
+    - ncbi-amrfinderplus
     - python=3.8.*
     - qiime2 {{ qiime2_epoch }}.*
     - q2-demux {{ qiime2_epoch }}.*
