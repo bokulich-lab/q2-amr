@@ -13,8 +13,8 @@ from q2_types.genome_data import (
 )
 
 from q2_amr.amrfinderplus.types import (
+    AMRFinderPlusAnnotationDirFmt,
     AMRFinderPlusDatabaseDirFmt,
-    ARMFinderPlusAnnotationDirFmt,
 )
 from q2_amr.amrfinderplus.utils import run_amrfinderplus_n
 
@@ -28,18 +28,20 @@ def annotate_sequences_amrfinderplus(
     plus: bool = False,
     report_all_equal: bool = False,
     ident_min: float = None,
+    curated_ident: bool = False,
     coverage_min: float = 0.5,
     translation_table: str = "11",
     threads: int = None,
 ) -> (
-    ARMFinderPlusAnnotationDirFmt,
-    ARMFinderPlusAnnotationDirFmt,
+    AMRFinderPlusAnnotationDirFmt,
+    AMRFinderPlusAnnotationDirFmt,
     GenesDirectoryFormat,
     ProteinsDirectoryFormat,
 ):
+    # Checks for unallowed input combinations
     if dna_sequence and gff and not protein_sequence:
         raise ValueError(
-            "GFF input can only be given in combination with " "protein-sequence input."
+            "GFF input can only be given in combination with protein-sequence input."
         )
     if dna_sequence and not gff and protein_sequence:
         raise ValueError(
@@ -47,12 +49,14 @@ def annotate_sequences_amrfinderplus(
             "be given in combination with GFF input."
         )
 
-    annotations = ARMFinderPlusAnnotationDirFmt()
-    mutations = ARMFinderPlusAnnotationDirFmt()
+    # Create all output directory formats
+    annotations = AMRFinderPlusAnnotationDirFmt()
+    mutations = AMRFinderPlusAnnotationDirFmt()
     genes = GenesDirectoryFormat()
     proteins = ProteinsDirectoryFormat()
 
     with tempfile.TemporaryDirectory() as tmp:
+        # Run amrfinderplus function
         run_amrfinderplus_n(
             working_dir=tmp,
             amrfinderplus_db=amrfinderplus_db,
@@ -69,14 +73,18 @@ def annotate_sequences_amrfinderplus(
             plus=plus,
             report_all_equal=report_all_equal,
             ident_min=ident_min,
+            curated_ident=curated_ident,
             coverage_min=coverage_min,
             translation_table=translation_table,
             threads=threads,
-            id="",
         )
 
+        # Move annotations file from tmp dir to the output directory format
         shutil.move(os.path.join(tmp, "amr_annotations.tsv"), str(annotations))
 
+        # Move mutations, genes and proteins files from tmp dir to the output
+        # directory format, if organism, dna_sequence and protein_sequence parameters
+        # are specified. Else create empty placeholder files.
         if organism:
             shutil.move(os.path.join(tmp, "amr_mutations.tsv"), str(mutations))
         else:
