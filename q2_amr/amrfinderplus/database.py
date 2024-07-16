@@ -11,7 +11,7 @@ from q2_amr.card.utils import run_command
 def fetch_amrfinderplus_db() -> AMRFinderPlusDatabaseDirFmt:
     amrfinderplus_db = AMRFinderPlusDatabaseDirFmt()
 
-    # Run AMRFinderPlus u function that downloads the database
+    # Run "amrfinder -u" command that downloads the database
     run_amrfinder_u()
 
     # Define path where the database will be downloaded to
