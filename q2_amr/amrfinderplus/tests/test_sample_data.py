@@ -8,7 +8,7 @@ from q2_amr.amrfinderplus.sample_data import annotate_sample_data_amrfinderplus
 from q2_amr.amrfinderplus.types import AMRFinderPlusDatabaseDirFmt
 
 
-class TestAnnotateMagsCard(TestPluginBase):
+class TestAnnotateSampleDataAMRFinderPlus(TestPluginBase):
     package = "q2_amr.amrfinderplus.tests"
 
     def mock_run_amrfinderplus_n(
