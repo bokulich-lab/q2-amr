@@ -12,10 +12,10 @@ from qiime2.core.exceptions import ValidationError
 from qiime2.plugin.testing import TestPluginBase
 
 from q2_amr.amrfinderplus.types._format import (
+    AMRFinderPlusAnnotationDirFmt,
+    AMRFinderPlusAnnotationFormat,
+    AMRFinderPlusAnnotationsDirFmt,
     AMRFinderPlusDatabaseDirFmt,
-    ARMFinderPlusAnnotationDirFmt,
-    ARMFinderPlusAnnotationFormat,
-    ARMFinderPlusAnnotationsDirFmt,
 )
 
 
@@ -32,7 +32,7 @@ class TestAMRFinderPlusTypesAndFormats(TestPluginBase):
             "aa447c99-ecd9-4c4a-a53b-4df6999815dd_amr_annotations.tsv"
         )
 
-        format = ARMFinderPlusAnnotationFormat(filepath, mode="r")
+        format = AMRFinderPlusAnnotationFormat(filepath, mode="r")
         format.validate()
 
     def test_amrfinderplus_annotation_format_validate_positive_coordinates(self):
@@ -40,7 +40,7 @@ class TestAMRFinderPlusTypesAndFormats(TestPluginBase):
             "annotation/coordinates/e026af61-d911-4de3-a957-7e8bf837f30d"
             "_amr_annotations.tsv"
         )
-        format = ARMFinderPlusAnnotationFormat(filepath, mode="r")
+        format = AMRFinderPlusAnnotationFormat(filepath, mode="r")
         format.validate()
 
     def test_amrfinderplus_annotation_format_validate_positive_empty(self):
@@ -48,13 +48,13 @@ class TestAMRFinderPlusTypesAndFormats(TestPluginBase):
             temp_file_path = os.path.join(temp_dir, "amr_annotations.tsv")
             with open(temp_file_path, "w"):
                 pass
-            format = ARMFinderPlusAnnotationFormat(temp_file_path, mode="r")
+            format = AMRFinderPlusAnnotationFormat(temp_file_path, mode="r")
             format.validate()
 
     def test_amrfinderplus_annotation_format_validation_error(self):
         with self.assertRaises(ValidationError) as context:
             path = self.get_data_path("annotation_wrong/amr_annotation.tsv")
-            format = ARMFinderPlusAnnotationFormat(path, mode="r")
+            format = AMRFinderPlusAnnotationFormat(path, mode="r")
             format.validate()
 
             header_coordinates = [
@@ -82,7 +82,7 @@ class TestAMRFinderPlusTypesAndFormats(TestPluginBase):
                 "HMM description",
             ]
             expected_message = (
-                "Header line does not match ARMFinderPlusAnnotation format. Must "
+                "Header line does not match AMRFinderPlusAnnotation format. Must "
                 "consist of the following values: "
                 + ", ".join(header_coordinates)
                 + ".\nWhile Contig id, Start, Stop and Strand are optional."
@@ -96,10 +96,10 @@ class TestAMRFinderPlusTypesAndFormats(TestPluginBase):
         dirpath = self.get_data_path(
             "annotation/coordinates/e026af61-d911-4de3-a957-7e8bf837f30d"
         )
-        annotations = ARMFinderPlusAnnotationDirFmt(dirpath, mode="r")
-        assert isinstance(annotations, ARMFinderPlusAnnotationDirFmt)
+        annotations = AMRFinderPlusAnnotationDirFmt(dirpath, mode="r")
+        assert isinstance(annotations, AMRFinderPlusAnnotationDirFmt)
 
     def test_amrfinderplus_annotations_directory_format(self):
         dirpath = self.get_data_path("annotation")
-        annotations = ARMFinderPlusAnnotationsDirFmt(dirpath, mode="r")
-        assert isinstance(annotations, ARMFinderPlusAnnotationsDirFmt)
+        annotations = AMRFinderPlusAnnotationsDirFmt(dirpath, mode="r")
+        assert isinstance(annotations, AMRFinderPlusAnnotationsDirFmt)

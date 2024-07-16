@@ -34,17 +34,17 @@ from qiime2.plugin import Citations, Plugin
 from q2_amr import __version__
 from q2_amr.amrfinderplus.sample_data import annotate_sample_data_amrfinderplus
 from q2_amr.amrfinderplus.types._format import (
+    AMRFinderPlusAnnotationDirFmt,
+    AMRFinderPlusAnnotationFormat,
+    AMRFinderPlusAnnotationsDirFmt,
     AMRFinderPlusDatabaseDirFmt,
-    ARMFinderPlusAnnotationDirFmt,
-    ARMFinderPlusAnnotationFormat,
-    ARMFinderPlusAnnotationsDirFmt,
     BinaryFormat,
     TextFormat,
 )
 from q2_amr.amrfinderplus.types._type import (
+    AMRFinderPlusAnnotation,
+    AMRFinderPlusAnnotations,
     AMRFinderPlusDatabase,
-    ARMFinderPlusAnnotation,
-    ARMFinderPlusAnnotations,
 )
 from q2_amr.card.database import fetch_card_db
 from q2_amr.card.heatmap import heatmap
@@ -1159,8 +1159,8 @@ plugin.methods.register_function(
         "threads": Int % Range(0, None, inclusive_start=False),
     },
     outputs=[
-        ("annotations", SampleData[ARMFinderPlusAnnotations]),
-        ("mutations", SampleData[ARMFinderPlusAnnotations]),
+        ("annotations", SampleData[AMRFinderPlusAnnotations]),
+        ("mutations", SampleData[AMRFinderPlusAnnotations]),
         ("genes", GenomeData[Genes]),
         ("feature_table", FeatureTable[Frequency]),
     ],
@@ -1230,8 +1230,8 @@ plugin.register_semantic_types(
     CARDReadsAlleleKmerAnalysis,
     CARDMAGsKmerAnalysis,
     AMRFinderPlusDatabase,
-    ARMFinderPlusAnnotations,
-    ARMFinderPlusAnnotation,
+    AMRFinderPlusAnnotations,
+    AMRFinderPlusAnnotation,
 )
 
 plugin.register_semantic_type_to_format(
@@ -1267,12 +1267,12 @@ plugin.register_semantic_type_to_format(
     artifact_format=AMRFinderPlusDatabaseDirFmt,
 )
 plugin.register_semantic_type_to_format(
-    SampleData[ARMFinderPlusAnnotations],
-    artifact_format=ARMFinderPlusAnnotationsDirFmt,
+    SampleData[AMRFinderPlusAnnotations],
+    artifact_format=AMRFinderPlusAnnotationsDirFmt,
 )
 plugin.register_semantic_type_to_format(
-    FeatureData[ARMFinderPlusAnnotation],
-    artifact_format=ARMFinderPlusAnnotationDirFmt,
+    FeatureData[AMRFinderPlusAnnotation],
+    artifact_format=AMRFinderPlusAnnotationDirFmt,
 )
 plugin.register_formats(
     CARDKmerDatabaseDirectoryFormat,
@@ -1301,9 +1301,9 @@ plugin.register_formats(
     AMRFinderPlusDatabaseDirFmt,
     TextFormat,
     BinaryFormat,
-    ARMFinderPlusAnnotationFormat,
-    ARMFinderPlusAnnotationsDirFmt,
-    ARMFinderPlusAnnotationDirFmt,
+    AMRFinderPlusAnnotationFormat,
+    AMRFinderPlusAnnotationsDirFmt,
+    AMRFinderPlusAnnotationDirFmt,
 )
 
 importlib.import_module("q2_amr.card.types._transformer")

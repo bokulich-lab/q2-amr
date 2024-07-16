@@ -8,8 +8,8 @@ from q2_types.genome_data import GenesDirectoryFormat
 from q2_types.per_sample_sequences import ContigSequencesDirFmt, MultiMAGSequencesDirFmt
 
 from q2_amr.amrfinderplus.types import (
+    AMRFinderPlusAnnotationsDirFmt,
     AMRFinderPlusDatabaseDirFmt,
-    ARMFinderPlusAnnotationsDirFmt,
 )
 from q2_amr.amrfinderplus.utils import run_amrfinderplus_n
 from q2_amr.card.utils import create_count_table, read_in_txt
@@ -26,13 +26,13 @@ def annotate_sample_data_amrfinderplus(
     translation_table: str = "11",
     threads: int = None,
 ) -> (
-    ARMFinderPlusAnnotationsDirFmt,
-    ARMFinderPlusAnnotationsDirFmt,
+    AMRFinderPlusAnnotationsDirFmt,
+    AMRFinderPlusAnnotationsDirFmt,
     GenesDirectoryFormat,
     pd.DataFrame,
 ):
-    annotations = ARMFinderPlusAnnotationsDirFmt()
-    mutations = ARMFinderPlusAnnotationsDirFmt()
+    annotations = AMRFinderPlusAnnotationsDirFmt()
+    mutations = AMRFinderPlusAnnotationsDirFmt()
     genes = GenesDirectoryFormat()
     frequency_list = []
 

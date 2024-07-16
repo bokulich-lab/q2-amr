@@ -6,19 +6,19 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 from q2_amr.amrfinderplus.types._format import (
+    AMRFinderPlusAnnotationDirFmt,
+    AMRFinderPlusAnnotationFormat,
+    AMRFinderPlusAnnotationsDirFmt,
     AMRFinderPlusDatabaseDirFmt,
-    ARMFinderPlusAnnotationDirFmt,
-    ARMFinderPlusAnnotationFormat,
-    ARMFinderPlusAnnotationsDirFmt,
     BinaryFormat,
     TextFormat,
 )
 
 __all__ = [
     "AMRFinderPlusDatabaseDirFmt",
-    "ARMFinderPlusAnnotationFormat",
-    "ARMFinderPlusAnnotationsDirFmt",
-    "ARMFinderPlusAnnotationDirFmt",
+    "AMRFinderPlusAnnotationFormat",
+    "AMRFinderPlusAnnotationsDirFmt",
+    "AMRFinderPlusAnnotationDirFmt",
     "TextFormat",
     "BinaryFormat",
 ]
