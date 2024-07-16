@@ -22,6 +22,7 @@ def annotate_sample_data_amrfinderplus(
     plus: bool = False,
     report_all_equal: bool = False,
     ident_min: float = None,
+    curated_ident: bool = False,
     coverage_min: float = 0.5,
     translation_table: str = "11",
     threads: int = None,

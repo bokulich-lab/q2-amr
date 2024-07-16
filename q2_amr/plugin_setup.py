@@ -1153,7 +1153,8 @@ plugin.methods.register_function(
         "organism": Str % Choices(organisms),
         "plus": Bool,
         "report_all_equal": Bool,
-        "ident_min": Float % Range(-1, 1, inclusive_start=True, inclusive_end=True),
+        "ident_min": Float % Range(0, 1, inclusive_start=True, inclusive_end=True),
+        "curated_ident": Bool,
         "coverage_min": Float % Range(0, 1, inclusive_start=True, inclusive_end=True),
         "translation_table": Str % Choices(translation_tables),
         "threads": Int % Range(0, None, inclusive_start=False),
@@ -1180,11 +1181,13 @@ plugin.methods.register_function(
         "and Name of closest sequence will be different showing "
         "each of the database proteins that are equally close to "
         "the query sequence.",
-        "ident_min": "Minimum identity for a blast-based hit hit (Methods BLAST or "
-        "PARTIAL). -1 means use the curated threshold if it exists and "
-        "0.9 otherwise. Setting this value to something other than -1 "
+        "ident_min": "Minimum identity for a blast-based hit (Methods BLAST or "
+        "PARTIAL). Setting this value to something other than -1 "
         "will override curated similarity cutoffs. We only recommend "
         "using this option if you have a specific reason.",
+        "curated_ident": "Use the curated threshold for a blast-based hit, if it "
+        "exists and 0.9 otherwise. This will overwrite the value specified with the "
+        "'ident_min' parameter",
         "coverage_min": "Minimum proportion of reference gene covered for a "
         "BLAST-based hit (Methods BLAST or PARTIAL).",
         "translation_table": "Translation table used for BLASTX.",
