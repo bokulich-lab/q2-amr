@@ -13,6 +13,7 @@ def run_amrfinderplus_n(
     plus,
     report_all_equal,
     ident_min,
+    curated_ident,
     coverage_min,
     translation_table,
     threads,
@@ -60,8 +61,10 @@ def run_amrfinderplus_n(
         cmd.append("--plus")
     if report_all_equal:
         cmd.append("--report_all_equal")
-    if ident_min:
+    if ident_min and not curated_ident:
         cmd.extend(["--ident_min", str(ident_min)])
+    if curated_ident:
+        cmd.extend(["--ident_min", "-1"])
     if coverage_min:
         cmd.extend(["--coverage_min", str(coverage_min)])
     if translation_table:
