@@ -60,10 +60,10 @@ def annotate_sequences_amrfinderplus(
         run_amrfinderplus_n(
             working_dir=tmp,
             amrfinderplus_db=amrfinderplus_db,
-            dna_sequence=os.path.join(str(dna_sequences), "dna-sequences.fasta")
+            dna_sequences=os.path.join(str(dna_sequences), "dna-sequences.fasta")
             if dna_sequences
             else None,
-            protein_sequence=os.path.join(
+            protein_sequences=os.path.join(
                 str(protein_sequences), "protein-sequences.fasta"
             )
             if protein_sequences

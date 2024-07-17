@@ -11,8 +11,8 @@ from q2_amr.amrfinderplus.types import AMRFinderPlusDatabaseDirFmt
 def mock_run_amrfinderplus_n(
     working_dir,
     amrfinderplus_db,
-    dna_sequence,
-    protein_sequence,
+    dna_sequences,
+    protein_sequences,
     gff,
     organism,
     plus,
@@ -28,10 +28,10 @@ def mock_run_amrfinderplus_n(
     if organism:
         with open(os.path.join(working_dir, "amr_mutations.tsv"), "w"):
             pass
-    if dna_sequence:
+    if dna_sequences:
         with open(os.path.join(working_dir, "amr_genes.fasta"), "w"):
             pass
-    if protein_sequence:
+    if protein_sequences:
         with open(os.path.join(working_dir, "amr_proteins.fasta"), "w"):
             pass
 

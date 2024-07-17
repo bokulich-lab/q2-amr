@@ -99,7 +99,7 @@ def read_in_txt(path: str, samp_bin_name: str, data_type: str, colname: str):
     # Read in txt file to pd.Dataframe
     df = pd.read_csv(path, sep="\t")
 
-    # Process the df depending on the data type and mapping type
+    # Process the df depending on the data type
     if data_type == "reads":
         df = df[[colname, "All Mapped Reads"]]
         df.rename(columns={"All Mapped Reads": samp_bin_name}, inplace=True)

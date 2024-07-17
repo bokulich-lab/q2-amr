@@ -47,9 +47,9 @@ def annotate_sample_data_amrfinderplus(
         ]
 
     with tempfile.TemporaryDirectory() as tmp:
-        # Iterate over paths of mags or contigs
+        # Iterate over paths of MAGs or contigs
         for file in files:
-            # Set sample and mag ids and output file pats for mag or contig
+            # Set sample and MAG IDs
             if isinstance(sequences, MultiMAGSequencesDirFmt):
                 index_value = manifest.query("filename == @file").index[0]
                 sample_id = index_value[0]
@@ -62,8 +62,8 @@ def annotate_sample_data_amrfinderplus(
             run_amrfinderplus_n(
                 working_dir=tmp,
                 amrfinderplus_db=amrfinderplus_db,
-                dna_sequence=file,
-                protein_sequence=None,
+                dna_sequences=file,
+                protein_sequences=None,
                 gff=None,
                 organism=organism,
                 plus=plus,
