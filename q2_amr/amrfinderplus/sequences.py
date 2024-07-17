@@ -38,7 +38,7 @@ def annotate_sequences_amrfinderplus(
     GenesDirectoryFormat,
     ProteinsDirectoryFormat,
 ):
-    # Checks for unallowed input combinations
+    # Check for unallowed input combinations
     if dna_sequences and gff and not protein_sequences:
         raise ValueError(
             "GFF input can only be given in combination with protein-sequence input."
@@ -68,7 +68,7 @@ def annotate_sequences_amrfinderplus(
             )
             if protein_sequences
             else None,
-            gff=os.listdir(str(gff))[0] if gff else None,
+            gff=os.path.join(str(gff), os.listdir(str(gff))[0]) if gff else None,
             organism=organism,
             plus=plus,
             report_all_equal=report_all_equal,
