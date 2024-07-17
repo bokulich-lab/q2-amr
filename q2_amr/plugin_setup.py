@@ -1250,7 +1250,7 @@ plugin.methods.register_function(
         "organism": Str % Choices(organisms),
         "plus": Bool,
         "report_all_equal": Bool,
-        "ident_min": Float % Range(-1, 1, inclusive_start=True, inclusive_end=True),
+        "ident_min": Float % Range(0, 1, inclusive_start=True, inclusive_end=True),
         "curated_ident": Bool,
         "coverage_min": Float % Range(0, 1, inclusive_start=True, inclusive_end=True),
         "translation_table": Str % Choices(translation_tables),
