@@ -95,20 +95,17 @@ def load_card_db(
     return kmer_size
 
 
-def read_in_txt(path: str, samp_bin_name: str, data_type: str, map_type=None):
+def read_in_txt(path: str, samp_bin_name: str, data_type: str, colname: str):
     # Read in txt file to pd.Dataframe
     df = pd.read_csv(path, sep="\t")
 
-    # Process the df depending on the data type and mapping type
+    # Process the df depending on the data type
     if data_type == "reads":
-        colname = "Reference Sequence" if map_type == "allele" else "ARO Term"
         df = df[[colname, "All Mapped Reads"]]
         df.rename(columns={"All Mapped Reads": samp_bin_name}, inplace=True)
-    else:
-        df = df["Best_Hit_ARO"].value_counts().reset_index()
-
-        # Rename the columns
-        df.columns = ["Best_Hit_ARO", samp_bin_name]
+    elif data_type == "mags":
+        df = df[colname].value_counts().reset_index()
+        df.columns = [colname, samp_bin_name]
 
     df = df.astype(str)
     return df
