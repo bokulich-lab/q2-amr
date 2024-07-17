@@ -6,8 +6,8 @@ from q2_amr.card.utils import run_command
 def run_amrfinderplus_n(
     working_dir,
     amrfinderplus_db,
-    dna_sequence,
-    protein_sequence,
+    dna_sequences,
+    protein_sequences,
     gff,
     organism,
     plus,
@@ -26,20 +26,22 @@ def run_amrfinderplus_n(
         f"{working_dir}/amr_annotations.tsv",
         "--print_node",
     ]
-    if dna_sequence:
+    # Creates nucleotide fasta output if DNA sequences are given as input
+    if dna_sequences:
         cmd.extend(
             [
                 "-n",
-                dna_sequence,
+                dna_sequences,
                 "--nucleotide_output",
                 f"{working_dir}/amr_genes.fasta",
             ]
         )
-    if protein_sequence:
+    # Creates protein fasta output if protein sequences are given as input
+    if protein_sequences:
         cmd.extend(
             [
                 "-p",
-                protein_sequence,
+                protein_sequences,
                 "--protein_output",
                 f"{working_dir}/amr_proteins.fasta",
             ]
@@ -48,6 +50,7 @@ def run_amrfinderplus_n(
         cmd.extend(["-g", gff])
     if threads:
         cmd.extend(["--threads", str(threads)])
+    # Creates all mutations output if an organism is specified
     if organism:
         cmd.extend(
             [
@@ -61,6 +64,7 @@ def run_amrfinderplus_n(
         cmd.append("--plus")
     if report_all_equal:
         cmd.append("--report_all_equal")
+    # If curated_ident is True, it will overwrite the value specified with ident_min
     if ident_min and not curated_ident:
         cmd.extend(["--ident_min", str(ident_min)])
     if curated_ident:

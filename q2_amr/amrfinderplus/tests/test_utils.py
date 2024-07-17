@@ -13,8 +13,8 @@ class TestAnnotateMagsCard(TestPluginBase):
         run_amrfinderplus_n(
             working_dir="path_dir",
             amrfinderplus_db="amrfinderplus_db",
-            dna_sequence="dna_sequence",
-            protein_sequence="protein_sequence",
+            dna_sequences="dna_sequence",
+            protein_sequences="protein_sequence",
             gff="gff",
             organism="Escherichia",
             plus=True,
@@ -67,8 +67,8 @@ class TestAnnotateMagsCard(TestPluginBase):
         run_amrfinderplus_n(
             working_dir="path_dir",
             amrfinderplus_db="amrfinderplus_db",
-            dna_sequence=None,
-            protein_sequence=None,
+            dna_sequences=None,
+            protein_sequences=None,
             gff=None,
             organism=None,
             plus=False,
