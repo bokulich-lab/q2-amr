@@ -1159,22 +1159,52 @@ translation_tables = [
     "33",
 ]
 
+amrfinderplus_parameter_descriptions = {
+    "organism": "Taxon used for screening known resistance causing point mutations "
+    "and blacklisting of common, non-informative genes.",
+    "plus": "Provide results from 'Plus' genes such as virulence factors, "
+    "stress-response genes, etc.",
+    "report_all_equal": "Report all equally scoring BLAST and HMM matches. This "
+    "will report multiple lines for a single element if there "
+    "are multiple reference proteins that have the same score. "
+    "On those lines the fields Accession of closest sequence "
+    "and Name of closest sequence will be different showing "
+    "each of the database proteins that are equally close to "
+    "the query sequence.",
+    "ident_min": "Minimum identity for a blast-based hit (Methods BLAST or "
+    "PARTIAL). Setting this value to something other than -1 "
+    "will override curated similarity cutoffs. We only recommend "
+    "using this option if you have a specific reason.",
+    "curated_ident": "Use the curated threshold for a blast-based hit, if it "
+    "exists and 0.9 otherwise. This will overwrite the value specified with the "
+    "'ident_min' parameter",
+    "coverage_min": "Minimum proportion of reference gene covered for a "
+    "BLAST-based hit (Methods BLAST or PARTIAL).",
+    "translation_table": "Translation table used for BLASTX.",
+    "threads": "The number of threads to use for processing. AMRFinderPlus "
+    "defaults to 4 on hosts with >= 4 cores. Setting this number higher "
+    "than the number of cores on the running host may cause blastp to "
+    "fail. Using more than 4 threads may speed up searches.",
+}
+
+amrfinderplus_parameters = {
+    "organism": Str % Choices(organisms),
+    "plus": Bool,
+    "report_all_equal": Bool,
+    "ident_min": Float % Range(0, 1, inclusive_start=True, inclusive_end=True),
+    "curated_ident": Bool,
+    "coverage_min": Float % Range(0, 1, inclusive_start=True, inclusive_end=True),
+    "translation_table": Str % Choices(translation_tables),
+    "threads": Int % Range(0, None, inclusive_start=False),
+}
+
 plugin.methods.register_function(
     function=annotate_sample_data_amrfinderplus,
     inputs={
         "sequences": SampleData[MAGs | Contigs],
         "amrfinderplus_db": AMRFinderPlusDatabase,
     },
-    parameters={
-        "organism": Str % Choices(organisms),
-        "plus": Bool,
-        "report_all_equal": Bool,
-        "ident_min": Float % Range(0, 1, inclusive_start=True, inclusive_end=True),
-        "curated_ident": Bool,
-        "coverage_min": Float % Range(0, 1, inclusive_start=True, inclusive_end=True),
-        "translation_table": Str % Choices(translation_tables),
-        "threads": Int % Range(0, None, inclusive_start=False),
-    },
+    parameters=amrfinderplus_parameters,
     outputs=[
         ("annotations", SampleData[AMRFinderPlusAnnotations]),
         ("mutations", SampleData[AMRFinderPlusAnnotations]),
@@ -1185,33 +1215,7 @@ plugin.methods.register_function(
         "sequences": "MAGs or contigs to be annotated with AMRFinderPlus.",
         "amrfinderplus_db": "AMRFinderPlus Database.",
     },
-    parameter_descriptions={
-        "organism": "Taxon used for screening known resistance causing point mutations "
-        "and blacklisting of common, non-informative genes.",
-        "plus": "Provide results from 'Plus' genes such as virulence factors, "
-        "stress-response genes, etc.",
-        "report_all_equal": "Report all equally scoring BLAST and HMM matches. This "
-        "will report multiple lines for a single element if there "
-        "are multiple reference proteins that have the same score. "
-        "On those lines the fields Accession of closest sequence "
-        "and Name of closest sequence will be different showing "
-        "each of the database proteins that are equally close to "
-        "the query sequence.",
-        "ident_min": "Minimum identity for a blast-based hit (Methods BLAST or "
-        "PARTIAL). Setting this value to something other than -1 "
-        "will override curated similarity cutoffs. We only recommend "
-        "using this option if you have a specific reason.",
-        "curated_ident": "Use the curated threshold for a blast-based hit, if it "
-        "exists and 0.9 otherwise. This will overwrite the value specified with the "
-        "'ident_min' parameter",
-        "coverage_min": "Minimum proportion of reference gene covered for a "
-        "BLAST-based hit (Methods BLAST or PARTIAL).",
-        "translation_table": "Translation table used for BLASTX.",
-        "threads": "The number of threads to use for processing. AMRFinderPlus "
-        "defaults to 4 on hosts with >= 4 cores. Setting this number higher"
-        " than the number of cores on the running host may cause blastp to "
-        "fail. Using more than 4 threads may speed up searches.",
-    },
+    parameter_descriptions=amrfinderplus_parameter_descriptions,
     output_descriptions={
         "annotations": "Annotated AMR genes and mutations.",
         "mutations": "Report of genotypes at all locations screened for point "
@@ -1246,16 +1250,7 @@ plugin.methods.register_function(
         "gff": GenomeData[Loci],
         "amrfinderplus_db": AMRFinderPlusDatabase,
     },
-    parameters={
-        "organism": Str % Choices(organisms),
-        "plus": Bool,
-        "report_all_equal": Bool,
-        "ident_min": Float % Range(0, 1, inclusive_start=True, inclusive_end=True),
-        "curated_ident": Bool,
-        "coverage_min": Float % Range(0, 1, inclusive_start=True, inclusive_end=True),
-        "translation_table": Str % Choices(translation_tables),
-        "threads": Int % Range(0, None, inclusive_start=False),
-    },
+    parameters=amrfinderplus_parameters,
     outputs=[
         ("annotations", FeatureData[AMRFinderPlusAnnotation]),
         ("mutations", FeatureData[AMRFinderPlusAnnotation]),
@@ -1269,35 +1264,9 @@ plugin.methods.register_function(
         "combined searches of protein and DNA sequences.",
         "amrfinderplus_db": "AMRFinderPlus Database.",
     },
-    parameter_descriptions={
-        "organism": "Taxon used for screening known resistance causing point mutations "
-        "and blacklisting of common, non-informative genes.",
-        "plus": "Provide results from 'Plus' genes such as virulence factors, "
-        "stress-response genes, etc.",
-        "report_all_equal": "Report all equally scoring BLAST and HMM matches. This "
-        "will report multiple lines for a single element if there "
-        "are multiple reference proteins that have the same score. "
-        "On those lines the fields Accession of closest sequence "
-        "and Name of closest sequence will be different showing "
-        "each of the database proteins that are equally close to "
-        "the query sequence.",
-        "ident_min": "Minimum identity for a blast-based hit (Methods BLAST or "
-        "PARTIAL). Setting this value to something other than -1 "
-        "will override curated similarity cutoffs. We only recommend "
-        "using this option if you have a specific reason.",
-        "curated_ident": "Use the curated threshold for a blast-based hit, if it "
-        "exists and 0.9 otherwise. This will overwrite the value specified with the "
-        "'ident_min' parameter",
-        "coverage_min": "Minimum proportion of reference gene covered for a "
-        "BLAST-based hit (Methods BLAST or PARTIAL).",
-        "translation_table": "Translation table used for BLASTX.",
-        "threads": "The number of threads to use for processing. AMRFinderPlus "
-        "defaults to 4 on hosts with >= 4 cores. Setting this number higher"
-        " than the number of cores on the running host may cause blastp to "
-        "fail. Using more than 4 threads may speed up searches.",
-    },
+    parameter_descriptions=amrfinderplus_parameter_descriptions,
     output_descriptions={
-        "annotations": "AMR annotations as TSV file.",
+        "annotations": "Annotated AMR genes and mutations.",
         "mutations": "Report of genotypes at all locations screened for point "
         "mutations. These files allow you to distinguish between called "
         "point mutations that were the sensitive variant and the point "
