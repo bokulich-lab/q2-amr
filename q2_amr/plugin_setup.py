@@ -1212,7 +1212,7 @@ plugin.methods.register_function(
         "fail. Using more than 4 threads may speed up searches.",
     },
     output_descriptions={
-        "annotations": "AMR annotation as .txt and .json file.",
+        "annotations": "Annotated AMR genes and mutations.",
         "mutations": "Report of genotypes at all locations screened for point "
         "mutations. These files allow you to distinguish between called "
         "point mutations that were the sensitive variant and the point "
