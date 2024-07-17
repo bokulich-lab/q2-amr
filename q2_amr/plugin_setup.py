@@ -1241,8 +1241,8 @@ plugin.methods.register_function(
 plugin.methods.register_function(
     function=annotate_sequences_amrfinderplus,
     inputs={
-        "dna_sequence": FeatureData[Sequence],
-        "protein_sequence": FeatureData[ProteinSequence],
+        "dna_sequences": FeatureData[Sequence],
+        "protein_sequences": FeatureData[ProteinSequence],
         "gff": GenomeData[Loci],
         "amrfinderplus_db": AMRFinderPlusDatabase,
     },
@@ -1263,8 +1263,8 @@ plugin.methods.register_function(
         ("proteins", GenomeData[Proteins]),
     ],
     input_descriptions={
-        "dna_sequence": "DNA sequence to be annotated with AMRFinderPlus.",
-        "protein_sequence": "Protein sequence to be annotated with AMRFinderPlus.",
+        "dna_sequences": "DNA sequences to be annotated with AMRFinderPlus.",
+        "protein_sequences": "Protein sequences to be annotated with AMRFinderPlus.",
         "gff": "GFF file to give sequence coordinates for proteins input. Required for "
         "combined searches of protein and DNA sequences.",
         "amrfinderplus_db": "AMRFinderPlus Database.",

@@ -21,8 +21,8 @@ from q2_amr.amrfinderplus.utils import run_amrfinderplus_n
 
 def annotate_sequences_amrfinderplus(
     amrfinderplus_db: AMRFinderPlusDatabaseDirFmt,
-    dna_sequence: DNASequencesDirectoryFormat = None,
-    protein_sequence: ProteinSequencesDirectoryFormat = None,
+    dna_sequences: DNASequencesDirectoryFormat = None,
+    protein_sequences: ProteinSequencesDirectoryFormat = None,
     gff: LociDirectoryFormat = None,
     organism: str = None,
     plus: bool = False,
@@ -39,11 +39,11 @@ def annotate_sequences_amrfinderplus(
     ProteinsDirectoryFormat,
 ):
     # Checks for unallowed input combinations
-    if dna_sequence and gff and not protein_sequence:
+    if dna_sequences and gff and not protein_sequences:
         raise ValueError(
             "GFF input can only be given in combination with protein-sequence input."
         )
-    if dna_sequence and not gff and protein_sequence:
+    if dna_sequences and not gff and protein_sequences:
         raise ValueError(
             "DNA-sequence and protein-sequence inputs together can only "
             "be given in combination with GFF input."
@@ -60,13 +60,13 @@ def annotate_sequences_amrfinderplus(
         run_amrfinderplus_n(
             working_dir=tmp,
             amrfinderplus_db=amrfinderplus_db,
-            dna_sequence=os.path.join(str(dna_sequence), "dna-sequences.fasta")
-            if dna_sequence
+            dna_sequence=os.path.join(str(dna_sequences), "dna-sequences.fasta")
+            if dna_sequences
             else None,
             protein_sequence=os.path.join(
-                str(protein_sequence), "protein-sequences.fasta"
+                str(protein_sequences), "protein-sequences.fasta"
             )
-            if protein_sequence
+            if protein_sequences
             else None,
             gff=os.listdir(str(gff))[0] if gff else None,
             organism=organism,
@@ -91,13 +91,13 @@ def annotate_sequences_amrfinderplus(
             with open(os.path.join(str(mutations), "amr_mutations.tsv"), "w"):
                 pass
 
-        if dna_sequence:
+        if dna_sequences:
             shutil.move(os.path.join(tmp, "amr_genes.fasta"), str(genes))
         else:
             with open(os.path.join(str(genes), "amr_genes.fasta"), "w"):
                 pass
 
-        if protein_sequence:
+        if protein_sequences:
             shutil.move(os.path.join(tmp, "amr_proteins.fasta"), str(proteins))
         else:
             with open(os.path.join(str(proteins), "amr_proteins.fasta"), "w"):
