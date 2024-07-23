@@ -1251,8 +1251,8 @@ plugin.methods.register_function(
     },
     parameters=amrfinderplus_parameters,
     outputs=[
-        ("amr_annotations", FeatureData[AMRFinderPlusAnnotation]),
-        ("all_amr_mutations", FeatureData[AMRFinderPlusAnnotation]),
+        ("amr_annotations", FeatureData[AMRFinderPlusAnnotations]),
+        ("all_amr_mutations", FeatureData[AMRFinderPlusAnnotations]),
         ("amr_genes", GenomeData[Genes]),
         ("amr_proteins", GenomeData[Proteins]),
     ],

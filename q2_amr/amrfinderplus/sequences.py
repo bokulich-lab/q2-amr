@@ -11,7 +11,7 @@ from q2_types.genome_data import (
 )
 
 from q2_amr.amrfinderplus.types import (
-    AMRFinderPlusAnnotationDirFmt,
+    AMRFinderPlusAnnotationsDirFmt,
     AMRFinderPlusDatabaseDirFmt,
 )
 from q2_amr.amrfinderplus.utils import run_amrfinderplus_n
@@ -31,8 +31,8 @@ def annotate_sequences_amrfinderplus(
     translation_table: str = "11",
     threads: int = None,
 ) -> (
-    AMRFinderPlusAnnotationDirFmt,
-    AMRFinderPlusAnnotationDirFmt,
+    AMRFinderPlusAnnotationsDirFmt,
+    AMRFinderPlusAnnotationsDirFmt,
     GenesDirectoryFormat,
     ProteinsDirectoryFormat,
 ):
@@ -48,8 +48,8 @@ def annotate_sequences_amrfinderplus(
         )
 
     # Create all output directory formats
-    amr_annotations = AMRFinderPlusAnnotationDirFmt()
-    all_amr_mutations = AMRFinderPlusAnnotationDirFmt()
+    amr_annotations = AMRFinderPlusAnnotationsDirFmt()
+    all_amr_mutations = AMRFinderPlusAnnotationsDirFmt()
     amr_genes = GenesDirectoryFormat()
     amr_proteins = ProteinsDirectoryFormat()
 
