@@ -9,7 +9,6 @@ import os
 
 import pandas as pd
 from q2_types.feature_data import MixedCaseDNAFASTAFormat, ProteinFASTAFormat
-from q2_types.per_sample_sequences._format import MultiDirValidationMixin
 from qiime2.core.exceptions import ValidationError
 from qiime2.plugin import model
 
@@ -111,7 +110,7 @@ class AMRFinderPlusAnnotationFormat(model.TextFileFormat):
         self._validate()
 
 
-class AMRFinderPlusAnnotationsDirFmt(MultiDirValidationMixin, model.DirectoryFormat):
+class AMRFinderPlusAnnotationsDirFmt(model.DirectoryFormat):
     annotations = model.FileCollection(
         r".*amr_(annotations|all_mutations)\.tsv$", format=AMRFinderPlusAnnotationFormat
     )
