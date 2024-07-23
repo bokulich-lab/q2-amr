@@ -1246,27 +1246,27 @@ plugin.methods.register_function(
     inputs={
         "mags": FeatureData[MAG],
         "proteins": GenomeData[Proteins],
-        "gff": GenomeData[Loci],
+        "loci": GenomeData[Loci],
         "amrfinderplus_db": AMRFinderPlusDatabase,
     },
     parameters=amrfinderplus_parameters,
     outputs=[
         ("amr_annotations", FeatureData[AMRFinderPlusAnnotations]),
-        ("all_amr_mutations", FeatureData[AMRFinderPlusAnnotations]),
+        ("amr_all_mutations", FeatureData[AMRFinderPlusAnnotations]),
         ("amr_genes", GenomeData[Genes]),
         ("amr_proteins", GenomeData[Proteins]),
     ],
     input_descriptions={
         "mags": "MAGs to be annotated with AMRFinderPlus.",
         "proteins": "Protein sequences to be annotated with AMRFinderPlus.",
-        "gff": "GFF file to give sequence coordinates for proteins input. Required for "
-        "combined searches of protein and DNA sequences.",
+        "loci": "GFF files to give sequence coordinates for proteins input. Required "
+        "for combined searches of protein and DNA sequences.",
         "amrfinderplus_db": "AMRFinderPlus Database.",
     },
     parameter_descriptions=amrfinderplus_parameter_descriptions,
     output_descriptions={
         "amr_annotations": "Annotated AMR genes and mutations.",
-        "all_amr_mutations": "Report of genotypes at all locations screened for point "
+        "amr_all_mutations": "Report of genotypes at all locations screened for point "
         "mutations. These files allow you to distinguish between called "
         "point mutations that were the sensitive variant and the point "
         "mutations that could not be called because the sequence was not "

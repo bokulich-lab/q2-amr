@@ -21,7 +21,7 @@ def annotate_sequences_amrfinderplus(
     amrfinderplus_db: AMRFinderPlusDatabaseDirFmt,
     mags: MAGSequencesDirFmt = None,
     proteins: ProteinsDirectoryFormat = None,
-    gff: LociDirectoryFormat = None,
+    loci: LociDirectoryFormat = None,
     organism: str = None,
     plus: bool = False,
     report_all_equal: bool = False,
@@ -37,19 +37,19 @@ def annotate_sequences_amrfinderplus(
     ProteinsDirectoryFormat,
 ):
     # Check for unallowed input combinations
-    if mags and gff and not proteins:
+    if mags and loci and not proteins:
         raise ValueError(
-            "GFF input can only be given in combination with proteins input."
+            "Loci input can only be given in combination with proteins input."
         )
-    if mags and not gff and proteins:
+    if mags and not loci and proteins:
         raise ValueError(
-            "DNA-sequence and proteins inputs together can only "
-            "be given in combination with GFF input."
+            "MAGs and proteins inputs together can only "
+            "be given in combination with loci input."
         )
 
     # Create all output directory formats
     amr_annotations = AMRFinderPlusAnnotationsDirFmt()
-    all_amr_mutations = AMRFinderPlusAnnotationsDirFmt()
+    amr_all_mutations = AMRFinderPlusAnnotationsDirFmt()
     amr_genes = GenesDirectoryFormat()
     amr_proteins = ProteinsDirectoryFormat()
 
@@ -58,7 +58,7 @@ def annotate_sequences_amrfinderplus(
     elif proteins:
         files = glob.glob(os.path.join(str(proteins), "*"))
     else:
-        raise ValueError("Provide mags or proteins input.")
+        raise ValueError("MAGs or proteins input has to be provided.")
 
     with tempfile.TemporaryDirectory() as tmp:
         # Run amrfinderplus function
@@ -79,12 +79,11 @@ def annotate_sequences_amrfinderplus(
             elif proteins:
                 mag_id = os.path.splitext(os.path.basename(file))[0][:-9]
                 protein_sequences = file
-            if gff:
-                gff_path = os.path.join(str(proteins), f"{mag_id}_loci.gff")
+            if loci:
+                gff_path = os.path.join(str(loci), f"{mag_id}_loci.gff")
                 if not os.path.exists(gff_path):
                     raise ValueError(
-                        f"Corresponding GFF file with ID='{mag_id}' is missing"
-                        f" in GFF input."
+                        f"GFF file with ID='{mag_id}' is missing in loci input."
                     )
             else:
                 gff_path = None
@@ -109,7 +108,7 @@ def annotate_sequences_amrfinderplus(
             # are specified. Else create empty placeholder files.
             file_operations = [
                 ("amr_annotations.tsv", True, amr_annotations),
-                ("all_amr_mutations.tsv", organism, all_amr_mutations),
+                ("amr_all_mutations.tsv", organism, amr_all_mutations),
                 ("amr_genes.fasta", mags, amr_genes),
                 ("amr_proteins.fasta", proteins, amr_proteins),
             ]
@@ -122,7 +121,7 @@ def annotate_sequences_amrfinderplus(
                         os.path.join(str(target_dir), f"{mag_id}_{file_name}"),
                     )
                 else:
-                    with open(os.path.join(tmp, file_name), "w"):
+                    with open(os.path.join(str(target_dir), file_name), "w"):
                         pass
 
-    return amr_annotations, all_amr_mutations, amr_genes, amr_proteins
+    return amr_annotations, amr_all_mutations, amr_genes, amr_proteins

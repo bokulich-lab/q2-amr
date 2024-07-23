@@ -25,6 +25,8 @@ def run_amrfinderplus_n(
         "-o",
         f"{working_dir}/amr_annotations.tsv",
         "--print_node",
+        "--annotation_format",
+        "prodigal",
     ]
     # Creates nucleotide fasta output if DNA sequences are given as input
     if dna_sequences:
@@ -57,7 +59,7 @@ def run_amrfinderplus_n(
                 "--organism",
                 organism,
                 "--mutation_all",
-                f"{working_dir}/all_amr_mutations.tsv",
+                f"{working_dir}/amr_all_mutations.tsv",
             ]
         )
     if plus:

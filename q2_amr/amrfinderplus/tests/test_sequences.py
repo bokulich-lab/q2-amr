@@ -43,7 +43,7 @@ class TestAnnotateSequencesAMRFinderPlus(TestPluginBase):
         ):
             annotate_sequences_amrfinderplus(
                 mags=dna_sequences,
-                gff=gff,
+                loci=gff,
                 amrfinderplus_db=amrfinderplus_db,
             )
 
@@ -71,7 +71,7 @@ class TestAnnotateSequencesAMRFinderPlus(TestPluginBase):
             result = annotate_sequences_amrfinderplus(
                 mags=dna_sequences,
                 proteins=proteins,
-                gff=gff,
+                loci=gff,
                 amrfinderplus_db=amrfinderplus_db,
                 organism=organism,
             )
