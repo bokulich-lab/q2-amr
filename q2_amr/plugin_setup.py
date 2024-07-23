@@ -35,7 +35,6 @@ from q2_amr import __version__
 from q2_amr.amrfinderplus.database import fetch_amrfinderplus_db
 from q2_amr.amrfinderplus.sample_data import annotate_sample_data_amrfinderplus
 from q2_amr.amrfinderplus.types._format import (
-    AMRFinderPlusAnnotationDirFmt,
     AMRFinderPlusAnnotationFormat,
     AMRFinderPlusAnnotationsDirFmt,
     AMRFinderPlusDatabaseDirFmt,
@@ -43,7 +42,6 @@ from q2_amr.amrfinderplus.types._format import (
     TextFormat,
 )
 from q2_amr.amrfinderplus.types._type import (
-    AMRFinderPlusAnnotation,
     AMRFinderPlusAnnotations,
     AMRFinderPlusDatabase,
 )
@@ -1249,7 +1247,6 @@ plugin.register_semantic_types(
     CARDMAGsKmerAnalysis,
     AMRFinderPlusDatabase,
     AMRFinderPlusAnnotations,
-    AMRFinderPlusAnnotation,
 )
 
 plugin.register_semantic_type_to_format(
@@ -1289,8 +1286,8 @@ plugin.register_semantic_type_to_format(
     artifact_format=AMRFinderPlusAnnotationsDirFmt,
 )
 plugin.register_semantic_type_to_format(
-    FeatureData[AMRFinderPlusAnnotation],
-    artifact_format=AMRFinderPlusAnnotationDirFmt,
+    FeatureData[AMRFinderPlusAnnotations],
+    artifact_format=AMRFinderPlusAnnotationsDirFmt,
 )
 plugin.register_formats(
     CARDKmerDatabaseDirectoryFormat,
@@ -1321,7 +1318,6 @@ plugin.register_formats(
     BinaryFormat,
     AMRFinderPlusAnnotationFormat,
     AMRFinderPlusAnnotationsDirFmt,
-    AMRFinderPlusAnnotationDirFmt,
 )
 
 importlib.import_module("q2_amr.card.types._transformer")
