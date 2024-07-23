@@ -25,6 +25,8 @@ def annotate_sample_data_amrfinderplus(
     curated_ident: bool = False,
     coverage_min: float = 0.5,
     translation_table: str = "11",
+    report_common: bool = False,
+    gpipe_org: bool = False,
     threads: int = None,
 ) -> (
     AMRFinderPlusAnnotationsDirFmt,
@@ -72,6 +74,9 @@ def annotate_sample_data_amrfinderplus(
                 curated_ident=curated_ident,
                 coverage_min=coverage_min,
                 translation_table=translation_table,
+                annotation_format=None,
+                report_common=report_common,
+                gpipe_org=gpipe_org,
                 threads=threads,
             )
 

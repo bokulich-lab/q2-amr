@@ -1170,6 +1170,8 @@ plugin.methods.register_function(
         "curated_ident": Bool,
         "coverage_min": Float % Range(0, 1, inclusive_start=True, inclusive_end=True),
         "translation_table": Str % Choices(translation_tables),
+        "report_common": Bool,
+        "gpipe_org": Bool,
         "threads": Int % Range(0, None, inclusive_start=False),
     },
     outputs=[
@@ -1204,6 +1206,9 @@ plugin.methods.register_function(
         "coverage_min": "Minimum proportion of reference gene covered for a "
         "BLAST-based hit (Methods BLAST or PARTIAL).",
         "translation_table": "Translation table used for BLASTX.",
+        "report_common": "Report proteins common to a taxonomy group.",
+        "gpipe_org": "Use Pathogen Detection taxgroup names as arguments to the "
+        "organism option",
         "threads": "The number of threads to use for processing. AMRFinderPlus "
         "defaults to 4 on hosts with >= 4 cores. Setting this number higher"
         " than the number of cores on the running host may cause blastp to "
