@@ -57,7 +57,7 @@ def run_amrfinderplus_n(
                 "--organism",
                 organism,
                 "--mutation_all",
-                f"{working_dir}/amr_mutations.tsv",
+                f"{working_dir}/amr_all_mutations.tsv",
             ]
         )
     if plus:
