@@ -12,20 +12,23 @@ class TestAnnotateSequencesAMRFinderPlus(TestPluginBase):
     package = "q2_amr.amrfinderplus.tests"
 
     def test_annotate_sequences_amrfinderplus_dna(self):
+        # dna_sequences = DNASequencesDirectoryFormat()
+        # with open(os.path.join(str(dna_sequences), "dna-sequences.fasta"), "w"):
+        #     pass
         dna_sequences = MagicMock()
         self._helper(
-            dna_sequences=dna_sequences, protein_sequences=None, gff=None, organism=None
+            dna_sequences=dna_sequences, proteins=None, gff=None, organism=None
         )
 
     def test_annotate_sequences_amrfinderplus_prot_gff(self):
-        protein_sequences = MagicMock()
+        proteins = MagicMock()
         gff = LociDirectoryFormat()
         gff_content = "##gff-version 3\nchr1\t.\tgene\t1\t1000\t.\t+\t.\tID=gene1"
         with open(os.path.join(str(gff), "loci.gff"), "w") as file:
             file.write(gff_content)
         self._helper(
             dna_sequences=None,
-            protein_sequences=protein_sequences,
+            proteins=proteins,
             gff=gff,
             organism="Escherichia",
         )
@@ -36,17 +39,17 @@ class TestAnnotateSequencesAMRFinderPlus(TestPluginBase):
         amrfinderplus_db = MagicMock()
         with self.assertRaisesRegex(
             ValueError,
-            "GFF input can only be given in combination with protein-sequence input.",
+            "GFF input can only be given in combination with proteis input.",
         ):
             annotate_sequences_amrfinderplus(
-                dna_sequences=dna_sequences,
+                mags=dna_sequences,
                 gff=gff,
                 amrfinderplus_db=amrfinderplus_db,
             )
 
     def test_annotate_sequences_amrfinderplus_dna_prot(self):
         dna_sequences = MagicMock()
-        protein_sequences = MagicMock()
+        proteins = MagicMock()
         amrfinderplus_db = MagicMock()
         with self.assertRaisesRegex(
             ValueError,
@@ -54,20 +57,20 @@ class TestAnnotateSequencesAMRFinderPlus(TestPluginBase):
             "combination with GFF input.",
         ):
             annotate_sequences_amrfinderplus(
-                dna_sequences=dna_sequences,
-                protein_sequences=protein_sequences,
+                mags=dna_sequences,
+                proteins=proteins,
                 amrfinderplus_db=amrfinderplus_db,
             )
 
-    def _helper(self, dna_sequences, protein_sequences, gff, organism):
+    def _helper(self, dna_sequences, proteins, gff, organism):
         amrfinderplus_db = MagicMock()
         with patch(
             "q2_amr.amrfinderplus.sequences.run_amrfinderplus_n",
             side_effect=mock_run_amrfinderplus_n,
         ):
             result = annotate_sequences_amrfinderplus(
-                dna_sequences=dna_sequences,
-                protein_sequences=protein_sequences,
+                mags=dna_sequences,
+                proteins=proteins,
                 gff=gff,
                 amrfinderplus_db=amrfinderplus_db,
                 organism=organism,

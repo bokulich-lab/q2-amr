@@ -7,7 +7,8 @@
 # ----------------------------------------------------------------------------
 import importlib
 
-from q2_types.feature_data import FeatureData, ProteinSequence, Sequence
+from q2_types.feature_data import FeatureData
+from q2_types.feature_data_mag import MAG
 from q2_types.feature_table import FeatureTable, Frequency
 from q2_types.genome_data import Genes, GenomeData, Loci, Proteins
 from q2_types.per_sample_sequences import (
@@ -1245,29 +1246,29 @@ plugin.methods.register_function(
 plugin.methods.register_function(
     function=annotate_sequences_amrfinderplus,
     inputs={
-        "dna_sequences": FeatureData[Sequence],
-        "protein_sequences": FeatureData[ProteinSequence],
+        "mags": FeatureData[MAG],
+        "proteins": GenomeData[Proteins],
         "gff": GenomeData[Loci],
         "amrfinderplus_db": AMRFinderPlusDatabase,
     },
     parameters=amrfinderplus_parameters,
     outputs=[
-        ("annotations", FeatureData[AMRFinderPlusAnnotation]),
-        ("mutations", FeatureData[AMRFinderPlusAnnotation]),
-        ("genes", GenomeData[Genes]),
-        ("proteins", GenomeData[Proteins]),
+        ("amr_annotations", FeatureData[AMRFinderPlusAnnotation]),
+        ("all_amr_mutations", FeatureData[AMRFinderPlusAnnotation]),
+        ("amr_genes", GenomeData[Genes]),
+        ("amr_proteins", GenomeData[Proteins]),
     ],
     input_descriptions={
-        "dna_sequences": "DNA sequences to be annotated with AMRFinderPlus.",
-        "protein_sequences": "Protein sequences to be annotated with AMRFinderPlus.",
+        "mags": "MAGs to be annotated with AMRFinderPlus.",
+        "proteins": "Protein sequences to be annotated with AMRFinderPlus.",
         "gff": "GFF file to give sequence coordinates for proteins input. Required for "
         "combined searches of protein and DNA sequences.",
         "amrfinderplus_db": "AMRFinderPlus Database.",
     },
     parameter_descriptions=amrfinderplus_parameter_descriptions,
     output_descriptions={
-        "annotations": "Annotated AMR genes and mutations.",
-        "mutations": "Report of genotypes at all locations screened for point "
+        "amr_annotations": "Annotated AMR genes and mutations.",
+        "all_amr_mutations": "Report of genotypes at all locations screened for point "
         "mutations. These files allow you to distinguish between called "
         "point mutations that were the sensitive variant and the point "
         "mutations that could not be called because the sequence was not "
@@ -1280,12 +1281,12 @@ plugin.methods.register_function(
         "'Gene symbols' from known point-mutation sites have gene symbols "
         "that match the Pathogen Detection Reference Gene Catalog "
         "standardized nomenclature for point mutations.",
-        "genes": "Sequences that were identified by AMRFinderPlus as AMR genes. This "
-        "will include the entire region that aligns to the references for point "
+        "amr_genes": "Sequences that were identified by AMRFinderPlus as AMR genes. "
+        "This will include the entire region that aligns to the references for point "
         "mutations.",
-        "proteins": "Protein Sequences that were identified by AMRFinderPlus as AMR "
-        "genes. This will include the entire region that aligns to the references for "
-        "point mutations.",
+        "amr_proteins": "Protein Sequences that were identified by AMRFinderPlus as "
+        "AMR genes. This will include the entire region that aligns to the references "
+        "for point mutations.",
     },
     name="Annotate Sequences with AMRFinderPlus.",
     description="Annotate DNA or protein sequences with antimicrobial resistance genes "
