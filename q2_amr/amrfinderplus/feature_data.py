@@ -17,7 +17,7 @@ from q2_amr.amrfinderplus.types import (
 from q2_amr.amrfinderplus.utils import run_amrfinderplus_n
 
 
-def annotate_sequences_amrfinderplus(
+def annotate_feature_data_amrfinderplus(
     amrfinderplus_db: AMRFinderPlusDatabaseDirFmt,
     mags: MAGSequencesDirFmt = None,
     proteins: ProteinsDirectoryFormat = None,

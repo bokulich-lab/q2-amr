@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 from q2_types.genome_data import LociDirectoryFormat
 from qiime2.plugin.testing import TestPluginBase
 
-from q2_amr.amrfinderplus.sequences import annotate_sequences_amrfinderplus
+from q2_amr.amrfinderplus.sequences import annotate_feature_data_amrfinderplus
 from q2_amr.amrfinderplus.tests.test_sample_data import mock_run_amrfinderplus_n
 
 
@@ -41,7 +41,7 @@ class TestAnnotateSequencesAMRFinderPlus(TestPluginBase):
             ValueError,
             "GFF input can only be given in combination with proteis input.",
         ):
-            annotate_sequences_amrfinderplus(
+            annotate_feature_data_amrfinderplus(
                 mags=dna_sequences,
                 loci=gff,
                 amrfinderplus_db=amrfinderplus_db,
@@ -56,7 +56,7 @@ class TestAnnotateSequencesAMRFinderPlus(TestPluginBase):
             "DNA-sequence and protein-sequence inputs together can only be given in "
             "combination with GFF input.",
         ):
-            annotate_sequences_amrfinderplus(
+            annotate_feature_data_amrfinderplus(
                 mags=dna_sequences,
                 proteins=proteins,
                 amrfinderplus_db=amrfinderplus_db,
@@ -68,7 +68,7 @@ class TestAnnotateSequencesAMRFinderPlus(TestPluginBase):
             "q2_amr.amrfinderplus.sequences.run_amrfinderplus_n",
             side_effect=mock_run_amrfinderplus_n,
         ):
-            result = annotate_sequences_amrfinderplus(
+            result = annotate_feature_data_amrfinderplus(
                 mags=dna_sequences,
                 proteins=proteins,
                 loci=gff,
