@@ -59,14 +59,14 @@ def _get_file_paths(file, mags, proteins, loci):
 
 
 def _move_or_create_files(src_dir: str, mag_id: str, file_operations: dict):
-    for file_name, condition, target_dir in file_operations:
-        if condition:
+    for file_name, target_dir in file_operations:
+        if os.path.exists(os.path.join(src_dir, file_name)):
             shutil.move(
                 os.path.join(src_dir, file_name),
                 os.path.join(str(target_dir), f"{mag_id}_{file_name}"),
             )
         else:
-            with open(os.path.join(str(target_dir), file_name), "w"):
+            with open(os.path.join(str(target_dir), f"{mag_id}_{file_name}"), "w"):
                 pass
 
 
@@ -134,10 +134,10 @@ def annotate_feature_data_amrfinderplus(
             # directory format, if organism, dna_sequence and proteins parameters
             # are specified. Else create empty placeholder files.
             file_operations = [
-                ("amr_annotations.tsv", True, amr_annotations),
-                ("amr_all_mutations.tsv", organism, amr_all_mutations),
-                ("amr_genes.fasta", mags, amr_genes),
-                ("amr_proteins.fasta", proteins, amr_proteins),
+                ("amr_annotations.tsv", amr_annotations),
+                ("amr_all_mutations.tsv", amr_all_mutations),
+                ("amr_genes.fasta", amr_genes),
+                ("amr_proteins.fasta", amr_proteins),
             ]
 
             # Loop through each file operation

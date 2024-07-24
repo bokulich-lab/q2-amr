@@ -34,8 +34,8 @@ from qiime2.plugin import Citations, Plugin
 
 from q2_amr import __version__
 from q2_amr.amrfinderplus.database import fetch_amrfinderplus_db
+from q2_amr.amrfinderplus.feature_data import annotate_feature_data_amrfinderplus
 from q2_amr.amrfinderplus.sample_data import annotate_sample_data_amrfinderplus
-from q2_amr.amrfinderplus.sequences import annotate_feature_data_amrfinderplus
 from q2_amr.amrfinderplus.types._format import (
     AMRFinderPlusAnnotationFormat,
     AMRFinderPlusAnnotationsDirFmt,
