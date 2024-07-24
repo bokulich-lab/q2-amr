@@ -1205,9 +1205,9 @@ plugin.methods.register_function(
     },
     parameters=amrfinderplus_parameters,
     outputs=[
-        ("annotations", SampleData[AMRFinderPlusAnnotations]),
-        ("mutations", SampleData[AMRFinderPlusAnnotations]),
-        ("genes", GenomeData[Genes]),
+        ("amr_annotations", SampleData[AMRFinderPlusAnnotations]),
+        ("amr_all_mutations", SampleData[AMRFinderPlusAnnotations]),
+        ("amr_genes", GenomeData[Genes]),
         ("feature_table", FeatureTable[Frequency]),
     ],
     input_descriptions={
@@ -1216,8 +1216,8 @@ plugin.methods.register_function(
     },
     parameter_descriptions=amrfinderplus_parameter_descriptions,
     output_descriptions={
-        "annotations": "Annotated AMR genes and mutations.",
-        "mutations": "Report of genotypes at all locations screened for point "
+        "amr_annotations": "Annotated AMR genes and mutations.",
+        "amr_all_mutations": "Report of genotypes at all locations screened for point "
         "mutations. These files allow you to distinguish between called "
         "point mutations that were the sensitive variant and the point "
         "mutations that could not be called because the sequence was not "
@@ -1230,8 +1230,8 @@ plugin.methods.register_function(
         "'Gene symbols' from known point-mutation sites have gene symbols "
         "that match the Pathogen Detection Reference Gene Catalog "
         "standardized nomenclature for point mutations.",
-        "genes": "Sequences that were identified by AMRFinderPlus as AMR genes. This "
-        "will include the entire region that aligns to the references for "
+        "amr_genes": "Sequences that were identified by AMRFinderPlus as AMR genes. "
+        "This will include the entire region that aligns to the references for "
         "point mutations.",
         "feature_table": "Presence/Absence table of ARGs in all samples.",
     },

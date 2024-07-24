@@ -81,7 +81,9 @@ class TestAnnotateSequencesAMRFinderPlus(TestPluginBase):
             )
             if organism:
                 self.assertTrue(
-                    os.path.exists(os.path.join(str(result[1]), "amr_mutations.tsv"))
+                    os.path.exists(
+                        os.path.join(str(result[1]), "amr_all_mutations.tsv")
+                    )
                 )
             self.assertTrue(
                 os.path.exists(os.path.join(str(result[2]), "amr_genes.fasta"))
