@@ -1127,6 +1127,35 @@ organisms = [
     "Vibrio_vulnificus",
 ]
 
+organisms_gpipe = [
+    "Acinetobacter",
+    "Burkholderia_cepacia_complex",
+    "Burkholderia_pseudomallei",
+    "Campylobacter",
+    "Citrobacter_freundii",
+    "Clostridioides_difficile",
+    "Enterobacter_asburiae",
+    "Enterobacter_cloacae",
+    "Enterococcus_faecalis",
+    "Enterococcus_faecium",
+    "Escherichia_coli_Shigella",
+    "Klebsiella_oxytoca",
+    "Klebsiella",
+    "Neisseria_gonorrhoeae",
+    "Neisseria_meningitidis",
+    "Pseudomonas_aeruginosa",
+    "Salmonella",
+    "Serratia",
+    "Staphylococcus_aureus",
+    "Staphylococcus_pseudintermedius",
+    "Streptococcus_agalactiae",
+    "Streptococcus_pneumoniae",
+    "Streptococcus_pyogenes",
+    "Vibrio_cholerae",
+    "Vibrio_parahaemolyticus",
+    "Vibrio_vulnificus",
+]
+
 translation_tables = [
     "1",
     "2",
@@ -1156,6 +1185,13 @@ translation_tables = [
     "33",
 ]
 
+P_gpipe_org, P_organism, _ = TypeMap(
+    {
+        (Bool % Choices(True), Str % Choices(organisms_gpipe)): Int,
+        (Bool % Choices(False), Str % Choices(organisms)): Int,
+    }
+)
+
 plugin.methods.register_function(
     function=annotate_sample_data_amrfinderplus,
     inputs={
@@ -1163,7 +1199,7 @@ plugin.methods.register_function(
         "amrfinderplus_db": AMRFinderPlusDatabase,
     },
     parameters={
-        "organism": Str % Choices(organisms),
+        "organism": P_organism,
         "plus": Bool,
         "report_all_equal": Bool,
         "ident_min": Float % Range(0, 1, inclusive_start=True, inclusive_end=True),
@@ -1171,7 +1207,7 @@ plugin.methods.register_function(
         "coverage_min": Float % Range(0, 1, inclusive_start=True, inclusive_end=True),
         "translation_table": Str % Choices(translation_tables),
         "report_common": Bool,
-        "gpipe_org": Bool,
+        "gpipe_org": P_gpipe_org,
         "threads": Int % Range(0, None, inclusive_start=False),
     },
     outputs=[
