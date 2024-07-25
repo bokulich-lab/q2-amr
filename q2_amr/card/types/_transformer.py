@@ -252,9 +252,10 @@ def _14(data: CARDAnnotationDirectoryFormat) -> qiime2.Metadata:
             create_append_df(
                 file_path=glob.glob(f"{str(data)}/{samp}/{mag}/amr_annotation.txt")[0],
                 df_list=df_list,
-                id_name="Sample name",
+                id_name="Sample/MAG name",
                 id_value=samp,
             )
+    # "ID" column has to be renamed to conform to metadata format
     df_combined = combine_dataframes(df_list)
     df_combined["Nudged"] = df_combined["Nudged"].astype(str)
     df_combined.rename(columns={"ID": "HSP_Identifier"}, inplace=True)
@@ -271,7 +272,7 @@ def _15(data: CARDMAGsKmerAnalysisDirectoryFormat) -> qiime2.Metadata:
                     f"{str(data)}/{samp}/{mag}/*mer_analysis_rgi_summary.txt"
                 )[0],
                 df_list=df_list,
-                id_name="Sample name",
+                id_name="Sample/MAG name",
                 id_value=samp,
             )
     return qiime2.Metadata(combine_dataframes(df_list))
