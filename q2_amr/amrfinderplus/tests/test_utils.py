@@ -48,7 +48,7 @@ class TestAnnotateMagsCard(TestPluginBase):
                 "--organism",
                 "Escherichia",
                 "--mutation_all",
-                "path_dir/amr_mutations.tsv",
+                "path_dir/amr_all_mutations.tsv",
                 "--plus",
                 "--report_all_equal",
                 "--ident_min",

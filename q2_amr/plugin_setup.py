@@ -35,7 +35,6 @@ from q2_amr import __version__
 from q2_amr.amrfinderplus.database import fetch_amrfinderplus_db
 from q2_amr.amrfinderplus.sample_data import annotate_sample_data_amrfinderplus
 from q2_amr.amrfinderplus.types._format import (
-    AMRFinderPlusAnnotationDirFmt,
     AMRFinderPlusAnnotationFormat,
     AMRFinderPlusAnnotationsDirFmt,
     AMRFinderPlusDatabaseDirFmt,
@@ -43,7 +42,6 @@ from q2_amr.amrfinderplus.types._format import (
     TextFormat,
 )
 from q2_amr.amrfinderplus.types._type import (
-    AMRFinderPlusAnnotation,
     AMRFinderPlusAnnotations,
     AMRFinderPlusDatabase,
 )
@@ -1175,9 +1173,9 @@ plugin.methods.register_function(
         "threads": Int % Range(0, None, inclusive_start=False),
     },
     outputs=[
-        ("annotations", SampleData[AMRFinderPlusAnnotations]),
-        ("mutations", SampleData[AMRFinderPlusAnnotations]),
-        ("genes", GenomeData[Genes]),
+        ("amr_annotations", SampleData[AMRFinderPlusAnnotations]),
+        ("amr_all_mutations", SampleData[AMRFinderPlusAnnotations]),
+        ("amr_genes", GenomeData[Genes]),
         ("feature_table", FeatureTable[Frequency]),
     ],
     input_descriptions={
@@ -1212,8 +1210,8 @@ plugin.methods.register_function(
         "fail. Using more than 4 threads may speed up searches.",
     },
     output_descriptions={
-        "annotations": "Annotated AMR genes and mutations.",
-        "mutations": "Report of genotypes at all locations screened for point "
+        "amr_annotations": "Annotated AMR genes and mutations.",
+        "amr_all_mutations": "Report of genotypes at all locations screened for point "
         "mutations. These files allow you to distinguish between called "
         "point mutations that were the sensitive variant and the point "
         "mutations that could not be called because the sequence was not "
@@ -1226,8 +1224,8 @@ plugin.methods.register_function(
         "'Gene symbols' from known point-mutation sites have gene symbols "
         "that match the Pathogen Detection Reference Gene Catalog "
         "standardized nomenclature for point mutations.",
-        "genes": "Sequences that were identified by AMRFinderPlus as AMR genes. This "
-        "will include the entire region that aligns to the references for "
+        "amr_genes": "Sequences that were identified by AMRFinderPlus as AMR genes. "
+        "This will include the entire region that aligns to the references for "
         "point mutations.",
         "feature_table": "Presence/Absence table of ARGs in all samples.",
     },
@@ -1249,7 +1247,6 @@ plugin.register_semantic_types(
     CARDMAGsKmerAnalysis,
     AMRFinderPlusDatabase,
     AMRFinderPlusAnnotations,
-    AMRFinderPlusAnnotation,
 )
 
 plugin.register_semantic_type_to_format(
@@ -1289,8 +1286,8 @@ plugin.register_semantic_type_to_format(
     artifact_format=AMRFinderPlusAnnotationsDirFmt,
 )
 plugin.register_semantic_type_to_format(
-    FeatureData[AMRFinderPlusAnnotation],
-    artifact_format=AMRFinderPlusAnnotationDirFmt,
+    FeatureData[AMRFinderPlusAnnotations],
+    artifact_format=AMRFinderPlusAnnotationsDirFmt,
 )
 plugin.register_formats(
     CARDKmerDatabaseDirectoryFormat,
@@ -1321,7 +1318,6 @@ plugin.register_formats(
     BinaryFormat,
     AMRFinderPlusAnnotationFormat,
     AMRFinderPlusAnnotationsDirFmt,
-    AMRFinderPlusAnnotationDirFmt,
 )
 
 importlib.import_module("q2_amr.card.types._transformer")
