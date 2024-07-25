@@ -32,24 +32,34 @@ def _validate_inputs(mags, loci, proteins):
 
 
 def _get_file_paths(file, mags, proteins, loci):
+    # If mags is provided, mag_id is extracted from the file name.
     if mags:
         mag_id = os.path.splitext(os.path.basename(file))[0]
+
+        # If proteins are provided, construct the expected protein file path.
         if proteins:
             protein_path = os.path.join(str(proteins), f"{mag_id}_proteins.fasta")
+
+            # Raise an error if the expected protein file does not exist.
             if not os.path.exists(protein_path):
                 raise ValueError(
                     f"Proteins file for ID '{mag_id}' is missing in proteins input."
                 )
         else:
             protein_path = None
-    elif proteins:
+
+    # If only proteins are provided (without mags), determine mag_id and protein path.
+    else:
+        # Extract mag_id from the file name, excluding the last 9 characters
+        # '_proteins'.
         mag_id = os.path.splitext(os.path.basename(file))[0][:-9]
         protein_path = file
-    else:
-        raise ValueError("Either mags or proteins must be provided.")
 
+    # If loci are provided, construct the expected GFF file path.
     if loci:
         gff_path = os.path.join(str(loci), f"{mag_id}_loci.gff")
+
+        # Raise an error if the expected GFF file does not exist.
         if not os.path.exists(gff_path):
             raise ValueError(f"GFF file for ID '{mag_id}' is missing in loci input.")
     else:
@@ -58,13 +68,17 @@ def _get_file_paths(file, mags, proteins, loci):
     return mag_id, protein_path, gff_path
 
 
-def _move_or_create_files(src_dir: str, mag_id: str, file_operations: dict):
+def _move_or_create_files(src_dir: str, mag_id: str, file_operations: list):
+    # Loop through all files.
     for file_name, target_dir in file_operations:
+        # If the file exists move it to the destination dir and attach mag_id.
         if os.path.exists(os.path.join(src_dir, file_name)):
             shutil.move(
                 os.path.join(src_dir, file_name),
                 os.path.join(str(target_dir), f"{mag_id}_{file_name}"),
             )
+        # If the file does not exist, create empty placeholder file in the
+        # destination dir.
         else:
             with open(os.path.join(str(target_dir), f"{mag_id}_{file_name}"), "w"):
                 pass
@@ -92,22 +106,26 @@ def annotate_feature_data_amrfinderplus(
     GenesDirectoryFormat,
     ProteinsDirectoryFormat,
 ):
-    # Check for unallowed input combinations
+    # Check for unallowed input combinations.
     _validate_inputs(mags, loci, proteins)
 
-    # Create all output directory formats
+    # Create all output directories.
     amr_annotations = AMRFinderPlusAnnotationsDirFmt()
     amr_all_mutations = AMRFinderPlusAnnotationsDirFmt()
     amr_genes = GenesDirectoryFormat()
     amr_proteins = ProteinsDirectoryFormat()
 
+    # Create list of files to loop over, if mags is provided then files in mags will be
+    # used if only proteins is provided then files in proteins will be used
     if mags:
         files = glob.glob(os.path.join(str(mags), "*"))
-    elif proteins:
+    else:
         files = glob.glob(os.path.join(str(proteins), "*"))
 
     with tempfile.TemporaryDirectory() as tmp:
+        # Loop over all files
         for file in files:
+            # Get paths to protein and gff files, and get mag_id
             mag_id, protein_path, gff_path = _get_file_paths(file, mags, proteins, loci)
 
             # Run amrfinderplus
@@ -130,9 +148,7 @@ def annotate_feature_data_amrfinderplus(
                 threads=threads,
             )
 
-            # Move mutations, genes and proteins files from tmp dir to the output
-            # directory format, if organism, dna_sequence and proteins parameters
-            # are specified. Else create empty placeholder files.
+            # Output filenames and output directories
             file_operations = [
                 ("amr_annotations.tsv", amr_annotations),
                 ("amr_all_mutations.tsv", amr_all_mutations),
@@ -140,7 +156,7 @@ def annotate_feature_data_amrfinderplus(
                 ("amr_proteins.fasta", amr_proteins),
             ]
 
-            # Loop through each file operation
+            # Move the files or create placeholder files
             _move_or_create_files(tmp, mag_id, file_operations)
 
     return amr_annotations, amr_all_mutations, amr_genes, amr_proteins
