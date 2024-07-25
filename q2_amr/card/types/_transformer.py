@@ -21,6 +21,7 @@ from skbio import DNA, Protein
 from q2_amr.card.types import CARDAnnotationDirectoryFormat
 from q2_amr.plugin_setup import plugin
 
+from ...utils.utils import combine_dataframes, create_df
 from ._format import (
     CARDAlleleAnnotationDirectoryFormat,
     CARDAnnotationJSONFormat,
@@ -219,71 +220,84 @@ def card_annotation_df_to_fasta(txt_file_path: str, seq_type: str):
 
 @plugin.register_transformer
 def _12(data: CARDAlleleAnnotationDirectoryFormat) -> qiime2.Metadata:
-    return tabulate_data(data, "allele")
+    df_list = []
+    for samp in os.listdir(str(data)):
+        create_df(
+            file_path=glob.glob(f"{str(data)}/{samp}/allele_mapping_data.txt")[0],
+            df_list=df_list,
+            id_name="Sample name",
+            id_value=samp,
+        )
+    return qiime2.Metadata(combine_dataframes(df_list))
 
 
 @plugin.register_transformer
 def _13(data: CARDGeneAnnotationDirectoryFormat) -> qiime2.Metadata:
-    return tabulate_data(data, "gene")
+    df_list = []
+    for samp in os.listdir(str(data)):
+        create_df(
+            file_path=glob.glob(f"{str(data)}/{samp}/gene_mapping_data.txt")[0],
+            df_list=df_list,
+            id_name="Sample name",
+            id_value=samp,
+        )
+    return qiime2.Metadata(combine_dataframes(df_list))
 
 
 @plugin.register_transformer
 def _14(data: CARDAnnotationDirectoryFormat) -> qiime2.Metadata:
-    return tabulate_data(data, "mags")
+    df_list = []
+    for samp in os.listdir(str(data)):
+        for mag in os.listdir(os.path.join(str(data), samp)):
+            create_df(
+                file_path=glob.glob(f"{str(data)}/{samp}/{mag}/amr_annotation.txt")[0],
+                df_list=df_list,
+                id_name="Sample name",
+                id_value=samp,
+            )
+    df_combined = combine_dataframes(df_list)
+    df_combined["Nudged"] = df_combined["Nudged"].astype(str)
+    df_combined.rename(columns={"ID": "HSP_Identifier"}, inplace=True)
+    return qiime2.Metadata(df_combined)
 
 
 @plugin.register_transformer
 def _15(data: CARDMAGsKmerAnalysisDirectoryFormat) -> qiime2.Metadata:
-    return tabulate_data(data, "kmer_mags")
+    df_list = []
+    for samp in os.listdir(str(data)):
+        for mag in os.listdir(os.path.join(str(data), samp)):
+            create_df(
+                file_path=glob.glob(
+                    f"{str(data)}/{samp}/{mag}/*mer_analysis_rgi_summary.txt"
+                )[0],
+                df_list=df_list,
+                id_name="Sample name",
+                id_value=samp,
+            )
+    return qiime2.Metadata(combine_dataframes(df_list))
 
 
 @plugin.register_transformer
 def _16(data: CARDReadsAlleleKmerAnalysisDirectoryFormat) -> qiime2.Metadata:
-    return tabulate_data(data, "kmer_allele")
+    df_list = []
+    for samp in os.listdir(str(data)):
+        create_df(
+            file_path=glob.glob(f"{str(data)}/{samp}/*mer_analysis.allele.txt")[0],
+            df_list=df_list,
+            id_name="Sample name",
+            id_value=samp,
+        )
+    return qiime2.Metadata(combine_dataframes(df_list))
 
 
 @plugin.register_transformer
 def _17(data: CARDReadsGeneKmerAnalysisDirectoryFormat) -> qiime2.Metadata:
-    return tabulate_data(data, "kmer_gene")
-
-
-def tabulate_data(data_path, data_type):
-    filenames = {
-        "allele": "allele_mapping_data.txt",
-        "gene": "gene_mapping_data.txt",
-        "mags": "amr_annotation.txt",
-        "kmer_allele": "*mer_analysis.allele.txt",
-        "kmer_gene": "*mer_analysis.gene.txt",
-        "kmer_mags": "*mer_analysis_rgi_summary.txt",
-    }
-
-    filename = filenames[data_type]
     df_list = []
-
-    # Read in all analysis files as pd.Dataframes and add them to df_list
-    for samp in os.listdir(str(data_path)):
-        if data_type in ["mags", "kmer_mags"]:
-            for bin in os.listdir(os.path.join(str(data_path), samp)):
-                file_path = glob.glob(rf"{str(data_path)}/{samp}/{bin}/{filename}")[0]
-                df = pd.read_csv(file_path, sep="\t")
-                df.insert(0, "Sample Name", f"{samp}/{bin}")
-                df_list.append(df)
-
-        if data_type in ["allele", "gene", "kmer_allele", "kmer_gene"]:
-            file_path = glob.glob(rf"{str(data_path)}/{samp}/{filename}")[0]
-            df = pd.read_csv(file_path, sep="\t")
-            df.insert(0, "Sample Name", samp)
-            df_list.append(df)
-
-    # Combine all dataframes
-    df_combined = pd.concat(df_list, axis=0)
-    df_combined.sort_values(by="Sample Name", inplace=True)
-    df_combined.reset_index(inplace=True, drop=True)
-    df_combined.index.name = "id"
-    df_combined.index = df_combined.index.astype(str)
-
-    if data_type == "mags":
-        df_combined["Nudged"] = df_combined["Nudged"].astype(str)
-        df_combined.rename(columns={"ID": "HSP_Identifier"}, inplace=True)
-
-    return qiime2.Metadata(df_combined)
+    for samp in os.listdir(str(data)):
+        create_df(
+            file_path=glob.glob(f"{str(data)}/{samp}/*mer_analysis.gene.txt")[0],
+            df_list=df_list,
+            id_name="Sample name",
+            id_value=samp,
+        )
+    return qiime2.Metadata(combine_dataframes(df_list))
