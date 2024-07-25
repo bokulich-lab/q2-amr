@@ -2,26 +2,10 @@ import glob
 import json
 import os
 import subprocess
-from functools import reduce
 
-import pandas as pd
 from qiime2.util import duplicate
 
-EXTERNAL_CMD_WARNING = (
-    "Running external command line application(s). "
-    "This may print messages to stdout and/or stderr.\n"
-    "The command(s) being run are below. These commands "
-    "cannot be manually re-run as they will depend on "
-    "temporary files that no longer exist."
-)
-
-
-def run_command(cmd, cwd=None, verbose=True):
-    if verbose:
-        print(EXTERNAL_CMD_WARNING)
-        print("\nCommand:", end=" ")
-        print(" ".join(cmd), end="\n\n")
-    subprocess.run(cmd, check=True, cwd=cwd)
+from q2_amr.utils.utils import run_command
 
 
 def load_card_db(
@@ -93,52 +77,6 @@ def load_card_db(
             "stdout and stderr to learn more."
         )
     return kmer_size
-
-
-def read_in_txt(path: str, samp_bin_name: str, data_type: str, colname: str):
-    # Read in txt file to pd.Dataframe
-    df = pd.read_csv(path, sep="\t")
-
-    # Process the df depending on the data type
-    if data_type == "reads":
-        df = df[[colname, "All Mapped Reads"]]
-        df.rename(columns={"All Mapped Reads": samp_bin_name}, inplace=True)
-    elif data_type == "mags":
-        df = df[colname].value_counts().reset_index()
-        df.columns = [colname, samp_bin_name]
-
-    df = df.astype(str)
-    return df
-
-
-def create_count_table(df_list: list) -> pd.DataFrame:
-    # Remove all empty lists from df_list
-    df_list = [df for df in df_list if not df.empty]
-
-    # Raise ValueError if df_list is empty. This happens when no ARGs were detected
-    if not df_list:
-        raise ValueError(
-            "RGI did not identify any AMR genes. No output can be created."
-        )
-
-    # Merge all dfs contained in df_list
-    df = reduce(
-        lambda left, right: pd.merge(left, right, on=left.columns[0], how="outer"),
-        df_list,
-    )
-
-    # Process the df to meet all requirements for a FeatureTable
-    df = df.transpose()
-    df = df.fillna(0)
-    df.columns = df.iloc[0]
-    df = df.drop(df.index[0])
-    df.columns.name = None
-    df.index.name = "sample_id"
-    return df
-
-
-def colorify(string: str):
-    return "%s%s%s" % ("\033[1;32m", string, "\033[0m")
 
 
 def copy_files(file_paths: list, *dst_path_components):
