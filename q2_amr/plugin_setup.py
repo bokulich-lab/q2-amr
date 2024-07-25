@@ -1314,7 +1314,7 @@ plugin.methods.register_function(
     name="Annotate MAGs or contigs with AMRFinderPlus.",
     description="Annotate sample data MAGs or contigs with antimicrobial resistance "
     "genes with AMRFinderPlus.",
-    citations=[],
+    citations=[citations["feldgarden2021amrfinderplus"]],
 )
 
 plugin.methods.register_function(
@@ -1344,7 +1344,7 @@ plugin.methods.register_function(
     name="Annotate Sequences with AMRFinderPlus.",
     description="Annotate DNA or protein sequences with antimicrobial resistance genes "
     "with AMRFinderPlus.",
-    citations=[],
+    citations=[citations["feldgarden2021amrfinderplus"]],
 )
 
 # Registrations
