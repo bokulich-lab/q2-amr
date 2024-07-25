@@ -21,7 +21,7 @@ from skbio import DNA, Protein
 from q2_amr.card.types import CARDAnnotationDirectoryFormat
 from q2_amr.plugin_setup import plugin
 
-from ...utils.utils import combine_dataframes, create_df
+from ...utils.utils import combine_dataframes, create_append_df
 from ._format import (
     CARDAlleleAnnotationDirectoryFormat,
     CARDAnnotationJSONFormat,
@@ -222,7 +222,7 @@ def card_annotation_df_to_fasta(txt_file_path: str, seq_type: str):
 def _12(data: CARDAlleleAnnotationDirectoryFormat) -> qiime2.Metadata:
     df_list = []
     for samp in os.listdir(str(data)):
-        create_df(
+        create_append_df(
             file_path=glob.glob(f"{str(data)}/{samp}/allele_mapping_data.txt")[0],
             df_list=df_list,
             id_name="Sample name",
@@ -235,7 +235,7 @@ def _12(data: CARDAlleleAnnotationDirectoryFormat) -> qiime2.Metadata:
 def _13(data: CARDGeneAnnotationDirectoryFormat) -> qiime2.Metadata:
     df_list = []
     for samp in os.listdir(str(data)):
-        create_df(
+        create_append_df(
             file_path=glob.glob(f"{str(data)}/{samp}/gene_mapping_data.txt")[0],
             df_list=df_list,
             id_name="Sample name",
@@ -249,7 +249,7 @@ def _14(data: CARDAnnotationDirectoryFormat) -> qiime2.Metadata:
     df_list = []
     for samp in os.listdir(str(data)):
         for mag in os.listdir(os.path.join(str(data), samp)):
-            create_df(
+            create_append_df(
                 file_path=glob.glob(f"{str(data)}/{samp}/{mag}/amr_annotation.txt")[0],
                 df_list=df_list,
                 id_name="Sample name",
@@ -266,7 +266,7 @@ def _15(data: CARDMAGsKmerAnalysisDirectoryFormat) -> qiime2.Metadata:
     df_list = []
     for samp in os.listdir(str(data)):
         for mag in os.listdir(os.path.join(str(data), samp)):
-            create_df(
+            create_append_df(
                 file_path=glob.glob(
                     f"{str(data)}/{samp}/{mag}/*mer_analysis_rgi_summary.txt"
                 )[0],
@@ -281,7 +281,7 @@ def _15(data: CARDMAGsKmerAnalysisDirectoryFormat) -> qiime2.Metadata:
 def _16(data: CARDReadsAlleleKmerAnalysisDirectoryFormat) -> qiime2.Metadata:
     df_list = []
     for samp in os.listdir(str(data)):
-        create_df(
+        create_append_df(
             file_path=glob.glob(f"{str(data)}/{samp}/*mer_analysis.allele.txt")[0],
             df_list=df_list,
             id_name="Sample name",
@@ -294,7 +294,7 @@ def _16(data: CARDReadsAlleleKmerAnalysisDirectoryFormat) -> qiime2.Metadata:
 def _17(data: CARDReadsGeneKmerAnalysisDirectoryFormat) -> qiime2.Metadata:
     df_list = []
     for samp in os.listdir(str(data)):
-        create_df(
+        create_append_df(
             file_path=glob.glob(f"{str(data)}/{samp}/*mer_analysis.gene.txt")[0],
             df_list=df_list,
             id_name="Sample name",

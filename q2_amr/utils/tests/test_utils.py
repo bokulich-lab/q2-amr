@@ -8,8 +8,8 @@ from q2_amr.utils.utils import (
     EXTERNAL_CMD_WARNING,
     colorify,
     combine_dataframes,
+    create_append_df,
     create_count_table,
-    create_df,
     read_in_txt,
     run_command,
 )
@@ -56,21 +56,22 @@ class MetadataUtilsTest(TestPluginBase):
         self.expected_combined_df.index = self.expected_combined_df.index.astype(str)
         self.expected_combined_df.index.name = "id"
 
-    def test_create_df(self):
-        # Test create_df function
-        create_df(StringIO(self.file_data_1), self.df_list, "id_name", "id_value_1")
-        create_df(StringIO(self.file_data_2), self.df_list, "id_name", "id_value_2")
+    def test_create_append_df(self):
+        # Test create_append_df function
+        create_append_df(
+            StringIO(self.file_data_1), self.df_list, "id_name", "id_value_1"
+        )
+        create_append_df(
+            StringIO(self.file_data_2), self.df_list, "id_name", "id_value_2"
+        )
 
         pd.testing.assert_frame_equal(self.df_list[0], self.df1)
         pd.testing.assert_frame_equal(self.df_list[1], self.df2)
 
     def test_combine_dataframes(self):
-        # Prepare data
-
+        # Test combine_dataframes function
         df_list = [self.df1, self.df2]
-
         combined_df = combine_dataframes(df_list)
-
         pd.testing.assert_frame_equal(combined_df, self.expected_combined_df)
 
 

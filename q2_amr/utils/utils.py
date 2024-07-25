@@ -64,7 +64,7 @@ def create_count_table(df_list: list) -> pd.DataFrame:
     return df
 
 
-def create_df(file_path, df_list, id_name, id_value):
+def create_append_df(file_path, df_list, id_name, id_value):
     # Read in df
     df = pd.read_csv(file_path, sep="\t")
 
