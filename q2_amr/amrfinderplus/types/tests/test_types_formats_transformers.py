@@ -12,7 +12,6 @@ from qiime2.core.exceptions import ValidationError
 from qiime2.plugin.testing import TestPluginBase
 
 from q2_amr.amrfinderplus.types._format import (
-    AMRFinderPlusAnnotationDirFmt,
     AMRFinderPlusAnnotationFormat,
     AMRFinderPlusAnnotationsDirFmt,
     AMRFinderPlusDatabaseDirFmt,
@@ -92,14 +91,28 @@ class TestAMRFinderPlusTypesAndFormats(TestPluginBase):
 
             self.assertEqual(str(context.exception), expected_message)
 
-    def test_amrfinderplus_annotation_directory_format(self):
+    def test_amrfinderplus_annotations_dir_fmt_feature(self):
         dirpath = self.get_data_path(
             "annotation/coordinates/e026af61-d911-4de3-a957-7e8bf837f30d"
         )
-        annotations = AMRFinderPlusAnnotationDirFmt(dirpath, mode="r")
-        assert isinstance(annotations, AMRFinderPlusAnnotationDirFmt)
+        annotations = AMRFinderPlusAnnotationsDirFmt(dirpath, mode="r")
+        assert isinstance(annotations, AMRFinderPlusAnnotationsDirFmt)
 
-    def test_amrfinderplus_annotations_directory_format(self):
+    def test_amrfinderplus_annotations_dir_fmt_sample(self):
         dirpath = self.get_data_path("annotation")
         annotations = AMRFinderPlusAnnotationsDirFmt(dirpath, mode="r")
         assert isinstance(annotations, AMRFinderPlusAnnotationsDirFmt)
+
+    def test_amrfinderplus_annotations_dir_fmt_path_maker_dir_name(self):
+        fmt = AMRFinderPlusAnnotationsDirFmt()
+        path = fmt.annotations_path_maker(
+            name="annotations", id="id", dir_name="dir_name"
+        )
+        self.assertEqual(
+            str(path), os.path.join(str(fmt), "dir_name/id_amr_annotations.tsv")
+        )
+
+    def test_amrfinderplus_annotations_dir_fmt_path_maker(self):
+        fmt = AMRFinderPlusAnnotationsDirFmt()
+        path = fmt.annotations_path_maker(name="annotations", id="id")
+        self.assertEqual(str(path), os.path.join(str(fmt), "id_amr_annotations.tsv"))

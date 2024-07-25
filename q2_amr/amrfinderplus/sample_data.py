@@ -32,9 +32,9 @@ def annotate_sample_data_amrfinderplus(
     GenesDirectoryFormat,
     pd.DataFrame,
 ):
-    annotations = AMRFinderPlusAnnotationsDirFmt()
-    mutations = AMRFinderPlusAnnotationsDirFmt()
-    genes = GenesDirectoryFormat()
+    amr_annotations = AMRFinderPlusAnnotationsDirFmt()
+    amr_all_mutations = AMRFinderPlusAnnotationsDirFmt()
+    amr_genes = GenesDirectoryFormat()
     frequency_list = []
 
     # Create list of paths to all mags or contigs
@@ -86,20 +86,22 @@ def annotate_sample_data_amrfinderplus(
 
             # Move mutations file. If it is not created, create an empty mutations file
             des_path_mutations = os.path.join(
-                str(mutations),
+                str(amr_all_mutations),
                 sample_id,
-                f"{mag_id + '_' if mag_id else ''}amr_mutations.tsv",
+                f"{mag_id + '_' if mag_id else ''}amr_all_mutations.tsv",
             )
             os.makedirs(os.path.dirname(des_path_mutations), exist_ok=True)
             if organism:
-                shutil.move(os.path.join(tmp, "amr_mutations.tsv"), des_path_mutations)
+                shutil.move(
+                    os.path.join(tmp, "amr_all_mutations.tsv"), des_path_mutations
+                )
             else:
                 with open(des_path_mutations, "w"):
                     pass
 
             # Move annotations file
             des_path_annotations = os.path.join(
-                str(annotations),
+                str(amr_annotations),
                 sample_id,
                 f"{mag_id + '_' if mag_id else ''}amr_annotations.tsv",
             )
@@ -110,14 +112,14 @@ def annotate_sample_data_amrfinderplus(
             shutil.move(
                 os.path.join(tmp, "amr_genes.fasta"),
                 os.path.join(
-                    str(genes), f"{mag_id if mag_id else sample_id}_amr_genes.fasta"
+                    str(amr_genes), f"{mag_id if mag_id else sample_id}_amr_genes.fasta"
                 ),
             )
 
         feature_table = create_count_table(df_list=frequency_list)
     return (
-        annotations,
-        mutations,
-        genes,
+        amr_annotations,
+        amr_all_mutations,
+        amr_genes,
         feature_table,
     )
