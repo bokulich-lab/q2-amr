@@ -25,6 +25,9 @@ class TestAnnotateSampleDataAMRFinderPlus(TestPluginBase):
         curated_ident,
         coverage_min,
         translation_table,
+        annotation_format,
+        report_common,
+        gpipe_org,
         threads,
     ):
         with open(os.path.join(working_dir, "amr_annotations.tsv"), "w"):
