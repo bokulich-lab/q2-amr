@@ -8,10 +8,8 @@
 import json
 import os
 import shutil
-import tempfile
 
 import pandas as pd
-import pkg_resources
 import qiime2
 from Bio import SeqIO
 from q2_types.feature_data import (
@@ -51,25 +49,12 @@ from q2_amr.card.types._transformer import (
     _read_from_card_file,
     card_annotation_df_to_fasta,
     extract_sequence,
-    tabulate_data,
 )
 
 
-class AMRTypesTestPluginBase(TestPluginBase):
+class TestCARDDatabaseTypesAndFormats(TestPluginBase):
     package = "q2_amr.card.types.tests"
 
-    def setUp(self):
-        super().setUp()
-        self.temp_dir = tempfile.TemporaryDirectory(prefix="q2-amr-test-temp-")
-
-    def tearDown(self):
-        self.temp_dir.cleanup()
-
-    def get_data_path(self, filename):
-        return pkg_resources.resource_filename(self.package, "data/%s" % filename)
-
-
-class TestCARDDatabaseTypesAndFormats(AMRTypesTestPluginBase):
     def test_card_database_format_validate_positive(self):
         filepath = self.get_data_path("card_test.json")
         format = CARDDatabaseFormat(filepath, mode="r")
@@ -222,7 +207,9 @@ class TestCARDDatabaseTypesAndFormats(AMRTypesTestPluginBase):
         self.assertIsInstance(generator, ProteinIterator)
 
 
-class TestCARDCARDKmerDirectoryTypesAndFormats(AMRTypesTestPluginBase):
+class TestCARDCARDKmerDirectoryTypesAndFormats(TestPluginBase):
+    package = "q2_amr.card.types.tests"
+
     def test_kmer_txt_format_validate_positive(self):
         filepath = self.get_data_path("kmer_txt_test.txt")
         format = CARDKmerTXTFormat(filepath, mode="r")
@@ -246,7 +233,9 @@ class TestCARDCARDKmerDirectoryTypesAndFormats(AMRTypesTestPluginBase):
         format.validate()
 
 
-class TestCARDMagsAnnotationTypesAndFormats(AMRTypesTestPluginBase):
+class TestCARDMagsAnnotationTypesAndFormats(TestPluginBase):
+    package = "q2_amr.card.types.tests"
+
     def test_df_to_card_annotation_format_transformer(self):
         filepath = self.get_data_path("rgi_output.txt")
         transformer = self.get_transformer(pd.DataFrame, CARDAnnotationTXTFormat)
@@ -396,7 +385,9 @@ class TestCARDMagsAnnotationTypesAndFormats(AMRTypesTestPluginBase):
         self.assertEqual(obs, exp)
 
 
-class TestCARDReadsAnnotationTypesAndFormats(AMRTypesTestPluginBase):
+class TestCARDReadsAnnotationTypesAndFormats(TestPluginBase):
+    package = "q2_amr.card.types.tests"
+
     def test_CARDGeneAnnotationDirectoryFormat_to_qiime2_Metadata_transformer(self):
         transformer = self.get_transformer(
             CARDGeneAnnotationDirectoryFormat, qiime2.Metadata
@@ -448,7 +439,9 @@ class TestCARDReadsAnnotationTypesAndFormats(AMRTypesTestPluginBase):
         self.assertEqual(obs, exp)
 
 
-class TestKmerTypesAndFormats(AMRTypesTestPluginBase):
+class TestKmerTypesAndFormats(TestPluginBase):
+    package = "q2_amr.card.types.tests"
+
     def test_card_mags_kmer_analysis_validate_positive(self):
         filepath = self.get_data_path("61mer_analysis_rgi_summary.txt")
         format = CARDMAGsKmerAnalysisFormat(filepath, mode="r")
@@ -544,20 +537,3 @@ class TestKmerTypesAndFormats(AMRTypesTestPluginBase):
         )
         metadata_obt = transformer(kmer_analysis)
         self.assertIsInstance(metadata_obt, qiime2.Metadata)
-
-    def test_tabulate_data_mags(self):
-        exp = pd.read_csv(
-            self.get_data_path("tabulated_df_mags.txt"), sep="\t", index_col=0
-        )
-        exp.index = exp.index.astype(str)
-        exp["Nudged"] = exp["Nudged"].astype(str)
-        obs = tabulate_data(self.get_data_path("card_annotation"), "mags")
-        self.assertEqual(qiime2.Metadata(exp), obs)
-
-    def test_tabulate_data_allele(self):
-        exp = pd.read_csv(
-            self.get_data_path("tabulated_df_allele.txt"), sep="\t", index_col=0
-        )
-        exp.index = exp.index.astype(str)
-        obs = tabulate_data(self.get_data_path("card_allele_annotation"), "allele")
-        self.assertEqual(qiime2.Metadata(exp), obs)
