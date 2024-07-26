@@ -32,11 +32,11 @@ def _transfomer_helper(data):
                 if file_name.endswith("_amr_annotations"):
                     id_name = "Sample/MAG name"
                     id_value = file_dir_name + "/" + file_name[:-16]
-                # "all mutations" file from sample data mags
+                # Mutations file from sample data mags
                 elif file_name.endswith("_amr_all_mutations"):
                     id_name = "Sample/MAG name"
                     id_value = file_dir_name + "/" + file_name[:-18]
-                # "all mutations" or annotations file from sample data contigs
+                # Mutations or annotations file from sample data contigs
                 else:
                     id_name = "Sample name"
                     id_value = file_dir_name
@@ -54,10 +54,12 @@ def _transfomer_helper(data):
             # Mutations file from feature data mags
             else:
                 id_value = file_dir_name[:-22]
+
             create_append_df(
                 file_path=os.path.join(str(data), file_dir_name),
                 df_list=df_list,
                 id_name="MAG name",
                 id_value=id_value,
             )
+
     return combine_dataframes(df_list)
