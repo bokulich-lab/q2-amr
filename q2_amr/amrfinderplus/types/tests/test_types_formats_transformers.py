@@ -8,7 +8,9 @@
 import os
 import tempfile
 
+import pandas as pd
 import qiime2
+from pandas._testing import assert_frame_equal
 from qiime2.core.exceptions import ValidationError
 from qiime2.plugin.testing import TestPluginBase
 
@@ -17,6 +19,7 @@ from q2_amr.amrfinderplus.types._format import (
     AMRFinderPlusAnnotationsDirFmt,
     AMRFinderPlusDatabaseDirFmt,
 )
+from q2_amr.amrfinderplus.types._transformer import _transfomer_helper
 
 
 class TestAMRFinderPlusTypesAndFormats(TestPluginBase):
@@ -122,29 +125,41 @@ class TestAMRFinderPlusTypesAndFormats(TestPluginBase):
 class TestAMRFinderPlusTransformers(TestPluginBase):
     package = "q2_amr.amrfinderplus.types.tests"
 
-    def test_annotations_feature_data_mags_to_Metadata_transformer(self):
-        self._test_helper("annotations_feature_data_mags")
+    def test_annotations_feature_data_mags_transformer_helper(self):
+        self._test_helper("annotations_feature_data_mags", "feature_data.tsv")
 
-    def test_annotations_sample_data_contigs_to_Metadata_transformer(self):
-        self._test_helper("annotations_sample_data_contigs")
+    def test_annotations_sample_data_contigs_transformer_helper(self):
+        self._test_helper("annotations_sample_data_contigs", "sample_data_contigs.tsv")
 
-    def test_annotations_sample_data_mags_to_Metadata_transformer(self):
-        self._test_helper("annotations_sample_data_mags")
+    def test_annotations_sample_data_mags_transformer_helper(self):
+        self._test_helper("annotations_sample_data_mags", "sample_data_mags.tsv")
 
-    def test_mutations_feature_data_mags_to_Metadata_transformer(self):
-        self._test_helper("mutations_feature_data_mags")
+    def test_mutations_feature_data_mags_transformer_helper(self):
+        self._test_helper("mutations_feature_data_mags", "feature_data.tsv")
 
-    def test_mutations_sample_data_contigs_to_Metadata_transformer(self):
-        self._test_helper("mutations_sample_data_contigs")
+    def test_mutations_sample_data_contigs_transformer_helper(self):
+        self._test_helper("mutations_sample_data_contigs", "sample_data_contigs.tsv")
 
-    def test_mutations_sample_data_mags_to_Metadata_transformer(self):
-        self._test_helper("mutations_sample_data_mags")
+    def test_mutations_sample_data_mags_transformer_helper(self):
+        self._test_helper("mutations_sample_data_mags", "sample_data_mags.tsv")
 
-    def _test_helper(self, data):
+    def _test_helper(self, data, table_name):
+        df_expected = pd.read_csv(
+            self.get_data_path(f"metadata_tables/{table_name}"),
+            sep="\t",
+        )
+        df_expected.index = df_expected.index.astype(str)
+        df_expected.index.name = "id"
+        df_obs = _transfomer_helper(self.get_data_path(data))
+        assert_frame_equal(df_expected, df_obs)
+
+    def test_annotations_sample_data_mags_to_Metadata(self):
         transformer = self.get_transformer(
             AMRFinderPlusAnnotationsDirFmt, qiime2.Metadata
         )
-        fmt = AMRFinderPlusAnnotationsDirFmt(self.get_data_path(data), "r")
+        fmt = AMRFinderPlusAnnotationsDirFmt(
+            self.get_data_path("annotations_sample_data_mags"), "r"
+        )
 
         metadata_obt = transformer(fmt)
 
