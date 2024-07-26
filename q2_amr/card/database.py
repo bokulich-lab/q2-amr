@@ -13,7 +13,7 @@ from q2_amr.card.types._format import (
     CARDDatabaseDirectoryFormat,
     CARDKmerDatabaseDirectoryFormat,
 )
-from q2_amr.card.utils import colorify, run_command
+from q2_amr.utils.utils import colorify, run_command
 
 
 def fetch_card_db() -> (CARDDatabaseDirectoryFormat, CARDKmerDatabaseDirectoryFormat):

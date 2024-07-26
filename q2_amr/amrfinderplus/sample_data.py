@@ -12,7 +12,7 @@ from q2_amr.amrfinderplus.types import (
     AMRFinderPlusDatabaseDirFmt,
 )
 from q2_amr.amrfinderplus.utils import run_amrfinderplus_n
-from q2_amr.card.utils import create_count_table, read_in_txt
+from q2_amr.utils.utils import create_count_table, read_in_txt
 
 
 def annotate_sample_data_amrfinderplus(

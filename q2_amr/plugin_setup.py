@@ -1362,3 +1362,4 @@ plugin.register_formats(
 )
 
 importlib.import_module("q2_amr.card.types._transformer")
+importlib.import_module("q2_amr.amrfinderplus.types._transformer")

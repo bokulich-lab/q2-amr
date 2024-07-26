@@ -8,6 +8,9 @@
 import os
 import tempfile
 
+import pandas as pd
+import qiime2
+from pandas._testing import assert_frame_equal
 from qiime2.core.exceptions import ValidationError
 from qiime2.plugin.testing import TestPluginBase
 
@@ -16,6 +19,7 @@ from q2_amr.amrfinderplus.types._format import (
     AMRFinderPlusAnnotationsDirFmt,
     AMRFinderPlusDatabaseDirFmt,
 )
+from q2_amr.amrfinderplus.types._transformer import _transfomer_helper
 
 
 class TestAMRFinderPlusTypesAndFormats(TestPluginBase):
@@ -25,19 +29,19 @@ class TestAMRFinderPlusTypesAndFormats(TestPluginBase):
         format = AMRFinderPlusDatabaseDirFmt(self.get_data_path("database"), mode="r")
         format.validate()
 
-    def test_amrfinderplus_annotation_format_validate_positive(self):
+    def test_amrfinderplus_annotation_format_validate_positive_annotation(self):
         filepath = self.get_data_path(
-            "annotation/no_coordinates/"
+            "annotations_sample_data_mags/sample2/"
             "aa447c99-ecd9-4c4a-a53b-4df6999815dd_amr_annotations.tsv"
         )
 
         format = AMRFinderPlusAnnotationFormat(filepath, mode="r")
         format.validate()
 
-    def test_amrfinderplus_annotation_format_validate_positive_coordinates(self):
+    def test_amrfinderplus_annotation_format_validate_positive_mutation(self):
         filepath = self.get_data_path(
-            "annotation/coordinates/e026af61-d911-4de3-a957-7e8bf837f30d"
-            "_amr_annotations.tsv"
+            "mutations_sample_data_mags/sample1/"
+            "e026af61-d911-4de3-a957-7e8bf837f30d_amr_all_mutations.tsv"
         )
         format = AMRFinderPlusAnnotationFormat(filepath, mode="r")
         format.validate()
@@ -116,3 +120,47 @@ class TestAMRFinderPlusTypesAndFormats(TestPluginBase):
         fmt = AMRFinderPlusAnnotationsDirFmt()
         path = fmt.annotations_path_maker(name="annotations", id="id")
         self.assertEqual(str(path), os.path.join(str(fmt), "id_amr_annotations.tsv"))
+
+
+class TestAMRFinderPlusTransformers(TestPluginBase):
+    package = "q2_amr.amrfinderplus.types.tests"
+
+    def test_annotations_feature_data_mags_transformer_helper(self):
+        self._test_helper("annotations_feature_data_mags", "feature_data.tsv")
+
+    def test_annotations_sample_data_contigs_transformer_helper(self):
+        self._test_helper("annotations_sample_data_contigs", "sample_data_contigs.tsv")
+
+    def test_annotations_sample_data_mags_transformer_helper(self):
+        self._test_helper("annotations_sample_data_mags", "sample_data_mags.tsv")
+
+    def test_mutations_feature_data_mags_transformer_helper(self):
+        self._test_helper("mutations_feature_data_mags", "feature_data.tsv")
+
+    def test_mutations_sample_data_contigs_transformer_helper(self):
+        self._test_helper("mutations_sample_data_contigs", "sample_data_contigs.tsv")
+
+    def test_mutations_sample_data_mags_transformer_helper(self):
+        self._test_helper("mutations_sample_data_mags", "sample_data_mags.tsv")
+
+    def _test_helper(self, data, table_name):
+        df_expected = pd.read_csv(
+            self.get_data_path(f"metadata_tables/{table_name}"),
+            sep="\t",
+        )
+        df_expected.index = df_expected.index.astype(str)
+        df_expected.index.name = "id"
+        df_obs = _transfomer_helper(self.get_data_path(data))
+        assert_frame_equal(df_expected, df_obs)
+
+    def test_annotations_sample_data_mags_to_Metadata(self):
+        transformer = self.get_transformer(
+            AMRFinderPlusAnnotationsDirFmt, qiime2.Metadata
+        )
+        fmt = AMRFinderPlusAnnotationsDirFmt(
+            self.get_data_path("annotations_sample_data_mags"), "r"
+        )
+
+        metadata_obt = transformer(fmt)
+
+        self.assertIsInstance(metadata_obt, qiime2.Metadata)
