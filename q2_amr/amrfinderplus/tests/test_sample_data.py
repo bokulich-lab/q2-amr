@@ -8,36 +8,39 @@ from q2_amr.amrfinderplus.sample_data import annotate_sample_data_amrfinderplus
 from q2_amr.amrfinderplus.types import AMRFinderPlusDatabaseDirFmt
 
 
+def mock_run_amrfinderplus_n(
+    working_dir,
+    amrfinderplus_db,
+    dna_sequences,
+    protein_sequences,
+    gff,
+    organism,
+    plus,
+    report_all_equal,
+    ident_min,
+    curated_ident,
+    coverage_min,
+    translation_table,
+    annotation_format,
+    report_common,
+    gpipe_org,
+    threads,
+):
+    with open(os.path.join(working_dir, "amr_annotations.tsv"), "w"):
+        pass
+    if organism:
+        with open(os.path.join(working_dir, "amr_all_mutations.tsv"), "w"):
+            pass
+    if dna_sequences:
+        with open(os.path.join(working_dir, "amr_genes.fasta"), "w"):
+            pass
+    if protein_sequences:
+        with open(os.path.join(working_dir, "amr_proteins.fasta"), "w"):
+            pass
+
+
 class TestAnnotateSampleDataAMRFinderPlus(TestPluginBase):
     package = "q2_amr.amrfinderplus.tests"
-
-    def mock_run_amrfinderplus_n(
-        self,
-        working_dir,
-        amrfinderplus_db,
-        dna_sequences,
-        protein_sequences,
-        gff,
-        organism,
-        plus,
-        report_all_equal,
-        ident_min,
-        curated_ident,
-        coverage_min,
-        translation_table,
-        annotation_format,
-        report_common,
-        gpipe_org,
-        threads,
-    ):
-        with open(os.path.join(working_dir, "amr_annotations.tsv"), "w"):
-            pass
-        if organism:
-            with open(os.path.join(working_dir, "amr_all_mutations.tsv"), "w"):
-                pass
-        if dna_sequences:
-            with open(os.path.join(working_dir, "amr_genes.fasta"), "w"):
-                pass
 
     files_contigs = [
         "amr_annotations.tsv",
@@ -83,7 +86,7 @@ class TestAnnotateSampleDataAMRFinderPlus(TestPluginBase):
         mock_read_in_txt = MagicMock()
         with patch(
             "q2_amr.amrfinderplus.sample_data.run_amrfinderplus_n",
-            side_effect=self.mock_run_amrfinderplus_n,
+            side_effect=mock_run_amrfinderplus_n,
         ), patch(
             "q2_amr.amrfinderplus.sample_data.read_in_txt", mock_read_in_txt
         ), patch(
