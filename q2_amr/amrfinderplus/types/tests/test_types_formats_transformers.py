@@ -122,44 +122,30 @@ class TestAMRFinderPlusTypesAndFormats(TestPluginBase):
 class TestAMRFinderPlusTransformers(TestPluginBase):
     package = "q2_amr.amrfinderplus.types.tests"
 
-    def test_sample_data_mags_amrfinderplus_annotations_to_Metadata_transformer(self):
-        transformer = self.get_transformer(
-            AMRFinderPlusAnnotationFormat, qiime2.Metadata
-        )
-        annotations = AMRFinderPlusAnnotationFormat(
-            self.get_data_path("annotation"), "r"
-        )
-        metadata_obt = transformer(annotations)
-        self.assertIsInstance(metadata_obt, qiime2.Metadata)
+    def test_annotations_feature_data_mags_to_Metadata_transformer(self):
+        self._test_helper("annotations_feature_data_mags")
 
-    def test_sample_data_contigs_amrfinderplus_annotations_to_Metadata_transformer(
-        self,
-    ):
-        transformer = self.get_transformer(
-            AMRFinderPlusAnnotationFormat, qiime2.Metadata
-        )
-        annotations = AMRFinderPlusAnnotationFormat(
-            self.get_data_path("annotation"), "r"
-        )
-        metadata_obt = transformer(annotations)
-        self.assertIsInstance(metadata_obt, qiime2.Metadata)
+    def test_annotations_sample_data_contigs_to_Metadata_transformer(self):
+        self._test_helper("annotations_sample_data_contigs")
 
-    def test_sample_data_mags_amrfinderplus_annotations_to_Metadata2_transformer(self):
-        transformer = self.get_transformer(
-            AMRFinderPlusAnnotationFormat, qiime2.Metadata
-        )
-        annotations = AMRFinderPlusAnnotationFormat(
-            self.get_data_path("annotation"), "r"
-        )
-        metadata_obt = transformer(annotations)
-        self.assertIsInstance(metadata_obt, qiime2.Metadata)
+    def test_annotations_sample_data_mags_to_Metadata_transformer(self):
+        self._test_helper("annotations_sample_data_mags")
 
-    def test_helper(self):
+    def test_mutations_feature_data_mags_to_Metadata_transformer(self):
+        self._test_helper("mutations_feature_data_mags")
+
+    def test_mutations_sample_data_contigs_to_Metadata_transformer(self):
+        self._test_helper("mutations_sample_data_contigs")
+
+    def test_mutations_sample_data_mags_to_Metadata_transformer(self):
+        self._test_helper("mutations_sample_data_mags")
+
+    def _test_helper(self, data):
         transformer = self.get_transformer(
-            AMRFinderPlusAnnotationFormat, qiime2.Metadata
+            AMRFinderPlusAnnotationsDirFmt, qiime2.Metadata
         )
-        annotations = AMRFinderPlusAnnotationFormat(
-            self.get_data_path("annotation"), "r"
-        )
-        metadata_obt = transformer(annotations)
+        fmt = AMRFinderPlusAnnotationsDirFmt(self.get_data_path(data), "r")
+
+        metadata_obt = transformer(fmt)
+
         self.assertIsInstance(metadata_obt, qiime2.Metadata)
