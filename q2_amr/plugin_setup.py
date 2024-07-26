@@ -1244,7 +1244,7 @@ plugin.methods.register_function(
         "translation_table": "Translation table used for BLASTX.",
         "report_common": "Report proteins common to a taxonomy group.",
         "gpipe_org": "Use Pathogen Detection taxgroup names as arguments to the "
-        "organism option",
+        "organism option.",
         "threads": "The number of threads to use for processing. AMRFinderPlus "
         "defaults to 4 on hosts with >= 4 cores. Setting this number higher"
         " than the number of cores on the running host may cause blastp to "
