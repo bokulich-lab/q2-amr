@@ -8,6 +8,7 @@
 import os
 import tempfile
 
+import qiime2
 from qiime2.core.exceptions import ValidationError
 from qiime2.plugin.testing import TestPluginBase
 
@@ -116,3 +117,49 @@ class TestAMRFinderPlusTypesAndFormats(TestPluginBase):
         fmt = AMRFinderPlusAnnotationsDirFmt()
         path = fmt.annotations_path_maker(name="annotations", id="id")
         self.assertEqual(str(path), os.path.join(str(fmt), "id_amr_annotations.tsv"))
+
+
+class TestAMRFinderPlusTransformers(TestPluginBase):
+    package = "q2_amr.amrfinderplus.types.tests"
+
+    def test_sample_data_mags_amrfinderplus_annotations_to_Metadata_transformer(self):
+        transformer = self.get_transformer(
+            AMRFinderPlusAnnotationFormat, qiime2.Metadata
+        )
+        annotations = AMRFinderPlusAnnotationFormat(
+            self.get_data_path("annotation"), "r"
+        )
+        metadata_obt = transformer(annotations)
+        self.assertIsInstance(metadata_obt, qiime2.Metadata)
+
+    def test_sample_data_contigs_amrfinderplus_annotations_to_Metadata_transformer(
+        self,
+    ):
+        transformer = self.get_transformer(
+            AMRFinderPlusAnnotationFormat, qiime2.Metadata
+        )
+        annotations = AMRFinderPlusAnnotationFormat(
+            self.get_data_path("annotation"), "r"
+        )
+        metadata_obt = transformer(annotations)
+        self.assertIsInstance(metadata_obt, qiime2.Metadata)
+
+    def test_sample_data_mags_amrfinderplus_annotations_to_Metadata2_transformer(self):
+        transformer = self.get_transformer(
+            AMRFinderPlusAnnotationFormat, qiime2.Metadata
+        )
+        annotations = AMRFinderPlusAnnotationFormat(
+            self.get_data_path("annotation"), "r"
+        )
+        metadata_obt = transformer(annotations)
+        self.assertIsInstance(metadata_obt, qiime2.Metadata)
+
+    def test_helper(self):
+        transformer = self.get_transformer(
+            AMRFinderPlusAnnotationFormat, qiime2.Metadata
+        )
+        annotations = AMRFinderPlusAnnotationFormat(
+            self.get_data_path("annotation"), "r"
+        )
+        metadata_obt = transformer(annotations)
+        self.assertIsInstance(metadata_obt, qiime2.Metadata)
