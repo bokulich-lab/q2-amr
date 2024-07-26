@@ -29,19 +29,19 @@ class TestAMRFinderPlusTypesAndFormats(TestPluginBase):
         format = AMRFinderPlusDatabaseDirFmt(self.get_data_path("database"), mode="r")
         format.validate()
 
-    def test_amrfinderplus_annotation_format_validate_positive(self):
+    def test_amrfinderplus_annotation_format_validate_positive_annotation(self):
         filepath = self.get_data_path(
-            "annotation/no_coordinates/"
+            "annotations_sample_data_mags/sample2/"
             "aa447c99-ecd9-4c4a-a53b-4df6999815dd_amr_annotations.tsv"
         )
 
         format = AMRFinderPlusAnnotationFormat(filepath, mode="r")
         format.validate()
 
-    def test_amrfinderplus_annotation_format_validate_positive_coordinates(self):
+    def test_amrfinderplus_annotation_format_validate_positive_mutation(self):
         filepath = self.get_data_path(
-            "annotation/coordinates/e026af61-d911-4de3-a957-7e8bf837f30d"
-            "_amr_annotations.tsv"
+            "mutations_sample_data_mags/sample1/"
+            "e026af61-d911-4de3-a957-7e8bf837f30d_amr_all_mutations.tsv"
         )
         format = AMRFinderPlusAnnotationFormat(filepath, mode="r")
         format.validate()
