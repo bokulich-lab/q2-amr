@@ -1158,6 +1158,35 @@ organisms_gpipe = [
     "Vibrio_vulnificus",
 ]
 
+organisms_gpipe = [
+    "Acinetobacter",
+    "Burkholderia_cepacia_complex",
+    "Burkholderia_pseudomallei",
+    "Campylobacter",
+    "Citrobacter_freundii",
+    "Clostridioides_difficile",
+    "Enterobacter_asburiae",
+    "Enterobacter_cloacae",
+    "Enterococcus_faecalis",
+    "Enterococcus_faecium",
+    "Escherichia_coli_Shigella",
+    "Klebsiella_oxytoca",
+    "Klebsiella",
+    "Neisseria_gonorrhoeae",
+    "Neisseria_meningitidis",
+    "Pseudomonas_aeruginosa",
+    "Salmonella",
+    "Serratia",
+    "Staphylococcus_aureus",
+    "Staphylococcus_pseudintermedius",
+    "Streptococcus_agalactiae",
+    "Streptococcus_pneumoniae",
+    "Streptococcus_pyogenes",
+    "Vibrio_cholerae",
+    "Vibrio_parahaemolyticus",
+    "Vibrio_vulnificus",
+]
+
 translation_tables = [
     "1",
     "2",
