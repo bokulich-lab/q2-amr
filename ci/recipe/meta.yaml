@@ -1,24 +1,23 @@
-{% set data = load_setup_py_data() %}
-{% set version = data.get('version') or 'placehold' %}
-
 package:
   name: q2-amr
-  version: {{ version }}
+  version: {{ PLUGIN_VERSION }}
 
 source:
   path: ../..
 
 build:
+  script-env:
+    - PLUGIN_VERSION
   script: make install
 
 requirements:
   host:
-    - python=3.8.*
+    - python {{ python }}
     - setuptools
 
   run:
     - ncbi-amrfinderplus
-    - python=3.8.*
+    - python {{ python }}
     - qiime2 {{ qiime2_epoch }}.*
     - q2-demux {{ qiime2_epoch }}.*
     - q2-feature-table {{ qiime2_epoch }}.*
