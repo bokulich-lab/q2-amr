@@ -30,7 +30,7 @@ class TestAnnotateSampleDataAMRFinderPlus(TestPluginBase):
         with open(os.path.join(working_dir, "amr_annotations.tsv"), "w"):
             pass
         if organism:
-            with open(os.path.join(working_dir, "amr_all_mutations.tsv"), "w"):
+            with open(os.path.join(working_dir, "amr_mutations.tsv"), "w"):
                 pass
         if dna_sequences:
             with open(os.path.join(working_dir, "amr_genes.fasta"), "w"):
@@ -38,13 +38,13 @@ class TestAnnotateSampleDataAMRFinderPlus(TestPluginBase):
 
     files_contigs = [
         "amr_annotations.tsv",
-        "amr_all_mutations.tsv",
+        "amr_mutations.tsv",
         "sample1_amr_genes.fasta",
     ]
 
     files_mags = [
         "mag1_amr_annotations.tsv",
-        "mag1_amr_all_mutations.tsv",
+        "mag1_amr_mutations.tsv",
         "mag1_amr_genes.fasta",
     ]
 
