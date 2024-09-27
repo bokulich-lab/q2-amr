@@ -28,12 +28,6 @@ from qiime2.core.type import (
 from qiime2.plugin import Citations, Plugin
 
 from q2_amr import __version__
-from q2_amr.amrfinderplus.types._format import (
-    AMRFinderPlusDatabaseDirFmt,
-    BinaryFormat,
-    TextFormat,
-)
-from q2_amr.amrfinderplus.types._type import AMRFinderPlusDatabase
 from q2_amr.card.database import fetch_card_db
 from q2_amr.card.heatmap import heatmap
 from q2_amr.card.kmer import (
@@ -56,14 +50,14 @@ from q2_amr.card.partition import (
     partition_reads_gene_annotations,
 )
 from q2_amr.card.reads import _annotate_reads_card, annotate_reads_card
-from q2_amr.card.types import (
+from q2_amr.types import (
     CARDAnnotationJSONFormat,
     CARDAnnotationTXTFormat,
     CARDDatabase,
     CARDDatabaseDirectoryFormat,
     CARDDatabaseFormat,
 )
-from q2_amr.card.types._format import (
+from q2_amr.types._format import (
     CARDAlleleAnnotationDirectoryFormat,
     CARDAlleleAnnotationFormat,
     CARDAnnotationDirectoryFormat,
@@ -84,7 +78,7 @@ from q2_amr.card.types._format import (
     CARDWildcardIndexFormat,
     GapDNAFASTAFormat,
 )
-from q2_amr.card.types._type import (
+from q2_amr.types._type import (
     CARDAlleleAnnotation,
     CARDAnnotation,
     CARDGeneAnnotation,
@@ -1083,7 +1077,6 @@ plugin.register_semantic_types(
     CARDReadsGeneKmerAnalysis,
     CARDReadsAlleleKmerAnalysis,
     CARDMAGsKmerAnalysis,
-    AMRFinderPlusDatabase,
 )
 
 plugin.register_semantic_type_to_format(
@@ -1114,10 +1107,6 @@ plugin.register_semantic_type_to_format(
     SampleData[CARDMAGsKmerAnalysis],
     artifact_format=CARDMAGsKmerAnalysisDirectoryFormat,
 )
-plugin.register_semantic_type_to_format(
-    AMRFinderPlusDatabase,
-    artifact_format=AMRFinderPlusDatabaseDirFmt,
-)
 plugin.register_formats(
     CARDKmerDatabaseDirectoryFormat,
     CARDKmerJSONFormat,
@@ -1142,9 +1131,6 @@ plugin.register_formats(
     CARDReadsKmerAnalysisJSONFormat,
     CARDReadsGeneKmerAnalysisDirectoryFormat,
     CARDReadsAlleleKmerAnalysisDirectoryFormat,
-    AMRFinderPlusDatabaseDirFmt,
-    TextFormat,
-    BinaryFormat,
 )
 
-importlib.import_module("q2_amr.card.types._transformer")
+importlib.import_module("q2_amr.types._transformer")

@@ -15,7 +15,7 @@ from q2_amr.card.kmer import (
     kmer_query_reads_card,
     run_rgi_kmer_build,
 )
-from q2_amr.card.types import (
+from q2_amr.types import (
     CARDAlleleAnnotationDirectoryFormat,
     CARDAnnotationDirectoryFormat,
     CARDDatabaseDirectoryFormat,

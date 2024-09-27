@@ -8,8 +8,8 @@ from distutils.dir_util import copy_tree
 import pkg_resources
 import q2templates
 
-from q2_amr.card.types import CARDAnnotationDirectoryFormat
 from q2_amr.card.utils import run_command
+from q2_amr.types import CARDAnnotationDirectoryFormat
 
 
 def heatmap(

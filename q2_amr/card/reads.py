@@ -13,12 +13,12 @@ from q2_types.per_sample_sequences import (
 )
 from q2_types.sample_data import SampleData
 
-from q2_amr.card.types import (
+from q2_amr.card.utils import create_count_table, load_card_db, read_in_txt, run_command
+from q2_amr.types import (
     CARDAlleleAnnotationDirectoryFormat,
     CARDDatabaseDirectoryFormat,
     CARDGeneAnnotationDirectoryFormat,
 )
-from q2_amr.card.utils import create_count_table, load_card_db, read_in_txt, run_command
 
 
 def annotate_reads_card(
