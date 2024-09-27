@@ -151,7 +151,6 @@ class TestAnnotateReadsCARD(TestPluginBase):
             samp_bin_name="sample1/bin1",
             exp=self.mag_count_df,
             data_type="mags",
-            colname="Best_Hit_ARO",
         )
 
     def test_read_in_txt_reads_allele(self):
@@ -161,7 +160,7 @@ class TestAnnotateReadsCARD(TestPluginBase):
             samp_bin_name="sample1",
             exp=self.allele_count_df,
             data_type="reads",
-            colname="Reference Sequence",
+            map_type="allele",
         )
 
     def test_read_in_txt_reads_gene(self):
@@ -171,13 +170,15 @@ class TestAnnotateReadsCARD(TestPluginBase):
             samp_bin_name="sample1",
             exp=self.gene_count_df,
             data_type="reads",
-            colname="ARO Term",
+            map_type="gene",
         )
 
-    def read_in_txt_test_body(self, filename, samp_bin_name, exp, data_type, colname):
+    def read_in_txt_test_body(
+        self, filename, samp_bin_name, exp, data_type, map_type=None
+    ):
         # Create expected and observed count dataframes and compare them
         obs = read_in_txt(
-            self.get_data_path(filename), samp_bin_name, data_type, colname
+            self.get_data_path(filename), samp_bin_name, data_type, map_type
         )
         pd.testing.assert_frame_equal(exp, obs)
 

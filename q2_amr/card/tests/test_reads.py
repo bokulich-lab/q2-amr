@@ -119,12 +119,10 @@ class TestAnnotateReadsCARD(TestPluginBase):
                     path=f"{tmp_dir}/{samp}/output.{map_type}_mapping_data.txt",
                     samp_bin_name=samp,
                     data_type="reads",
-                    colname=colname,
+                    map_type=map_type,
                 )
                 for samp in ["sample1", "sample2"]
-                for map_type, colname in zip(
-                    ["allele", "gene"], ["Reference Sequence", "ARO Term"]
-                )
+                for map_type in ["allele", "gene"]
             ]
 
             # Expected call objects for mock_create_count_table
