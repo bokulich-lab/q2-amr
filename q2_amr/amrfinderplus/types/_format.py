@@ -33,7 +33,6 @@ class AMRFinderPlusDatabaseDirFmt(model.DirectoryFormat):
     fam = model.File("fam.tab", format=TextFormat)
     taxgroup = model.File("taxgroup.tab", format=TextFormat)
     version = model.File("version.txt", format=TextFormat)
-    db_fmt_version = model.File("database_format_version.txt", format=TextFormat)
     amr_dna = model.FileCollection(
         r"^AMR_DNA-[a-zA-Z_]+$", format=MixedCaseDNAFASTAFormat
     )
