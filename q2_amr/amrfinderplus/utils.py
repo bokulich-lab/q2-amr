@@ -16,17 +16,8 @@ def run_amrfinderplus_n(
     curated_ident,
     coverage_min,
     translation_table,
-    annotation_format,
-    report_common,
-    gpipe_org,
     threads,
 ):
-    # Check for unallowed parameter combinations
-    if report_common and (not plus or not organism):
-        raise ValueError("--p-report-common requires --p-plus and --p-organism")
-    if gpipe_org and not organism:
-        raise ValueError("--p-gpipe_org requires --p-organism")
-
     cmd = [
         "amrfinder",
         "--database",
@@ -82,13 +73,6 @@ def run_amrfinderplus_n(
         cmd.extend(["--coverage_min", str(coverage_min)])
     if translation_table:
         cmd.extend(["--translation_table", str(translation_table)])
-    if annotation_format:
-        cmd.extend(["--annotation_format", str(annotation_format)])
-    if report_common:
-        cmd.append("--report_common")
-    if gpipe_org:
-        cmd.append("--gpipe_org")
-
     try:
         run_command(cmd, working_dir, verbose=True)
     except subprocess.CalledProcessError as e:

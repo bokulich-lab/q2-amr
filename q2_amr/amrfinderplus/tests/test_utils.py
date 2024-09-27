@@ -23,9 +23,6 @@ class TestAnnotateMagsCard(TestPluginBase):
             curated_ident=False,
             coverage_min=1,
             translation_table="11",
-            annotation_format="prodigal",
-            report_common=True,
-            gpipe_org=True,
             threads=4,
         )
         mock_run_command.assert_called_once_with(
@@ -60,10 +57,6 @@ class TestAnnotateMagsCard(TestPluginBase):
                 "1",
                 "--translation_table",
                 "11",
-                "--annotation_format",
-                "prodigal",
-                "--report_common",
-                "--gpipe_org",
             ],
             "path_dir",
             verbose=True,
@@ -84,9 +77,6 @@ class TestAnnotateMagsCard(TestPluginBase):
             curated_ident=True,
             coverage_min=None,
             translation_table=None,
-            annotation_format=None,
-            report_common=False,
-            gpipe_org=False,
             threads=None,
         )
         mock_run_command.assert_called_once_with(
@@ -103,49 +93,3 @@ class TestAnnotateMagsCard(TestPluginBase):
             "path_dir",
             verbose=True,
         )
-
-    @patch("q2_amr.amrfinderplus.utils.run_command")
-    def test_run_amrfinderplus_n_value_error_report_common(self, mock_run_command):
-        with self.assertRaisesRegex(
-            ValueError, "--p-report-common requires " "--p-plus and --p-organism"
-        ):
-            run_amrfinderplus_n(
-                working_dir="path_dir",
-                amrfinderplus_db="amrfinderplus_db",
-                dna_sequences=None,
-                protein_sequences=None,
-                gff=None,
-                organism=None,
-                plus=False,
-                report_all_equal=False,
-                ident_min=None,
-                curated_ident=True,
-                coverage_min=None,
-                translation_table=None,
-                annotation_format=None,
-                report_common=True,
-                gpipe_org=False,
-                threads=None,
-            )
-
-    @patch("q2_amr.amrfinderplus.utils.run_command")
-    def test_run_amrfinderplus_n_value_error_gpipe_org(self, mock_run_command):
-        with self.assertRaisesRegex(ValueError, "--p-gpipe_org requires --p-organism"):
-            run_amrfinderplus_n(
-                working_dir="path_dir",
-                amrfinderplus_db="amrfinderplus_db",
-                dna_sequences=None,
-                protein_sequences=None,
-                gff=None,
-                organism=None,
-                plus=False,
-                report_all_equal=False,
-                ident_min=None,
-                curated_ident=True,
-                coverage_min=None,
-                translation_table=None,
-                annotation_format=None,
-                report_common=False,
-                gpipe_org=True,
-                threads=None,
-            )
