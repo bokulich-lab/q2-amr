@@ -15,7 +15,7 @@ To install _q2-amr_, follow the steps described below.
 mamba create -yn q2-amr \
   -c https://packages.qiime2.org/qiime2/2024.2/shotgun/released/ \
   -c qiime2 -c conda-forge -c bioconda -c defaults \
-  qiime2 q2cli q2templates q2-types q2-feature-table q2-demux rgi tqdm ncbi-amrfinderplus
+  qiime2 q2cli q2templates q2-types q2-feature-table q2-demux rgi tqdm
 
 conda activate q2-amr
 
@@ -38,7 +38,7 @@ qiime info
 CONDA_SUBDIR=osx-64 mamba create -yn q2-amr \
   -c https://packages.qiime2.org/qiime2/2024.2/shotgun/released/ \
   -c qiime2 -c conda-forge -c bioconda -c defaults \
-  qiime2 q2cli q2templates q2-types q2-feature-table q2-demux rgi tqdm ncbi-amrfinderplus
+  qiime2 q2cli q2templates q2-types q2-feature-table q2-demux rgi tqdm
 
 conda activate q2-amr
 conda config --env --set subdir osx-64
@@ -57,20 +57,19 @@ qiime info
 
 ## Functionality
 This QIIME 2 plugin contains actions used to annotate short single/paired-end
-sequencing reads and MAGs with antimicrobial resistance genes. Currently, the tools [RGI](https://github.com/arpcard/rgi) and [AMRFinderPlus](https://github.com/ncbi/amr) are supported (for details on
-the implementation and usage, please refer to the documentation of the tools). Below you will
+sequencing reads and MAGs with antimicrobial resistance genes. Currently, the [CARD](https://card.mcmaster.ca) database is supported  (for details on
+the implementation and usage, please refer to the [rgi](https://github.com/arpcard/rgi) documentation). Below you will
 find an overview of actions available in the plugin.
 
-| Action                  | Description                                                                          | Underlying tool                              | Used function                        |
-|-------------------------|--------------------------------------------------------------------------------------|----------------------------------------------|--------------------------------------|
-| fetch-card-db           | Download and preprocess CARD and WildCARD data.                                      | [rgi](https://github.com/arpcard/rgi)        | card_annotation, wildcard_annotation |
-| annotate-mags-card      | Annotate MAGs with antimicrobial resistance gene information from CARD.              | [rgi](https://github.com/arpcard/rgi)        | main, load                           |
-| annotate-reads-card     | Annotate metagenomic reads with antimicrobial resistance gene information from CARD. | [rgi](https://github.com/arpcard/rgi)        | bwt, load                            |
-| heatmap                 | Create a heatmap from annotate-mags-card output files.                               | [rgi](https://github.com/arpcard/rgi)        | heatmap                              |
-| kmer-query-mags-card    | Pathogen-of-origin prediction for ARGs in MAGs.                                      | [rgi](https://github.com/arpcard/rgi)        | kmer-query, load                     |
-| kmer-query-reads-card   | Pathogen-of-origin prediction for ARGs in reads.                                     | [rgi](https://github.com/arpcard/rgi)        | kmer-query, load                     |
-| kmer-build-card         | Build a kmer database with a custom kmer length.                                     | [rgi](https://github.com/arpcard/rgi)        | kmer-build                           |
-| fetch-amrfinderplus-db  | Download AMRFinderPlus database.                                                     | [AMRFinderPlus](https://github.com/ncbi/amr) | -u                                   |
+| Action                | Description                                                                          | Underlying tool                       | Used function                        |
+|-----------------------|--------------------------------------------------------------------------------------|---------------------------------------|--------------------------------------|
+| fetch-card-db         | Download and preprocess CARD and WildCARD data.                                      | [rgi](https://github.com/arpcard/rgi) | card_annotation, wildcard_annotation |
+| annotate-mags-card    | Annotate MAGs with antimicrobial resistance gene information from CARD.              | [rgi](https://github.com/arpcard/rgi) | main, load                           |
+| annotate-reads-card   | Annotate metagenomic reads with antimicrobial resistance gene information from CARD. | [rgi](https://github.com/arpcard/rgi) | bwt, load                            |
+| heatmap               | Create a heatmap from annotate-mags-card output files.                               | [rgi](https://github.com/arpcard/rgi) | heatmap                              |
+| kmer-query-mags-card  | Pathogen-of-origin prediction for ARGs in MAGs.                                      | [rgi](https://github.com/arpcard/rgi) | kmer-query, load                     |
+| kmer-query-reads-card | Pathogen-of-origin prediction for ARGs in reads.                                     | [rgi](https://github.com/arpcard/rgi) | kmer-query, load                     |
+| kmer-build-card       | Build a kmer database with a custom kmer length.                                     | [rgi](https://github.com/arpcard/rgi) | kmer-build                           |
 
 ## Dev environment
 This repository follows the _black_ code style. To make the development slightly easier
