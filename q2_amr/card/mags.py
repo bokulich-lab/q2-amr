@@ -6,8 +6,8 @@ import tempfile
 import pandas as pd
 from q2_types.per_sample_sequences import MultiMAGSequencesDirFmt
 
-from q2_amr.card.types import CARDAnnotationDirectoryFormat, CARDDatabaseDirectoryFormat
 from q2_amr.card.utils import create_count_table, load_card_db, read_in_txt, run_command
+from q2_amr.types import CARDAnnotationDirectoryFormat, CARDDatabaseDirectoryFormat
 
 
 def annotate_mags_card(
@@ -46,10 +46,7 @@ def annotate_mags_card(
             shutil.move(f"{tmp}/output.json", json_path)
             samp_bin_name = os.path.join(samp_bin[0], samp_bin[1])
             frequency_df = read_in_txt(
-                path=txt_path,
-                samp_bin_name=samp_bin_name,
-                data_type="mags",
-                colname="Best_Hit_ARO",
+                path=txt_path, samp_bin_name=samp_bin_name, data_type="mags"
             )
             frequency_list.append(frequency_df)
         feature_table = create_count_table(df_list=frequency_list)

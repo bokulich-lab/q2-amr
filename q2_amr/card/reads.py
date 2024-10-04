@@ -13,12 +13,12 @@ from q2_types.per_sample_sequences import (
 )
 from q2_types.sample_data import SampleData
 
-from q2_amr.card.types import (
+from q2_amr.card.utils import create_count_table, load_card_db, read_in_txt, run_command
+from q2_amr.types import (
     CARDAlleleAnnotationDirectoryFormat,
     CARDDatabaseDirectoryFormat,
     CARDGeneAnnotationDirectoryFormat,
 )
-from q2_amr.card.utils import create_count_table, load_card_db, read_in_txt, run_command
 
 
 def annotate_reads_card(
@@ -144,12 +144,11 @@ def _annotate_reads_card(
                 path_txt = os.path.join(
                     samp_tmp_dir, f"output.{map_type}_mapping_data.txt"
                 )
-                colname = "Reference Sequence" if map_type == "allele" else "ARO Term"
                 frequency_table = read_in_txt(
                     path=path_txt,
                     samp_bin_name=samp,
                     data_type="reads",
-                    colname=colname,
+                    map_type=map_type,
                 )
                 table_list.append(frequency_table)
 

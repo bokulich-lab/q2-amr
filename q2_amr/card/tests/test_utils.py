@@ -6,10 +6,6 @@ from unittest.mock import call, patch
 import pandas as pd
 from qiime2.plugin.testing import TestPluginBase
 
-from q2_amr.card.types import (
-    CARDDatabaseDirectoryFormat,
-    CARDKmerDatabaseDirectoryFormat,
-)
 from q2_amr.card.utils import (
     colorify,
     copy_files,
@@ -17,6 +13,7 @@ from q2_amr.card.utils import (
     load_card_db,
     read_in_txt,
 )
+from q2_amr.types import CARDDatabaseDirectoryFormat, CARDKmerDatabaseDirectoryFormat
 
 
 class TestAnnotateReadsCARD(TestPluginBase):
@@ -151,7 +148,6 @@ class TestAnnotateReadsCARD(TestPluginBase):
             samp_bin_name="sample1/bin1",
             exp=self.mag_count_df,
             data_type="mags",
-            colname="Best_Hit_ARO",
         )
 
     def test_read_in_txt_reads_allele(self):
@@ -161,7 +157,7 @@ class TestAnnotateReadsCARD(TestPluginBase):
             samp_bin_name="sample1",
             exp=self.allele_count_df,
             data_type="reads",
-            colname="Reference Sequence",
+            map_type="allele",
         )
 
     def test_read_in_txt_reads_gene(self):
@@ -171,13 +167,15 @@ class TestAnnotateReadsCARD(TestPluginBase):
             samp_bin_name="sample1",
             exp=self.gene_count_df,
             data_type="reads",
-            colname="ARO Term",
+            map_type="gene",
         )
 
-    def read_in_txt_test_body(self, filename, samp_bin_name, exp, data_type, colname):
+    def read_in_txt_test_body(
+        self, filename, samp_bin_name, exp, data_type, map_type=None
+    ):
         # Create expected and observed count dataframes and compare them
         obs = read_in_txt(
-            self.get_data_path(filename), samp_bin_name, data_type, colname
+            self.get_data_path(filename), samp_bin_name, data_type, map_type
         )
         pd.testing.assert_frame_equal(exp, obs)
 

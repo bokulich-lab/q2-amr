@@ -7,11 +7,8 @@
 # ----------------------------------------------------------------------------
 import importlib
 
-from q2_types.feature_data import FeatureData
 from q2_types.feature_table import FeatureTable, Frequency
-from q2_types.genome_data import Genes, GenomeData
 from q2_types.per_sample_sequences import (
-    Contigs,
     MAGs,
     PairedEndSequencesWithQuality,
     SequencesWithQuality,
@@ -21,7 +18,6 @@ from qiime2.core.type import (
     Bool,
     Choices,
     Collection,
-    Float,
     Int,
     List,
     Properties,
@@ -32,19 +28,6 @@ from qiime2.core.type import (
 from qiime2.plugin import Citations, Plugin
 
 from q2_amr import __version__
-from q2_amr.amrfinderplus.database import fetch_amrfinderplus_db
-from q2_amr.amrfinderplus.sample_data import annotate_sample_data_amrfinderplus
-from q2_amr.amrfinderplus.types._format import (
-    AMRFinderPlusAnnotationFormat,
-    AMRFinderPlusAnnotationsDirFmt,
-    AMRFinderPlusDatabaseDirFmt,
-    BinaryFormat,
-    TextFormat,
-)
-from q2_amr.amrfinderplus.types._type import (
-    AMRFinderPlusAnnotations,
-    AMRFinderPlusDatabase,
-)
 from q2_amr.card.database import fetch_card_db
 from q2_amr.card.heatmap import heatmap
 from q2_amr.card.kmer import (
@@ -67,14 +50,14 @@ from q2_amr.card.partition import (
     partition_reads_gene_annotations,
 )
 from q2_amr.card.reads import _annotate_reads_card, annotate_reads_card
-from q2_amr.card.types import (
+from q2_amr.types import (
     CARDAnnotationJSONFormat,
     CARDAnnotationTXTFormat,
     CARDDatabase,
     CARDDatabaseDirectoryFormat,
     CARDDatabaseFormat,
 )
-from q2_amr.card.types._format import (
+from q2_amr.types._format import (
     CARDAlleleAnnotationDirectoryFormat,
     CARDAlleleAnnotationFormat,
     CARDAnnotationDirectoryFormat,
@@ -95,7 +78,7 @@ from q2_amr.card.types._format import (
     CARDWildcardIndexFormat,
     GapDNAFASTAFormat,
 )
-from q2_amr.card.types._type import (
+from q2_amr.types._type import (
     CARDAlleleAnnotation,
     CARDAnnotation,
     CARDGeneAnnotation,
@@ -1083,198 +1066,6 @@ plugin.methods.register_function(
     " size",
     citations=[citations["alcock_card_2023"]],
 )
-plugin.methods.register_function(
-    function=fetch_amrfinderplus_db,
-    inputs={},
-    parameters={},
-    outputs=[("amrfinderplus_db", AMRFinderPlusDatabase)],
-    input_descriptions={},
-    parameter_descriptions={},
-    output_descriptions={
-        "amrfinderplus_db": "AMRFinderPlus database.",
-    },
-    name="Download AMRFinderPlus database.",
-    description="Download the latest version of the AMRFinderPlus database.",
-    citations=[citations["feldgarden2021amrfinderplus"]],
-)
-
-organisms = [
-    "Acinetobacter_baumannii",
-    "Burkholderia_cepacia",
-    "Burkholderia_pseudomallei",
-    "Campylobacter",
-    "Citrobacter_freundii",
-    "Clostridioides_difficile",
-    "Enterobacter_asburiae",
-    "Enterobacter_cloacae",
-    "Enterococcus_faecalis",
-    "Enterococcus_faecium",
-    "Escherichia",
-    "Klebsiella_oxytoca",
-    "Klebsiella_pneumoniae",
-    "Neisseria_gonorrhoeae",
-    "Neisseria_meningitidis",
-    "Pseudomonas_aeruginosa",
-    "Salmonella",
-    "Serratia_marcescens",
-    "Staphylococcus_aureus",
-    "Staphylococcus_pseudintermedius",
-    "Streptococcus_agalactiae",
-    "Streptococcus_pneumoniae",
-    "Streptococcus_pyogenes",
-    "Vibrio_cholerae",
-    "Vibrio_parahaemolyticus",
-    "Vibrio_vulnificus",
-]
-
-organisms_gpipe = [
-    "Acinetobacter",
-    "Burkholderia_cepacia_complex",
-    "Burkholderia_pseudomallei",
-    "Campylobacter",
-    "Citrobacter_freundii",
-    "Clostridioides_difficile",
-    "Enterobacter_asburiae",
-    "Enterobacter_cloacae",
-    "Enterococcus_faecalis",
-    "Enterococcus_faecium",
-    "Escherichia_coli_Shigella",
-    "Klebsiella_oxytoca",
-    "Klebsiella",
-    "Neisseria_gonorrhoeae",
-    "Neisseria_meningitidis",
-    "Pseudomonas_aeruginosa",
-    "Salmonella",
-    "Serratia",
-    "Staphylococcus_aureus",
-    "Staphylococcus_pseudintermedius",
-    "Streptococcus_agalactiae",
-    "Streptococcus_pneumoniae",
-    "Streptococcus_pyogenes",
-    "Vibrio_cholerae",
-    "Vibrio_parahaemolyticus",
-    "Vibrio_vulnificus",
-]
-
-translation_tables = [
-    "1",
-    "2",
-    "3",
-    "4",
-    "5",
-    "6",
-    "9",
-    "10",
-    "11",
-    "12",
-    "13",
-    "14",
-    "15",
-    "16",
-    "21",
-    "22",
-    "23",
-    "24",
-    "25",
-    "26",
-    "27",
-    "28",
-    "29",
-    "30",
-    "31",
-    "33",
-]
-
-P_gpipe_org, P_organism, _ = TypeMap(
-    {
-        (Bool % Choices(True), Str % Choices(organisms_gpipe)): Int,
-        (Bool % Choices(False), Str % Choices(organisms)): Int,
-    }
-)
-
-plugin.methods.register_function(
-    function=annotate_sample_data_amrfinderplus,
-    inputs={
-        "sequences": SampleData[MAGs | Contigs],
-        "amrfinderplus_db": AMRFinderPlusDatabase,
-    },
-    parameters={
-        "organism": P_organism,
-        "plus": Bool,
-        "report_all_equal": Bool,
-        "ident_min": Float % Range(0, 1, inclusive_start=True, inclusive_end=True),
-        "curated_ident": Bool,
-        "coverage_min": Float % Range(0, 1, inclusive_start=True, inclusive_end=True),
-        "translation_table": Str % Choices(translation_tables),
-        "report_common": Bool,
-        "gpipe_org": P_gpipe_org,
-        "threads": Int % Range(0, None, inclusive_start=False),
-    },
-    outputs=[
-        ("amr_annotations", SampleData[AMRFinderPlusAnnotations]),
-        ("amr_all_mutations", SampleData[AMRFinderPlusAnnotations]),
-        ("amr_genes", GenomeData[Genes]),
-        ("feature_table", FeatureTable[Frequency]),
-    ],
-    input_descriptions={
-        "sequences": "MAGs or contigs to be annotated with AMRFinderPlus.",
-        "amrfinderplus_db": "AMRFinderPlus Database.",
-    },
-    parameter_descriptions={
-        "organism": "Taxon used for screening known resistance causing point mutations "
-        "and blacklisting of common, non-informative genes.",
-        "plus": "Provide results from 'Plus' genes such as virulence factors, "
-        "stress-response genes, etc.",
-        "report_all_equal": "Report all equally scoring BLAST and HMM matches. This "
-        "will report multiple lines for a single element if there "
-        "are multiple reference proteins that have the same score. "
-        "On those lines the fields Accession of closest sequence "
-        "and Name of closest sequence will be different showing "
-        "each of the database proteins that are equally close to "
-        "the query sequence.",
-        "ident_min": "Minimum identity for a blast-based hit (Methods BLAST or "
-        "PARTIAL). Setting this value to something other than -1 "
-        "will override curated similarity cutoffs. We only recommend "
-        "using this option if you have a specific reason.",
-        "curated_ident": "Use the curated threshold for a blast-based hit, if it "
-        "exists and 0.9 otherwise. This will overwrite the value specified with the "
-        "'ident_min' parameter",
-        "coverage_min": "Minimum proportion of reference gene covered for a "
-        "BLAST-based hit (Methods BLAST or PARTIAL).",
-        "translation_table": "Translation table used for BLASTX.",
-        "report_common": "Report proteins common to a taxonomy group.",
-        "gpipe_org": "Use Pathogen Detection taxgroup names as arguments to the "
-        "organism option.",
-        "threads": "The number of threads to use for processing. AMRFinderPlus "
-        "defaults to 4 on hosts with >= 4 cores. Setting this number higher"
-        " than the number of cores on the running host may cause blastp to "
-        "fail. Using more than 4 threads may speed up searches.",
-    },
-    output_descriptions={
-        "amr_annotations": "Annotated AMR genes and mutations.",
-        "amr_all_mutations": "Report of genotypes at all locations screened for point "
-        "mutations. These files allow you to distinguish between called "
-        "point mutations that were the sensitive variant and the point "
-        "mutations that could not be called because the sequence was not "
-        "found. This file will contain all detected variants from the "
-        "reference sequence, so it could be used as an initial screen for "
-        "novel variants. Note 'Gene symbols' for mutations not in the "
-        "database (identifiable by [UNKNOWN] in the Sequence name field) "
-        "have offsets that are relative to the start of the sequence "
-        "indicated in the field 'Accession of closest sequence' while "
-        "'Gene symbols' from known point-mutation sites have gene symbols "
-        "that match the Pathogen Detection Reference Gene Catalog "
-        "standardized nomenclature for point mutations.",
-        "amr_genes": "Sequences that were identified by AMRFinderPlus as AMR genes. "
-        "This will include the entire region that aligns to the references for "
-        "point mutations.",
-        "feature_table": "Presence/Absence table of ARGs in all samples.",
-    },
-    name="Annotate MAGs or contigs with AMRFinderPlus.",
-    description="Annotate sample data MAGs or contigs with antimicrobial resistance "
-    "genes with AMRFinderPlus.",
-    citations=[],
-)
 
 # Registrations
 plugin.register_semantic_types(
@@ -1286,8 +1077,6 @@ plugin.register_semantic_types(
     CARDReadsGeneKmerAnalysis,
     CARDReadsAlleleKmerAnalysis,
     CARDMAGsKmerAnalysis,
-    AMRFinderPlusDatabase,
-    AMRFinderPlusAnnotations,
 )
 
 plugin.register_semantic_type_to_format(
@@ -1318,18 +1107,6 @@ plugin.register_semantic_type_to_format(
     SampleData[CARDMAGsKmerAnalysis],
     artifact_format=CARDMAGsKmerAnalysisDirectoryFormat,
 )
-plugin.register_semantic_type_to_format(
-    AMRFinderPlusDatabase,
-    artifact_format=AMRFinderPlusDatabaseDirFmt,
-)
-plugin.register_semantic_type_to_format(
-    SampleData[AMRFinderPlusAnnotations],
-    artifact_format=AMRFinderPlusAnnotationsDirFmt,
-)
-plugin.register_semantic_type_to_format(
-    FeatureData[AMRFinderPlusAnnotations],
-    artifact_format=AMRFinderPlusAnnotationsDirFmt,
-)
 plugin.register_formats(
     CARDKmerDatabaseDirectoryFormat,
     CARDKmerJSONFormat,
@@ -1354,11 +1131,6 @@ plugin.register_formats(
     CARDReadsKmerAnalysisJSONFormat,
     CARDReadsGeneKmerAnalysisDirectoryFormat,
     CARDReadsAlleleKmerAnalysisDirectoryFormat,
-    AMRFinderPlusDatabaseDirFmt,
-    TextFormat,
-    BinaryFormat,
-    AMRFinderPlusAnnotationFormat,
-    AMRFinderPlusAnnotationsDirFmt,
 )
 
-importlib.import_module("q2_amr.card.types._transformer")
+importlib.import_module("q2_amr.types._transformer")

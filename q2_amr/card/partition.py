@@ -5,7 +5,8 @@ from typing import Union
 import numpy as np
 from qiime2.util import duplicate
 
-from q2_amr.card.types import (
+from q2_amr.card.utils import copy_files
+from q2_amr.types import (
     CARDAlleleAnnotationDirectoryFormat,
     CARDAnnotationDirectoryFormat,
     CARDGeneAnnotationDirectoryFormat,
@@ -13,7 +14,6 @@ from q2_amr.card.types import (
     CARDReadsAlleleKmerAnalysisDirectoryFormat,
     CARDReadsGeneKmerAnalysisDirectoryFormat,
 )
-from q2_amr.card.utils import copy_files
 
 
 def collate_mags_annotations(
